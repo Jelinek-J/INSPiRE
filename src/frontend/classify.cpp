@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-#define TESTING
-
 void help() {
   std::cout << "Help\n\n";
   std::cout << "-h\tPrint this message.\n\n";
@@ -18,18 +16,6 @@ void help() {
 }
 
 int main(int argc, const char** argv) {
-#ifdef TESTING
-  // Errors log for testing reasons
-  std::ofstream log("C:\\Inspire\\error-subgraphs.log");
-  argc = 4;
-  const char* args[] = {argv[0],
-    "C:\\Inspire\\test\\interface.tur",
-    "C:\\Inspire\\test\\mined.med",
-    "C:\\Inspire\\test\\mined"
-  };
-  argv = args;
-#endif // TESTING
-
   if ((argc < 6 && (argc < 4 || elemental::string::starts_with(argv[2], "-f"))) || ((argc % 2) != 0)) {
     if (argc > 1) {
       std::cerr << "Not enough arguments" << std::endl;
@@ -61,23 +47,14 @@ int main(int argc, const char** argv) {
   } catch (const elemental::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
-#ifdef TESTING
-    log << "ERROR: " << e.what() << std::endl;
-#endif // TESTING
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 2;
-#ifdef TESTING
-    log << "ERROR: " << e.what() << std::endl;
-#endif // TESTING
   } catch (...) {
     std::cerr << "UNKNOWN ERROR" << std::endl;
     help();
     return 3;
-#ifdef TESTING
-    log << "UNKNOWN ERROR" << std::endl;
-#endif // TESTING
   }
 
   return 0;

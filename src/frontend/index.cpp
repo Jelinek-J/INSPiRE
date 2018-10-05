@@ -1,79 +1,12 @@
 // inspire.cpp : Defines the entry point for the console application.
 //
 
-#include "../backend/pdb.h"
-#include "../backend/protein.h"
 #include "../backend/index.h"
+#include "../backend/pdb.h"
+#include "../backend/iterators.h"
 #include "../elemental/filesystem.h"
 #include "../elemental/string.h"
-
-#define TESTING
-
-namespace inspire {
-  namespace frontend {
-    // Class for parsing pdb files and index them
-    class Indexer {
-#ifdef TESTING
-      // Errors log for testing reasons
-      std::ofstream LOG;
-#endif // TESTING
-      // Object that ensures indexing proteins
-      backend::Indexer INDEX;
-      // Filters pdb files to skip uninportant informations
-      // NOTE: currently, no information is skipped
-      backend::BasicFilter FILTER;
-
-      public:
-      // Initialize indexer with output index location in 'file' and protein iterator 'it'
-      Indexer(std::string file, backend::ProteinIterator* it)
-#ifdef TESTING
-        : LOG("C:\\Inspire\\error.log"),
-#endif // TESTING
-        INDEX(file, it)
-      {
-
-      }
-
-      ~Indexer() {
-#ifdef TESTING
-        LOG.flush();
-        LOG.close();
-#endif // TESTING
-      }
-
-      // Load a protein from pdb 'file' and index it
-      void process(std::string file) {
-        if (elemental::string::ends_with(file, ".pdb")) {
-          try {
-            std::ifstream input;
-            input.open(file);
-            std::cout << file << "    ";
-            backend::Protein protein = backend::Pdb::parse_pdb(input, FILTER);
-            std::cout << "parsed    ";
-            INDEX.index(&protein);
-            std::cout << "indexed\r";
-          } catch (const elemental::exception::TitledException& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-#ifdef TESTING
-            LOG << file << "    ERROR: " << e.what() << std::endl;
-#endif // TESTING
-          } catch (const std::exception& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-#ifdef TESTING
-            LOG << file << "    ERROR: " << e.what() << std::endl;
-#endif // TESTING
-          } catch (...) {
-            std::cerr << "UNKNOWN ERROR" << std::endl;
-#ifdef TESTING
-            LOG << file << "    UNKNOWN ERROR" << std::endl;
-#endif // TESTING
-          }
-        }
-      }
-
-    };
-  }
-}
+#include <iostream>
 
 // Prints an information about this program
 static void help() {
@@ -94,12 +27,6 @@ static void help() {
 }
 
 int main(int argc, const char** argv) {
-#ifdef TESTING
-  argc = 3;
-  const char* arg[] = { argv[0], "C:\\Inspire\\test\\", "C:\\pdb\\test\\" };
-  argv = arg;
-#endif // TESTING
-
   if (argc < 3 && (argc < 4 || std::strlen(argv[2]) == 0 || argv[2][0] == '-')) {
     help();
     return 0;
@@ -124,23 +51,17 @@ int main(int argc, const char** argv) {
     it = new inspire::backend::FirstModelIterator();
     start = 2;
   }
-  inspire::frontend::Indexer indexer(argv[1], it);
+  inspire::backend::BasicFilter* filter = new inspire::backend::BasicFilter();
+
+  inspire::backend::Indexer indexer(argv[1], it, filter);
 
   for (size_t i = start; i < argc; i++) {
-    if (elemental::filesystem::is_directory(argv[i])) {
-      elemental::filesystem::RecursiveDirectoryFileIterator file_iterator(argv[i]);
-      if (file_iterator.has_file()) {
-        do {
-          indexer.process(file_iterator.filename());
-        } while (file_iterator.has_next());
-      } else {
-        std::cerr << "There is no file in the given directory." << std::endl;
-      }
-    } else {
-      indexer.process(argv[i]);
-    }
+    indexer.process(argv[i]);
   }
-  
+
+  delete filter;
+  delete it;
+
   return 0;
 }
 

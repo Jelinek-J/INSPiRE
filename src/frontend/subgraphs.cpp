@@ -1,8 +1,6 @@
 // subgraphs.cpp : Defines the entry point for the console application.
 //
 
-#define TESTING
-
 #include "../backend/subgraphs.h"
 
 void help() {
@@ -19,19 +17,6 @@ void help() {
 }
 
 int main(int argc, const char** argv) {
-#ifdef TESTING
-  // Errors log for testing reasons
-  std::ofstream log("C:\\Inspire\\error-subgraphs.log");
-  argc = 29;
-  const char* arg[] = {argv[0], "C:\\Inspire\\test\\residue.ind", "C:\\Inspire\\test\\features.tur", "C:\\Inspire\\test\\s-",
-    "-c", "0", "6", "12", "18",
-    "-d", "0", "6", "12", "18",
-    "-e", "5", "1", "2", "3",
-    "-e", "6", "1", "2", "3",
-    "-e", "7", "1", "2", "3"
-  };
-  argv = arg;
-#endif // TESTING
   if (argc < 5) {
     help();
     return 0;
@@ -79,30 +64,19 @@ int main(int argc, const char** argv) {
       return 11;
     }
 
-    inspire::backend::ProteinIterator* it = new inspire::backend::FirstModelIterator();
-    subgraphs.extract_subgraphs(it);
-    delete it;
+    subgraphs.extract_subgraphs();
   } catch (const elemental::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 1;
-#ifdef TESTING
-    log << "ERROR: " << e.what() << std::endl;
-#endif // TESTING
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 2;
-#ifdef TESTING
-    log << "ERROR: " << e.what() << std::endl;
-#endif // TESTING
   } catch (...) {
     std::cerr << "UNKNOWN ERROR" << std::endl;
     help();
     return 3;
-#ifdef TESTING
-    log << "UNKNOWN ERROR" << std::endl;
-#endif // TESTING
   }
 
   return 0;
