@@ -6,12 +6,12 @@
 namespace elemental {
   namespace string {
     // Check, whether string 'str' starts with 'prefix'
-    bool starts_with(const std::string &str, const std::string &prefix) {
+    inline bool starts_with(const std::string &str, const std::string &prefix) {
       return !str.compare(0, prefix.size(), prefix);
     }
 
     // Check, whether string 'str' contains 'infix' at position 'at'
-    bool contains_at(const std::string &str, const std::string &infix, const size_t &at) {
+    inline bool contains_at(const std::string &str, const std::string &infix, const size_t &at) {
       if (str.size() < at + infix.size()) {
         return false;
       }
@@ -19,15 +19,20 @@ namespace elemental {
     }
 
     // Check, whether string 'str' ends with 'suffix'
-    bool ends_with(const std::string &str, const std::string &suffix) {
+    inline bool ends_with(const std::string &str, const std::string &suffix) {
       if (str.size() < suffix.size()) {
         return false;
       }
       return !str.compare(str.size()-suffix.size(), str.npos, suffix);
     }
 
+    // Check, whether string 'str' ends with 'suffix'
+    inline bool ends_with(const std::string &str, const char &suffix) {
+      return !str.empty() && str.back() == suffix;
+    }
+
     // Remove spaces from both begin and end
-    std::string trim(const std::string &str) {
+    inline std::string trim(const std::string &str) {
       if (str.empty()) {
         return "";
       }
@@ -40,7 +45,7 @@ namespace elemental {
     }
 
     // Convert string to upper
-    std::string to_upper(std::string &str) {
+    inline std::string to_upper(std::string &str) {
       transform(str.begin(), str.end(), str.begin(), toupper);
       return str;
     }

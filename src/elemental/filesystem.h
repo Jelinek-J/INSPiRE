@@ -17,7 +17,7 @@ namespace elemental {
     // Checks, whether the path is a directory.
     // boost::filesystem::is_directory, feel free to override it if you wants to aviod using Boost library
     inline bool is_directory(std::string path) {
-      return boost::filesystem::is_directory(path);
+      return path.empty() || boost::filesystem::is_directory(path);
     }
 
     // Checks, whether the path is a regular file.
@@ -49,6 +49,34 @@ namespace elemental {
     // Check whether <path> is a portable file name
     inline bool is_portable_file(std::string name) {
       return boost::filesystem::portable_file_name(name);
+    }
+
+    // Generate unique file/directory name 
+    inline std::string unique_name() {
+      return boost::filesystem::unique_path().string();
+    }
+
+    // Check whether directory name ends with a directory separator and append it if not
+    inline std::string enclose_directory_name(std::string name) {
+      if (name.size() == 0 || name.back() == elemental::filesystem::directory_separator) {
+        return name;
+      }
+      return name + directory_separator;
+    }
+
+    // Copy file from one location to another one
+    inline void copy(std::string from, std::string to) {
+      boost::filesystem::copy(from, to);
+    }
+
+    // Move file from one location to another one
+    inline void move(std::string from, std::string to) {
+      boost::filesystem::rename(from, to);
+    }
+    
+    // Delete directory and all its content
+    inline void remove_recursively(std::string directory) {
+      boost::filesystem::remove_all(directory);
     }
 
     // Iterates through all files in a given directory and all its subdirectories
