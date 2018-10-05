@@ -35,13 +35,12 @@ namespace inspire {
       std::vector<std::string> HEADERS;
       public:
       QueryStream(std::string path, std::vector<std::string> &headers) : HEADERS(headers) {
-        if (path.empty()) {
-          path = ".";
-        }
-        if (path.size() > 0 && path.back() == elemental::filesystem::directory_separator) {
+        if (path.size() == 0 || path.back() == elemental::filesystem::directory_separator) {
           path += "query.fit";
+        } else if (elemental::filesystem::is_directory(path)) {
+          path += "/query.fit";
         } else {
-          if (!elemental::string::starts_with(path, ".fit")) {
+          if (!elemental::string::ends_with(path, ".fit")) {
             path += ".fit";
           }
         }

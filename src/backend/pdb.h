@@ -234,10 +234,13 @@ namespace inspire {
             std::stringstream buffer;
             size_t j = 41;
             do {
-              for (; j < lines[i].size() && lines[i][j] == ' '; ++j) { }
-              for (; j < lines[i].size() && lines[i][j] != ' '; j += 3) {
-                if (allowed_chains.count(lines[i][j])) {
-                  buffer << lines[i][j];
+              for (; j < lines[i].size(); ++j) {
+                if (((lines[i][j] >= 'A' && lines[i][j] <= 'Z') || (lines[i][j] >= 'a' && lines[i][j] <= 'z') || (lines[i][j] >= '0' && lines[i][j] <= '9'))) {
+                  if (allowed_chains.count(lines[i][j])) {
+                    buffer << lines[i][j];
+                  }
+                } else if (lines[i][j] != ' ' && lines[i][j] != ',' &&lines[i][j] != ';') {
+
                 }
               }
               ++i;
@@ -384,7 +387,7 @@ namespace inspire {
       //
       // TODO: Currently, there are parsed only aminoacids with ATOM/HETATM line, in the future, it will be better to use SEQRES for it.
       // However, if an aminoacid has no coordinates, it is totally unusefull for us. I.E. it should be coordinated with the validation part of processing.
-      static Protein parse_pdb(std::istream& input, BasicFilter filter) {
+      static Protein parse_pdb(std::istream& input, BasicFilter* filter) {
         Protein protein;
         std::pair<const int, Model>* model = nullptr;
         std::pair<const char, Chain>* chain = nullptr;
@@ -398,7 +401,7 @@ namespace inspire {
 
         // NOTE: input.eof() check is necessary for the case that the file does not ends with an empty line
         while (!input.eof() && std::getline(input, line) && !(elemental::string::starts_with(line, "END") && (line.size() == 3 || line[3] == ' '))) {
-          if (filter.keep(line)) {
+          if (filter->keep(line)) {
             if (elemental::string::starts_with(line, "HEADER")) {
               protein.ID_CODE = parse_id(line);
             } else if (elemental::string::starts_with(line, "COMPND")) {

@@ -174,42 +174,56 @@ namespace inspire {
 
 
       public:
+      void clear() {
+        for (auto count_it = COUNT.begin(); count_it != COUNT.end(); ++count_it) {
+          count_it->second.close();
+        }
+        COUNT.clear();
+        for (auto distance_it = DISTANCE.begin(); distance_it != DISTANCE.end(); ++distance_it) {
+          distance_it->second.close();
+        }
+        DISTANCE.clear();
+        for (auto edges_it = EDGES.begin(); edges_it != EDGES.end(); ++edges_it) {
+          for (auto edge_it = edges_it->second.begin(); edge_it != edges_it->second.end(); ++edge_it) {
+            edge_it->second.close();
+          }
+          edges_it->second.clear();
+        }
+        EDGES.clear();
+      }
+
       Subgraphs(const std::string index, const std::string coordinates, const std::string path) : INDEX(index), FEATURES(coordinates, CoordinateFeature(nullptr).title()), PATH(path) {
         if (!INDEX.reset()) {
           throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
       }
       ~Subgraphs() {
-        for (auto count_it = COUNT.begin(); count_it != COUNT.end(); ++count_it) {
-          count_it->second.close();
-        }
-        for (auto distance_it = DISTANCE.begin(); distance_it != DISTANCE.end(); ++distance_it) {
-          distance_it->second.close();
-        }
-        for (auto edges_it = EDGES.begin(); edges_it != EDGES.end(); ++edges_it) {
-          for (auto edge_it = edges_it->second.begin(); edge_it != edges_it->second.end(); ++edge_it) {
-            edge_it->second.close();
-          }
-        }
+        clear();
       }
 
-      void k_nearest(int k) {
-        if (!COUNT.insert({k, std::ofstream(PATH + "c" + std::to_string(k) + ".sup")}).second) {
+      std::string k_nearest(int k) {
+        std::string path = PATH + "c" + std::to_string(k) + ".sup";
+        if (!COUNT.insert({k, std::ofstream(path)}).second) {
           std::cerr << "Duplicit request to generate subgraphs with " << k << "-nearest neighbours" << std::endl;
         }
+        return path;
       }
 
-      void distance_limit(double d) {
-        if (!DISTANCE.insert({std::pow(d, 2), std::ofstream(PATH + "d" + std::to_string(d) + ".sup")}).second) {
+      std::string distance_limit(double d) {
+        std::string path = PATH + "d" + std::to_string(d) + ".sup";
+        if (!DISTANCE.insert({std::pow(d, 2), std::ofstream(path)}).second) {
           std::cerr << "Duplicit request to generate subgraphs from neighbours within " << d << " distance" << std::endl;
         }
+        return path;
       }
 
-      void edge_limit(double d, int e) {
+      std::string edge_limit(double d, int e) {
+        std::string path = PATH + "e" + std::to_string(d) + "_" + std::to_string(e) + ".sup";
         std::map<int, std::ofstream> &edges = EDGES[std::pow(d, 2)];
-        if (!edges.insert({e, std::ofstream(PATH + "e" + std::to_string(d) + "_" + std::to_string(e) + ".sup")}).second) {
+        if (!edges.insert({e, std::ofstream(path)}).second) {
           std::cerr << "Duplicit request to generate subgraphs from neighbours within " << e << " edges distance where edge is between residues with distance at most " << d << std::endl;
         }
+        return path;
       }
 
       bool empty() {
@@ -225,7 +239,7 @@ namespace inspire {
       }
 
       // TODO: Maybe it could be possible to reuse results from one chain to its transformations and thus save time if <fragmented> switcher is set
-      void extract_subgraphs(ProteinIterator* iterator) {
+      void extract_subgraphs() {
         std::string protein_id = INDEX.protein();
         std::string model_id = INDEX.model();
 

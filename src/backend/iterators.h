@@ -66,6 +66,177 @@ namespace inspire {
 
     // This iterator use only the first model, the first biomolecule, the first crystallographic transformation and the first alternative location
     // and iterates through biomolecule transformations, chains and aminoacids only
+    class ExplicitIterator : public ProteinIterator {
+      private:
+      Protein* PROTEIN;
+      std::map<char, Chain>::const_iterator CHAIN;
+      std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
+      std::map<std::string, Atom>::const_iterator ATOM;
+      std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
+
+      // Set chain iterator on the first valid chain id
+      // NOTE: Expects that there is at least one valid chain in each model
+      bool set_first_chain() {
+        CHAIN = PROTEIN->MODELS.begin()->second.CHAINS.begin();
+        return CHAIN != PROTEIN->MODELS.begin()->second.CHAINS.end();
+      }
+      // Set chain iterator on the next valid chain id
+      bool set_next_chain() {
+        return ++CHAIN != PROTEIN->MODELS.begin()->second.CHAINS.end();
+      }
+
+      // NOTE: CHAIN is not validate as that is validated in the set_(first|next)_chain method and thus it will be redundant
+      inline bool valid_chain() {
+        return true;
+      }
+      inline bool valid_aminoacid() {
+        return AMINOACID != CHAIN->second.AMINOACIDS.end();
+      }
+      inline bool valid_atom() {
+        return ATOM != AMINOACID->second.ATOMS.end();
+      }
+
+      public:
+      bool init(Protein* protein) override {
+        if (protein->BIOMOLECULES.empty()) {
+          throw elemental::exception::TitledException("Protein does contains no biomolecule definition");
+        }
+        if (protein->CRYSTALLOGRAPHIC_SYMMETRIES.empty()) {
+          throw elemental::exception::TitledException("Protein does contains no crystallographic transformation");
+        }
+        PROTEIN = protein;
+        return true;
+      };
+
+      bool resetChain() override {
+        return set_first_chain() && valid_chain();
+      }
+      bool resetAminoacid() override {
+        if (CHAIN == PROTEIN->MODELS.begin()->second.CHAINS.end()) {
+          return false;
+        }
+        AMINOACID = CHAIN->second.AMINOACIDS.begin();
+        // NOTE: Due to efficiency reasons, this test is used instead of valid_aminoacid() as it saves one lookup in std::map
+        return AMINOACID != CHAIN->second.AMINOACIDS.end();
+      }
+      bool resetAtom() override {
+        ATOM = AMINOACID->second.ATOMS.begin();
+        return valid_atom();
+      }
+
+      bool nextChain() override {
+        return set_next_chain() && valid_chain();
+      };
+      bool nextAminoacid() override {
+        ++AMINOACID;
+        return valid_aminoacid();
+      };
+      bool nextAtom() override {
+        ++ATOM;
+        return valid_atom();
+      };
+
+      bool setModel(std::string name) override {
+        return resetModel();
+      }
+      bool setChain(std::string name) override {
+        if (name.size() != 1 || !valid_chain()) {
+          return false;
+        }
+        CHAIN = PROTEIN->MODELS.begin()->second.CHAINS.find(name[0]);
+        return CHAIN != PROTEIN->MODELS.begin()->second.CHAINS.end();
+      }
+      bool setAminoacid(std::string name) override {
+        if (name.size() == 0) {
+          return false;
+        }
+        int id;
+        char alt_loc;
+        if (name[name.size()-1] < '0' || name[name.size()-1] > '9') {
+          id = std::stoi(name.substr(0, name.size()-1));
+          alt_loc = name[name.size()-1];
+        } else {
+          id = std::stoi(name);
+          alt_loc = ' ';
+        }
+        AMINOACID = CHAIN->second.AMINOACIDS.find({id, alt_loc});
+        return valid_aminoacid();
+      }
+      bool setAtom(std::string name) override {
+        ATOM = AMINOACID->second.ATOMS.find(name);
+        return valid_atom();
+      }
+
+      // Returns ""
+      std::string getModelName() override {
+        return "";
+      };
+      // Returns 'chainID'+'assemblyTransformationID'
+      std::string getChainName() override {
+        return std::string(1, CHAIN->first);
+      }
+      // Returns 'resSeq''iCode'
+      std::string getAminoacidName() override {
+        std::string ret = std::to_string(AMINOACID->first.first);
+        if (AMINOACID->first.second != ' ') {
+          ret.push_back(AMINOACID->first.second);
+        }
+        return ret;
+      };
+      // Returns 'name'
+      std::string getAtomName() override {
+        return ATOM->first;
+      };
+
+      // Set Characteristics with the highest occupancy.
+      // If multiple Characteristics have the same occupancy, the first one is used.
+      bool computeCharacteristics() override {
+        CHARACTERISTIC = ATOM->second.ALTERNATIVE_LOCATIONS.begin();
+        if (CHARACTERISTIC == ATOM->second.ALTERNATIVE_LOCATIONS.end()) {
+          return false;
+        }
+        for (auto it = ATOM->second.ALTERNATIVE_LOCATIONS.begin(); ++it != ATOM->second.ALTERNATIVE_LOCATIONS.end(); ) {
+          if (CHARACTERISTIC->second.OCCUPANCY < it->second.OCCUPANCY) {
+            CHARACTERISTIC = it;
+          }
+        }
+        return true;
+      }
+
+      std::string residue_name() override {
+        return AMINOACID->second.RESIDUE_NAME;
+      }
+      std::string atom_name() override {
+        return ATOM->first;
+      }
+      std::string element() override {
+        return ATOM->second.ELEMENT;
+      }
+      Coordinate coordinates() override {
+        return std::make_tuple(CHARACTERISTIC->second.X, CHARACTERISTIC->second.Y, CHARACTERISTIC->second.Z);
+      }
+      double x() override {
+        return CHARACTERISTIC->second.X;
+      }
+      double y() override {
+        return CHARACTERISTIC->second.Y;
+      }
+      double z() override {
+        return CHARACTERISTIC->second.Z;
+      }
+      float occupancy() override {
+        return CHARACTERISTIC->second.OCCUPANCY;
+      }
+      float temperature() override {
+        return CHARACTERISTIC->second.TEMPERATURE;
+      }
+      signed char charge() override {
+        return CHARACTERISTIC->second.CHARGE;
+      }
+    };
+
+    // This iterator use only the first model, the first biomolecule, the first crystallographic transformation and the first alternative location
+    // and iterates through biomolecule transformations, chains and aminoacids only
     class FirstModelIterator : public ProteinIterator {
       private:
       Protein* PROTEIN;
@@ -169,11 +340,20 @@ namespace inspire {
       bool setChain(std::string name) override {
         size_t plus = name.find('+');
         if (plus == name.npos) {
-          return resetChain();
+          BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
         } else {
           BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
         }
-        return valid_chain();
+        if (!valid_chain()) {
+          return false;
+        }
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
+        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
+          if (*CHAIN == name[0]) {
+            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
+          }
+        }
+        return false;
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -394,7 +574,8 @@ namespace inspire {
         size_t star = name.find('*');
         if (plus == name.npos) {
           if (star == name.npos) {
-            return resetModel();
+            BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
+            CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
           } else {
             BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
@@ -413,7 +594,16 @@ namespace inspire {
             }
           }
         }
-        return valid_chain();
+        if (!valid_chain()) {
+          return false;
+        }
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
+        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
+          if (*CHAIN == name[0]) {
+            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
+          }
+        }
+        return false;
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -671,11 +861,20 @@ namespace inspire {
       bool setChain(std::string name) override {
         size_t plus = name.find('+');
         if (plus == name.npos) {
-          return resetModel();
+          BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
         } else {
           BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
         }
-        return valid_chain();
+        if (!valid_chain()) {
+          return false;
+        }
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
+        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
+          if (*CHAIN == name[0]) {
+            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
+          }
+        }
+        return false;
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -943,7 +1142,8 @@ namespace inspire {
         size_t star = name.find('*');
         if (plus == name.npos) {
           if (star == name.npos) {
-            return resetModel();
+            BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
+            CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
           } else {
             BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
@@ -962,7 +1162,16 @@ namespace inspire {
             }
           }
         }
-        return valid_chain();
+        if (!valid_chain()) {
+          return false;
+        }
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
+        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
+          if (*CHAIN == name[0]) {
+            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
+          }
+        }
+        return false;
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {

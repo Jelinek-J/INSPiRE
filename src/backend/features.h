@@ -554,7 +554,7 @@ found:;
 
     class Features {
       private:
-      BasicFilter FILTER;
+      BasicFilter* FILTER;
       Index INDEX;
       ProteinIterator* ITERATOR;
       std::map<std::string, std::string> FILES;
@@ -570,7 +570,7 @@ found:;
       public:
       // index: path to a index file
       // iterator: how to interpret the index file
-      Features(std::string index, ProteinIterator* iterator) : INDEX(index), ITERATOR(iterator) { }
+      Features(std::string index, ProteinIterator* iterator, BasicFilter* filter) : INDEX(index), ITERATOR(iterator), FILTER(filter) { }
 
       // Add all pdb files the given path together with their protein identifiers in dictionary
       void index_pdb(const std::string &item) {
@@ -615,6 +615,7 @@ found:;
           if (protein.ID_CODE != INDEX.protein()) {
             std::ifstream pdb(FILES[INDEX.protein()]);
             protein = Pdb::parse_pdb(pdb, FILTER);
+            pdb.close();
             for (size_t i = 0; i < features.size(); i++) {
               features[i]->init(&protein);
             }

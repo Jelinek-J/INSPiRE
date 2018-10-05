@@ -1,6 +1,7 @@
 #pragma once
 
 #include "iterators.h"
+#include "pdb.h"
 #include "../elemental/filesystem.h"
 #include "../elemental/string.h"
 #include "protein.h"
@@ -69,12 +70,15 @@ namespace inspire {
       std::ofstream OUTPUT;
       // How to iterate proteins
       ProteinIterator* ITERATOR;
+      // What parts of proteins index
+      BasicFilter* FILTER;
 
       public:
       // Create an index file and initialize iterator
       // filepath: path where to create index file
       // iterator: how to iterate proteins and what model(s), biomolecule(s) and crystallographic transformation(s) to use
-      Indexer(std::string filepath, ProteinIterator* iterator) {
+      // filter: what parts of proteins are relevant
+      Indexer(std::string filepath, ProteinIterator* iterator, BasicFilter* filter) : ITERATOR(iterator), FILTER(filter) {
         if (filepath.empty() || filepath.back() == elemental::filesystem::directory_separator) {
           filepath += "residue.ind";
         } else if (!elemental::string::ends_with(filepath, ".ind")) {
@@ -87,7 +91,6 @@ namespace inspire {
           std::cerr << "'" << filepath << "' exists and will be overriden." << std::endl;
         }
         OUTPUT.open(filepath);
-        ITERATOR = iterator;
       }
 
       // Flush and close the file with created index
@@ -131,6 +134,41 @@ namespace inspire {
         }
       }
 
+      void index(std::string file) {
+        if (elemental::string::ends_with(file, ".pdb")) {
+          try {
+            std::ifstream input;
+            input.open(file);
+            std::cout << file << "    ";
+            Protein protein = Pdb::parse_pdb(input, FILTER);
+            std::cout << "parsed    ";
+            input.close();
+            index(&protein);
+            std::cout << "indexed\r";
+          } catch (const elemental::exception::TitledException& e) {
+            std::cerr << "ERROR: " << e.what() << std::endl;
+          } catch (const std::exception& e) {
+            std::cerr << "ERROR: " << e.what() << std::endl;
+          } catch (...) {
+            std::cerr << "UNKNOWN ERROR" << std::endl;
+          }
+        }
+      }
+
+      void process(std::string item) {
+        if (elemental::filesystem::is_directory(item)) {
+          elemental::filesystem::RecursiveDirectoryFileIterator file_iterator(item);
+          if (file_iterator.has_file()) {
+            do {
+              index(file_iterator.filename());
+            } while (file_iterator.has_next());
+          } else {
+            std::cerr << "There is no file in the given directory." << std::endl;
+          }
+        } else {
+          index(item);
+        }
+      }
     };
   }
 }

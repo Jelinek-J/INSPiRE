@@ -325,7 +325,19 @@ namespace inspire {
       }
 
       void select(std::string input, std::string output) {
-        OUTPUT.open(output + ".med");
+        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
+          size_t i = input.rfind(elemental::filesystem::directory_separator);
+          std::string tmp = (i == input.npos ? input : input.substr(i+1));
+          if (elemental::string::ends_with(tmp, ".fit")) {
+            output += tmp.substr(0, tmp.size()-4);
+          } else {
+            output += tmp;
+          }
+          output += ".med";
+        } else if (!elemental::string::ends_with(output, ".med")) {
+          output += ".med";
+        }
+        OUTPUT.open(output);
         load_tasks(input);
 
         std::vector<std::thread> threads;

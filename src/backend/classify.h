@@ -60,14 +60,16 @@ namespace inspire {
 
       void classify(std::string input, std::string output) {
         if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          if (elemental::string::ends_with(input, ".med")) {
-            output += input.substr(0, input.size()-4);
+          size_t i = input.rfind(elemental::filesystem::directory_separator);
+          std::string tmp = (i == input.npos ? input : input.substr(i+1));
+          if (elemental::string::ends_with(tmp, ".med")) {
+            output += tmp.substr(0, tmp.size()-4);
           } else {
-            output += input;
+            output += tmp;
           }
-          output += ".pec";
-        } else if (!elemental::string::ends_with(output, ".pec")) {
-          output += ".pec";
+          output += ".sas";
+        } else if (!elemental::string::ends_with(output, ".sas")) {
+          output += ".sas";
         }
         std::ifstream input_file(input);
         std::ofstream output_file(output);
