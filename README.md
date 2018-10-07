@@ -30,7 +30,7 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 ## Single INSPiRE tool ##
 You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes. 
 
-There is also a premaked knowledge-base to make the use of INSPiRE easier. To make this knowledge-base:
+There is also a premaked knowledge-base to make the use of INSPiRE easier. It is necessary to decompress it before using due to memory restrictions ('*.7z' files). To make this knowledge-base:
 1. All proteins without DNA and RNA were downloaded from Protein Data Bank in pdb format.
 2. Only complexes with 'REMARK 350' were taken.
 3. All complexes with monomer as 'BIOMOLECULE 1' were filtered out.
