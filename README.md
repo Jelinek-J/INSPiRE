@@ -42,4 +42,4 @@ There is also a premaked knowledge-base to make the use of INSPiRE easier. To ma
 9. Reduction of redundancies:
     1. Fingerprints were grouped by aminoacid type, fingerprint and interface.
     2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were preserved and only one was preserved.)
-    3. For each group of size k, leave only ⌈log<sub>6</sub>(k)+1⌉, except the situation where k_I != k_N but ⌈log_6(k_I)+1⌉ == ⌈log_6(k_n)+1⌉ - in such a case, leave one more item in the bigger group.
+    3. For each group of size k, leave only ⌈log<sub>6</sub>(k)+1⌉, except the situation where k<sub>I</sub> != k<sub>N</sub> but ⌈log<sub>6</sub>(k<sub>I</sub>)+1⌉ == ⌈log<sub>6</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave one more item in the bigger group.
