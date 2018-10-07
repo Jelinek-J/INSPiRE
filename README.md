@@ -10,18 +10,18 @@ You can use the framework in three ways:
 3. Single program to run INSPiRE algorithm
 
 ## Header-only library ##
-This use is ideal if you want to update INSPiRE algorithm or extend for some new usecases.
-For this use, you only need to add header files from src/backend and src/elemental directories to your project (or set corresponding paths).
+This use is ideal if you want to update INSPiRE algorithm or extend it for some new usecases.
+For this use, you only need to add header files from 'src/backend' and 'src/elemental' directories to your project (or set corresponding paths). 'src/backend' containts the basic parts of the algorithm. 'src/elemental' contains some elemental methods and constants and also hides all usage of boost library, so if you have some problems with boost, you need to rewrite this files only.
 
 ## Fragmented INSPiRE tools ##
-This possibility is focused on the situation, if you want to optimize the INSPiRE algorithm configuration, because some temporary files can be reused and it is useless to compute them again and again.
-In addition to files from the previous usecase, you need to compile (each separately) following files from src/frontend directory:
+This possibility is focused on the situation, when you want to optimize the INSPiRE algorithm's configuration, because some temporary files can be reused, so it is useless to compute them again and again.
+Using the files mentioned in the previous subsection, you need to compile (each separately) following files from src/frontend directory:
 1. For a constraction of knowledge-base and queries:  
-  1. 'frontend/index.cpp': creates index file of proteins and their residues, chains and models. The file is used by other tools.
-  2. 'frontend/aminoacids.cpp': creates transformation file to convert aminoacids three-letter codes to one-letter codes.
-  3. 'frontend/features.cpp': creates files with extracted features. Actually, it is able to extract coordinates, amino acid type (here can be used the file created in the previous point), temperature, and interfaces.
-  4. 'frontend/subgraphs.cpp': generate chosen types of subgraphs and edges in them.
-  5. 'frontend/fingerprints.cpp': create fingerprints from files generated in previous steps.
+    1. 'frontend/index.cpp': creates index file of proteins and their residues, chains and models. The file is used by other tools.
+    2. 'frontend/aminoacids.cpp': creates transformation file to convert aminoacids three-letter codes to one-letter codes.
+    3. 'frontend/features.cpp': creates files with extracted features. Actually, it is able to extract coordinates, amino acid type (here can be used the file created in the previous point), temperature, and interfaces.
+    4. 'frontend/subgraphs.cpp': generate chosen types of subgraphs and edges in them.
+    5. 'frontend/fingerprints.cpp': create fingerprints from files generated in previous steps.
 2. 'frontend/mine.cpp': searches in knowledge-base for fingerprints similar to query fingerprints.
 3. 'frontend/classify.cpp': classifies fingerprints found using the tool from the previous step.
 4. 'frontend/predict.cpp': pronounces a prediction based on the statistics computed using the tool from the previous step.
