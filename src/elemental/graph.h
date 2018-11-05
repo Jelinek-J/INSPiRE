@@ -18,15 +18,15 @@ namespace elemental {
     typedef boost::adjacency_list<>::vertex_descriptor vertex;
     typedef boost::property_tree::ptree property_tree;
 
-    vertex add_vertex(undirected_graph g) {
+    vertex add_vertex(undirected_graph &g) {
       return boost::add_vertex(g);
     }
 
-    void add_edge(vertex v1, vertex v2, undirected_graph g) {
+    void add_edge(vertex &v1, vertex &v2, undirected_graph &g) {
       boost::add_edge(v1, v2, g);
     }
 
-    void shortest_paths(undirected_graph g, distance_matrix_map distances, const_property_map properties) {
+    void shortest_paths(undirected_graph &g, distance_matrix_map &distances, const_property_map &properties) {
       boost::floyd_warshall_all_pairs_shortest_paths(g, distances, boost::weight_map(properties));
     }
 

@@ -49,5 +49,13 @@ namespace elemental {
       transform(str.begin(), str.end(), str.begin(), toupper);
       return str;
     }
+
+    // Replace all occurances
+    inline std::string replace_all(std::string str, const char find, const std::string replace) {
+      for (size_t i = str.size(); i=str.rfind(find, i--) != str.npos; ) {
+        str = str.replace(i, 1, replace);
+      }
+      return str;
+    }
   }
 }

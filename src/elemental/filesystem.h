@@ -79,6 +79,10 @@ namespace elemental {
       boost::filesystem::remove_all(directory);
     }
 
+    inline void remove_file(std::string file) {
+      boost::filesystem::remove(file);
+    }
+
     // Iterates through all files in a given directory and all its subdirectories
     class RecursiveDirectoryFileIterator {
       // End condition of the iterator
