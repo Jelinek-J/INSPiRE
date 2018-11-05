@@ -1,5 +1,6 @@
 // aminoacids.cpp : Defines the entry point for the console application.
 //
+//#define TESTING
 
 #include "../elemental/string.h"
 #include "../elemental/filesystem.h"
@@ -145,6 +146,12 @@ namespace inspire {
 }
 
 int main(int argc, const char** argv) {
+#ifdef TESTING
+  argc = 3;
+  const char* arg[] = {argv[0], "C:\\Users\\jan.jelinek\\Desktop\\components.cif", "C:\\Inspire\\"};
+  argv = arg;
+#endif // TESTING
+
   if (argc != 3) {
     if (argc != 0) {
       std::cerr << "Invalid number of arguments.\n\n";

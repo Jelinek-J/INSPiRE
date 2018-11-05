@@ -9,6 +9,8 @@
 #include <fstream>
 #include <sstream>
 
+//#define TESTING
+
 void help() {
   std::cout << "Help\n\n";
   std::cout << "-h\tPrint this message.\n\n";
@@ -25,6 +27,20 @@ void help() {
 }
 
 int main(int argc, const char** argv) {
+#ifdef TESTING
+  // Errors log for testing reasons
+  std::ofstream log("C:\\Inspire\\error-subgraphs.log");
+  argc = 13;
+  const char* args[] = {argv[0],
+    "-t", "1",
+    "-n", "1",
+    "-c", "aminoacid",
+    "-k", "C:\\Inspire\\test\\fingerprints",
+    "-s", "C:\\Inspire\\test\\siblings.exc",
+    "C:\\Inspire\\test\\fingerprints.fit", "C:\\Inspire\\test\\mined"
+  };
+  argv = args;
+#endif // TESTING
   // NOTE: In the case of default (cs-CZ?) it writes 'á' instead of (non-breakable?) space.
 //  std::cout.imbue(std::locale("en_UK"));
   // Special case, the later initialization is useless
@@ -164,14 +180,23 @@ int main(int argc, const char** argv) {
   } catch (const elemental::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 2;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (...) {
     std::cerr << "UNKNOWN ERROR" << std::endl;
     help();
     return 3;
+#ifdef TESTING
+    log << "UNKNOWN ERROR" << std::endl;
+#endif // TESTING
   }
 
   return 0;

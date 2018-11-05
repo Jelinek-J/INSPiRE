@@ -8,12 +8,14 @@
 #include "../elemental/string.h"
 #include <iostream>
 
+//#define TESTING
+
 // Prints an information about this program
 static void help() {
   std::cout << "Help\n\n";
 
   std::cout << "Create index of residues in the knowledge-base.\n";
-  std::cout << "<index_name> [-(b|c|bc)] (<pdb_directory>|<pdb_file>)+\tIndex all *.pdb files from the every <pdb_directory> and every <pdb_file>.\n";
+  std::cout << "<index_name> [-(b|c|bc)] (<pdb_directory>|<pdb_file>)+\tIndex all PDB files from the every <pdb_directory> and every <pdb_file>.\n";
   std::cout << "                                          \tIndex is stored in a file '<index_name>.ind', resp. '<index_name>/residue.ind' if <index_name> is a directory.\n\n";
 
   std::cout << "-cb\tAll biomolecules, models and crystallographic transformations are used\n";
@@ -27,6 +29,12 @@ static void help() {
 }
 
 int main(int argc, const char** argv) {
+#ifdef TESTING
+  argc = 3;
+  const char* arg[] = { argv[0], "C:\\Inspire\\diff\\", "C:\\pdb\\" };
+  argv = arg;
+#endif // TESTING
+
   if (argc < 3 && (argc < 4 || std::strlen(argv[2]) == 0 || argv[2][0] == '-')) {
     help();
     return 0;
@@ -35,12 +43,14 @@ int main(int argc, const char** argv) {
   size_t start;
   inspire::backend::ProteinIterator* it;
   if (std::strlen(argv[2]) > 1 && argv[2][0] == '-') {
-    if (argv[2] == "-c") {
+    if (argv[2] == std::string("-c")) {
       it = new inspire::backend::FirstModelCrystallographicIterator();
-    } else if (argv[2] == "-b") {
+    } else if (argv[2] == std::string("-b")) {
       it = new inspire::backend::BiomoleculesIterator();
-    } else if (argv[2] == "-bc") {
+    } else if (argv[2] == std::string("-bc")) {
       it = new inspire::backend::AllExceptAltLocIterator();
+    } else if (argv[1] == std::string("-w")) {
+      it = new inspire::backend::ExplicitIterator();
     } else {
       std::cerr << "ERROR: Modifier '" << argv[2] << "' is not currently supported." << std::endl;
       help();

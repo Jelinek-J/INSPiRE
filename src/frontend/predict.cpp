@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 
+//#define TESTING
+
 void help() {
   std::cout << "Help\n\n";
   std::cout << "-h\tPrint this message.\n\n";
@@ -19,6 +21,18 @@ void help() {
 }
 
 int main(int argc, const char** argv) {
+#ifdef TESTING
+  // Errors log for testing reasons
+  std::ofstream log("C:\\Inspire\\error-predict.log");
+  argc = 4;
+  const char* args[] = {argv[0],
+    "-f 0.33333",
+    "C:\\Inspire\\test\\mined.sas",
+    "C:\\Inspire\\test\\mined"
+  };
+  argv = args;
+#endif // TESTING
+
   if (argc < 4) {
     if (argc > 1) {
       std::cerr << "Not enough arguments" << std::endl;
@@ -38,7 +52,7 @@ int main(int argc, const char** argv) {
           }
           predictor = new inspire::backend::FractionalPredictor(elemental::string::trim(std::string(argv[argv_index]).substr(2)));
           while (++argv_index < argc && (strlen(argv[argv_index]) < 2 || argv[argv_index][0] != '-')) {
-            if (argv[argv_index] == "-") {
+            if (argv[argv_index] == std::string("-")) {
               ++argv_index;
             }
             if (argv_index+1 >= argc) {
@@ -68,14 +82,23 @@ int main(int argc, const char** argv) {
   } catch (const elemental::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 2;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (...) {
     std::cerr << "UNKNOWN ERROR" << std::endl;
     help();
     return 3;
+#ifdef TESTING
+    log << "UNKNOWN ERROR" << std::endl;
+#endif // TESTING
   }
 
   return 0;

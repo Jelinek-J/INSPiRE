@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 
+//#define TESTING
+
 void help() {
   std::cout << "Help\n\n";
   std::cout << "Construct fingerprints for specified residues.\n\n";
@@ -22,6 +24,23 @@ void help() {
 }
 
 int main(int argc, const char** argv) {
+#ifdef TESTING
+  // Errors log for testing reasons
+  std::ofstream log("C:\\Inspire\\error-subgraphs.log");
+  argc = 9;
+  const char* arg[] = { argv[0], "q", "C:\\Inspire\\repair\\fingerprints",
+    "C:\\Inspire\\repair\\settings-511-t.json",
+    "C:\\Inspire\\repair\\residue.ind",
+  	/**/ "C:\\Inspire\\repair\\c6.sup" /*/ "D:\\fingerprints\\old\\benchmark\\gvin-c_12.sup" /**/,
+  	"C:\\Inspire\\repair\\d6.sup",
+  	//"C:\\Inspire\\repair\\affinity.tur",
+    //"C:\\Inspire\\repair\\interface.tur",
+    "C:\\Inspire\\repair\\aminoacid.tur",
+    //"C:\\Inspire\\repair\\rasa10e.tur",
+  	"C:\\Inspire\\repair\\temperature10.tur"
+  };
+  argv = arg;
+#endif // TESTING
   if (argc < 7) {
     if (argc != 0) {
       std::cerr << "Unexpected number of arguments:";
@@ -57,14 +76,23 @@ int main(int argc, const char** argv) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 1;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (const std::exception& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 2;
+#ifdef TESTING
+    log << "ERROR: " << e.what() << std::endl;
+#endif // TESTING
   } catch (...) {
     std::cerr << "UNKNOWN ERROR" << std::endl;
     help();
     return 3;
+#ifdef TESTING
+    log << "UNKNOWN ERROR" << std::endl;
+#endif // TESTING
   }
 
   return 0;
