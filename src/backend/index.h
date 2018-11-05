@@ -1,7 +1,7 @@
 #pragma once
 
 #include "iterators.h"
-#include "pdb.h"
+#include "parser.h"
 #include "../elemental/filesystem.h"
 #include "../elemental/string.h"
 #include "protein.h"
@@ -135,23 +135,18 @@ namespace inspire {
       }
 
       void index(std::string file) {
-        if (elemental::string::ends_with(file, ".pdb")) {
-          try {
-            std::ifstream input;
-            input.open(file);
-            std::cout << file << "    ";
-            Protein protein = Pdb::parse_pdb(input, FILTER);
-            std::cout << "parsed    ";
-            input.close();
-            index(&protein);
-            std::cout << "indexed\r";
-          } catch (const elemental::exception::TitledException& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-          } catch (const std::exception& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
-          } catch (...) {
-            std::cerr << "UNKNOWN ERROR" << std::endl;
-          }
+        try {
+          std::cout << file << "    ";
+          Protein protein = ProteinParser::parse_protein(file, FILTER);
+          std::cout << "parsed    ";
+          index(&protein);
+          std::cout << "indexed\r";
+        } catch (const elemental::exception::TitledException& e) {
+          std::cerr << "ERROR: " << e.what() << std::endl;
+        } catch (const std::exception& e) {
+          std::cerr << "ERROR: " << e.what() << std::endl;
+        } catch (...) {
+          std::cerr << "UNKNOWN ERROR" << std::endl;
         }
       }
 

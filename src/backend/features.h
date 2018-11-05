@@ -2,7 +2,8 @@
 
 #include "../elemental/filesystem.h"
 #include "index.h"
-#include "pdb.h"
+#include "protein.h"
+#include "parser.h"
 #include <map>
 #include <iostream>
 #include <limits>
@@ -302,7 +303,7 @@ found:;
             }
           } while (ITERATOR->nextModel());
         }
-
+        ITERATOR->resetModel();
         ITERATOR->resetChain();
         ITERATOR->resetAminoacid();
       }
@@ -450,7 +451,7 @@ found:;
             }
           } while (ITERATOR->nextModel());
         }
-
+        ITERATOR->resetModel();
         ITERATOR->resetChain();
         ITERATOR->resetAminoacid();
       }
@@ -561,10 +562,7 @@ found:;
 
       // Add the given path together with its protein identifier in dictionary
       void index_pdb_file(const std::string &file) {
-        std::ifstream input;
-        input.open(file);
-        auto ins = FILES.insert({ Pdb::parse_id(input), file});
-        input.close();
+        auto ins = FILES.insert({ ProteinParser::parse_id(file), file});
       }
 
       public:
@@ -613,9 +611,7 @@ found:;
         Protein protein;
         do {
           if (protein.ID_CODE != INDEX.protein()) {
-            std::ifstream pdb(FILES[INDEX.protein()]);
-            protein = Pdb::parse_pdb(pdb, FILTER);
-            pdb.close();
+            protein = ProteinParser::parse_protein(FILES[INDEX.protein()], FILTER);
             for (size_t i = 0; i < features.size(); i++) {
               features[i]->init(&protein);
             }

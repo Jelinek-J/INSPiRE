@@ -32,10 +32,6 @@ namespace inspire {
       // NOTE: Of course, it could be JSON parser, but this approach allows a parallel parsing.
       // NOTE: Well, lines could be readed online when necessary, but it would result in delays caused by HDD characteristics.
       elemental::multithread::synchronized_queue TASKS;
-      // File to write results of queriing
-      // NOTE: Output in the multithread section thus it must be able to write block at once. Asynchronous write is preferred.
-      std::ofstream OUTPUT;
-
 
 
       // Check whether file path contains all requered features and check its extension.
@@ -83,9 +79,8 @@ namespace inspire {
         std::vector<uint32_t>* ret = new std::vector<uint32_t>();
         //? 'for each' is not C++ construct - it is only in Visual C++, right?
         for (std::vector<uint32_t>::iterator it = fingerprints->begin(); it != fingerprints->end(); it++) {
-          //? Is it true that it return default value if map does not contains that key?
-          std::unordered_set<int>* siblings = EXCLUDE[id];
-          if (siblings->find(*it) == siblings->end()) {
+          auto siblings = EXCLUDE.find(id);
+          if (siblings == EXCLUDE.end() || siblings->second->find(*it) == siblings->second->end()) {
             ret->push_back(*it);
           }
         }
@@ -93,7 +88,8 @@ namespace inspire {
         return ret;
       }
 
-      void selectThread() {
+      void selectThread(std::string output) {
+        std::ofstream stream(output);
         std::string line;
         while (TASKS.try_pull(line) == boost::queue_op_status::success) {
           int id;
@@ -142,7 +138,7 @@ namespace inspire {
             key = create_key(features);
           }
 
-          //? Short could be enough, but will be measurable difference in the effectivity?
+          //TODO: Short could be enough, but will be measurable difference in the effectivity?
           std::map<int, std::vector<uint32_t> > distances;
 
           auto group = KNOWLEDGE_BASE.find(key);
@@ -174,8 +170,7 @@ namespace inspire {
 
           // Write results of query on the current element to the file.
           // Output strongly reduced in comparison to C# version. Stats (if required) will be computed later.
-          std::stringstream output;
-          output << id << std::endl;
+          stream << id << '\n';
           size_t count = 0;
           for (std::map<int, std::vector<uint32_t> >::iterator it = distances.begin(); count < LIMIT && it != distances.end(); it++) {
             //? Does 'templates = filter_siblings(id, templates)' create new instance of the output, so it is necessary to use a new variable?
@@ -184,17 +179,15 @@ namespace inspire {
             for (std::vector<uint32_t>::iterator i = templates->begin(); i != templates->end(); i++) {
               uint32_t t = *i;
               // Format: index of the element (to allow stats)  \t  distance
-              output << t << '\t' << it->first << std::endl;
+              stream << t << '\t' << it->first << '\n';
             }
             if (templates->size() > 0) {
               std::string info = std::to_string(id) + "\t" + std::to_string(it->first) + "\t" + std::to_string(count) + "\t\r";
             }
           }
-          output << std::endl;
-          OUTPUT << output.str();
-
-          // TODO: Searching for similar fingerprints
+          stream << std::endl;
         }
+        stream.close();
       }
 
 
@@ -333,22 +326,32 @@ namespace inspire {
           } else {
             output += tmp;
           }
-          output += ".med";
-        } else if (!elemental::string::ends_with(output, ".med")) {
-          output += ".med";
+        } else if (elemental::string::ends_with(output, ".med")) {
+          output = output.substr(0, output.size()-4);
         }
-        OUTPUT.open(output);
         load_tasks(input);
 
-        std::vector<std::thread> threads;
+        std::map<std::string, std::thread> threads;
         for (size_t i = 0; i < THREADS; i++) {
-          threads.push_back(std::thread(&Mine::selectThread, this));
+          std::string temp = output + "." + std::to_string(i) + ".med";
+          threads[temp] = std::thread(&Mine::selectThread, this, temp);
         }
-        for (size_t i = 0; i < threads.size(); i++) {
-          threads[i].join();
+        for (auto threads_it = threads.begin(); threads_it != threads.end(); ++threads_it) {
+          threads_it->second.join();
         }
-        //? TODO: Wait until all threads end
-        OUTPUT.close();
+        if (threads.size() >= 1) {
+          elemental::filesystem::move(threads.begin()->first, output + ".med");
+          if (threads.size() > 1) {
+            std::ofstream out(output + ".med", std::ios_base::binary | std::ios_base::app);
+            for (auto threads_it = ++threads.begin(); threads_it != threads.end(); ++threads_it) {
+              std::ifstream in(threads_it->first, std::ios_base::binary);
+              out << in.rdbuf();
+              in.close();
+              elemental::filesystem::remove_file(threads_it->first);
+            }
+            out.close();
+          }
+        }
       }
 
     };

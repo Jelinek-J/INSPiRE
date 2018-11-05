@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <set>
 #include <map>
 #include <list>
 
@@ -66,7 +67,7 @@ namespace inspire {
     // Model ~ block between 'MODEL' and 'EMDMDL' lines, resp. all chains for a single-model file
     struct Model {
       // Chain identifier (column 22 in PDB files) => chain
-      std::map<char, Chain> CHAINS;
+      std::map<std::string, Chain> CHAINS;
     };
 
     // Coordinates in 3D space, i.e. [x;y;z]
@@ -82,7 +83,7 @@ namespace inspire {
       // Description of the assembly
       std::string COMMENT;
       // Transformation id => [transformation; affected chains]
-      std::map<int, std::pair<TransformationMatrix, std::string>> TRANSFORMATIONS;
+      std::map<std::string, std::pair<TransformationMatrix, std::set<std::string>>> TRANSFORMATIONS;
 
       Biomolecule() { };
       Biomolecule(std::string comment) : COMMENT(comment) { };
@@ -106,5 +107,6 @@ namespace inspire {
         return std::get<0>(vector)*x+std::get<1>(vector)*y+std::get<2>(vector)*z+std::get<3>(vector);
       }
     };
+
   }
 }

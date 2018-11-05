@@ -69,7 +69,7 @@ namespace inspire {
     class ExplicitIterator : public ProteinIterator {
       private:
       Protein* PROTEIN;
-      std::map<char, Chain>::const_iterator CHAIN;
+      std::map<std::string, Chain>::const_iterator CHAIN;
       std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
       std::map<std::string, Atom>::const_iterator ATOM;
       std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
@@ -140,10 +140,10 @@ namespace inspire {
         return resetModel();
       }
       bool setChain(std::string name) override {
-        if (name.size() != 1 || !valid_chain()) {
+        if (name.size() < 1 || !valid_chain()) {
           return false;
         }
-        CHAIN = PROTEIN->MODELS.begin()->second.CHAINS.find(name[0]);
+        CHAIN = PROTEIN->MODELS.begin()->second.CHAINS.find(name);
         return CHAIN != PROTEIN->MODELS.begin()->second.CHAINS.end();
       }
       bool setAminoacid(std::string name) override {
@@ -173,7 +173,7 @@ namespace inspire {
       };
       // Returns 'chainID'+'assemblyTransformationID'
       std::string getChainName() override {
-        return std::string(1, CHAIN->first);
+        return CHAIN->first;
       }
       // Returns 'resSeq''iCode'
       std::string getAminoacidName() override {
@@ -240,8 +240,8 @@ namespace inspire {
     class FirstModelIterator : public ProteinIterator {
       private:
       Protein* PROTEIN;
-      std::map<int, std::pair<TransformationMatrix, std::string>>::const_iterator BIOMOLECULE_TRANSFORMATION;
-      std::string::const_iterator CHAIN;
+      std::map<std::string, std::pair<TransformationMatrix, std::set<std::string>>>::const_iterator BIOMOLECULE_TRANSFORMATION;
+      std::set<std::string>::const_iterator CHAIN;
       std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
       std::map<std::string, Atom>::const_iterator ATOM;
       std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
@@ -342,18 +342,13 @@ namespace inspire {
         if (plus == name.npos) {
           BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
         } else {
-          BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+          BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(name.substr(plus+1));
         }
         if (!valid_chain()) {
           return false;
         }
-        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
-        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
-          if (*CHAIN == name[0]) {
-            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
-          }
-        }
-        return false;
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.find(name.substr(0, plus));
+        return CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end() && PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -382,10 +377,10 @@ namespace inspire {
       };
       // Returns 'chainID'+'assemblyTransformationID'
       std::string getChainName() override {
-        std::string ret = std::string(1, *CHAIN);
-        if (BIOMOLECULE_TRANSFORMATION->first > 1) {
+        std::string ret(*CHAIN);
+        if (BIOMOLECULE_TRANSFORMATION->first != "1") {
           ret.push_back('+');
-          ret.append(std::to_string(BIOMOLECULE_TRANSFORMATION->first));
+          ret.append(BIOMOLECULE_TRANSFORMATION->first);
         }
         return ret;
       }
@@ -469,8 +464,8 @@ namespace inspire {
       private:
       Protein* PROTEIN;
       std::map<int, TransformationMatrix>::const_iterator CRYSTALLOGRAPHIC_TRANSFORMATION;
-      std::map<int, std::pair<TransformationMatrix, std::string>>::const_iterator BIOMOLECULE_TRANSFORMATION;
-      std::string::const_iterator CHAIN;
+      std::map<std::string, std::pair<TransformationMatrix, std::set<std::string>>>::const_iterator BIOMOLECULE_TRANSFORMATION;
+      std::set<std::string>::const_iterator CHAIN;
       std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
       std::map<std::string, Atom>::const_iterator ATOM;
       std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
@@ -572,38 +567,39 @@ namespace inspire {
       bool setChain(std::string name) override {
         size_t plus = name.find('+');
         size_t star = name.find('*');
+        std::string chain;
         if (plus == name.npos) {
           if (star == name.npos) {
             BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
+            chain = name;
           } else {
             BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
+            chain = name.substr(0, star);
           }
         } else {
           if (star == name.npos) {
-            BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+            BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(name.substr(plus+1));
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
+            chain = name.substr(0, plus);
           } else {
             if (plus < star) {
-              BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1, star-plus-1)));
+              BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(name.substr(plus+1, star-plus-1));
               CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
+              chain = name.substr(0, plus);
             } else {
-              BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+              BIOMOLECULE_TRANSFORMATION = PROTEIN->BIOMOLECULES.begin()->second.TRANSFORMATIONS.find(name.substr(plus+1));
               CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1, plus-star-1)));
+              chain = name.substr(0, star);
             }
           }
         }
         if (!valid_chain()) {
           return false;
         }
-        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
-        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
-          if (*CHAIN == name[0]) {
-            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
-          }
-        }
-        return false;
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.find(chain);
+        return CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end() && PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -632,10 +628,10 @@ namespace inspire {
       };
       // Returns 'chainID'+'assemblyTransformationID'*'crystallographicTransformationID'
       std::string getChainName() override {
-        std::string ret = std::string(1, *CHAIN);
-        if (BIOMOLECULE_TRANSFORMATION->first > 1) {
+        std::string ret(*CHAIN);
+        if (BIOMOLECULE_TRANSFORMATION->first != "1") {
           ret.push_back('+');
-          ret.append(std::to_string(BIOMOLECULE_TRANSFORMATION->first));
+          ret.append(BIOMOLECULE_TRANSFORMATION->first);
         }
         if (CRYSTALLOGRAPHIC_TRANSFORMATION->first > 1) {
           ret.push_back('*');
@@ -724,8 +720,8 @@ namespace inspire {
       Protein* PROTEIN;
       std::map<int, Model>::const_iterator MODEL;
       std::map<int, Biomolecule>::const_iterator BIOMOLECULE;
-      std::map<int, std::pair<TransformationMatrix, std::string>>::const_iterator BIOMOLECULE_TRANSFORMATION;
-      std::string::const_iterator CHAIN;
+      std::map<std::string, std::pair<TransformationMatrix, std::set<std::string>>>::const_iterator BIOMOLECULE_TRANSFORMATION;
+      std::set<std::string>::const_iterator CHAIN;
       std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
       std::map<std::string, Atom>::const_iterator ATOM;
       std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
@@ -863,18 +859,13 @@ namespace inspire {
         if (plus == name.npos) {
           BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
         } else {
-          BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+          BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(name.substr(plus+1));
         }
         if (!valid_chain()) {
           return false;
         }
-        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
-        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
-          if (*CHAIN == name[0]) {
-            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
-          }
-        }
-        return false;
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.find(name.substr(0, plus));
+        return CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end() && PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -912,10 +903,10 @@ namespace inspire {
       };
       // Returns 'chainID'+'assemblyTransformationID'
       std::string getChainName() override {
-        std::string ret = std::string(1, *CHAIN);
-        if (BIOMOLECULE_TRANSFORMATION->first > 1) {
+        std::string ret(*CHAIN);
+        if (BIOMOLECULE_TRANSFORMATION->first != "1") {
           ret.push_back('+');
-          ret.append(std::to_string(BIOMOLECULE_TRANSFORMATION->first));
+          ret.append(BIOMOLECULE_TRANSFORMATION->first);
         }
         return ret;
       }
@@ -1001,8 +992,8 @@ namespace inspire {
       std::map<int, Model>::const_iterator MODEL;
       std::map<int, Biomolecule>::const_iterator BIOMOLECULE;
       std::map<int, TransformationMatrix>::const_iterator CRYSTALLOGRAPHIC_TRANSFORMATION;
-      std::map<int, std::pair<TransformationMatrix, std::string>>::const_iterator BIOMOLECULE_TRANSFORMATION;
-      std::string::const_iterator CHAIN;
+      std::map<std::string, std::pair<TransformationMatrix, std::set<std::string>>>::const_iterator BIOMOLECULE_TRANSFORMATION;
+      std::set<std::string>::const_iterator CHAIN;
       std::map<std::pair<int, char>, Aminoacid>::const_iterator AMINOACID;
       std::map<std::string, Atom>::const_iterator ATOM;
       std::map<char, Characteristic>::const_iterator CHARACTERISTIC;
@@ -1140,38 +1131,39 @@ namespace inspire {
       bool setChain(std::string name) override {
         size_t plus = name.find('+');
         size_t star = name.find('*');
+        std::string chain;
         if (plus == name.npos) {
           if (star == name.npos) {
             BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
+            chain = name;
           } else {
             BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.begin();
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
+            chain = name.substr(0, star);
           }
         } else {
           if (star == name.npos) {
-            BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+            BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(name.substr(plus+1));
             CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.begin();
+            chain = name.substr(0, plus);
           } else {
             if (plus < star) {
-              BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1, star-plus-1)));
+              BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(name.substr(plus+1, star-plus-1));
               CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1)));
+              chain = name.substr(0, plus);
             } else {
-              BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(std::stoi(name.substr(plus+1)));
+              BIOMOLECULE_TRANSFORMATION = BIOMOLECULE->second.TRANSFORMATIONS.find(name.substr(plus+1));
               CRYSTALLOGRAPHIC_TRANSFORMATION = PROTEIN->CRYSTALLOGRAPHIC_SYMMETRIES.find(std::stoi(name.substr(star+1, plus-star-1)));
+              chain = name.substr(0, star);
             }
           }
         }
         if (!valid_chain()) {
           return false;
         }
-        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.begin();
-        for (; CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end(); ++CHAIN) {
-          if (*CHAIN == name[0]) {
-            return PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
-          }
-        }
-        return false;
+        CHAIN = BIOMOLECULE_TRANSFORMATION->second.second.find(chain);
+        return CHAIN != BIOMOLECULE_TRANSFORMATION->second.second.end() && PROTEIN->MODELS.begin()->second.CHAINS.count(*CHAIN);
       }
       bool setAminoacid(std::string name) override {
         if (name.size() == 0) {
@@ -1209,10 +1201,10 @@ namespace inspire {
       };
       // Returns 'chainID'+'assemblyTransformationID'*'crystallographicTransformationID'
       std::string getChainName() override {
-        std::string ret = std::string(1, *CHAIN);
-        if (BIOMOLECULE_TRANSFORMATION->first > 1) {
+        std::string ret(*CHAIN);
+        if (BIOMOLECULE_TRANSFORMATION->first != "1") {
           ret.push_back('+');
-          ret.append(std::to_string(BIOMOLECULE_TRANSFORMATION->first));
+          ret.append(BIOMOLECULE_TRANSFORMATION->first);
         }
         if (CRYSTALLOGRAPHIC_TRANSFORMATION->first > 1) {
           ret.push_back('*');

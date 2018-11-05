@@ -45,7 +45,7 @@ namespace inspire {
         FeaturesReader reader(input);
         std::map<std::string, size_t> map;
         for (size_t i = 0; i < reader.size(); i++) {
-          map[reader.value(i)] = i;
+          map[reader.header(i)] = i;
         }
         std::vector<int> indices;
         for (auto features_it = features.begin(); features_it != features.end(); ++features_it) {

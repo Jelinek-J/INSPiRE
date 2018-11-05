@@ -237,10 +237,9 @@ namespace inspire {
             auto edges = graph.get_edges_iterators();
             for (; edges.first != edges.second; ++edges.first) {
               const auto& edge = *edges.first;
-              elemental::graph::add_edge(
-                get_index(edge.first),
-                get_index(edge.second),
-                g);
+              auto first = get_index(edge.first);
+              auto second = get_index(edge.second);
+              elemental::graph::add_edge(first, second, g);
             }
             vertices_distances = elemental::graph::distance_matrix(name_to_vertex.size());
             elemental::graph::distance_matrix_map distances_map(vertices_distances, g);
@@ -633,11 +632,11 @@ namespace inspire {
       void add_features(std::string file)  {
         FEATURES.push_back(FeaturesReader(file));
         for (size_t i = 0; i < FEATURES.back().size(); i++) {
-          HEADERS.push_back(FEATURES.back().header(i));
-          auto ins = HEADERS_MAP.insert({FEATURES.back().header(i), i});
+          auto ins = HEADERS_MAP.insert({FEATURES.back().header(i), HEADERS.size()});
           if (!ins.second) {
             throw elemental::exception::TitledException("Multiple columns contain the same header: '" + FEATURES.back().header(i));
           }
+          HEADERS.push_back(FEATURES.back().header(i));
         }
       }
 

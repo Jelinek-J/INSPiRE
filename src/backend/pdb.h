@@ -1,6 +1,7 @@
 #pragma once
 
 #include "protein.h"
+#include "filters.h"
 #include "../elemental/string.h"
 #include "../elemental/exception.h"
 #include <vector>
@@ -13,152 +14,6 @@
 
 namespace inspire {
   namespace backend {
-    /////////////
-    // SECTION //
-    // Set of filters serving to filter out lines that are useless for a given reason
-    /////////////
-
-    // Trivial example, filter nothing
-    struct BasicFilter {
-      // Tests, whether the line should be parsed (returns TRUE), or skipped (returns FALSE)
-      virtual bool keep(const std::string& line) {
-        return true;
-      }
-    };
-
-    // Inverts test of the inner filter
-    struct NotFilter : BasicFilter {
-      private:
-      // Filter that should be inverted
-      BasicFilter FILTER;
-
-      public:
-      // This constructor accepts the filter whose answers should be inverted
-      NotFilter(BasicFilter filter) : FILTER(filter) { }
-
-      bool keep(const std::string& line) override {
-        return !FILTER.keep(line);
-      }
-    };
-
-    // All filters must agree to keep a line
-    // NOTE: This filter should be used to conjoin filters with memory, where is necessary to propagate input to all filters.
-    struct AndFilter : BasicFilter {
-      private:
-      // Filters that should be conjoined
-      std::list<BasicFilter> FILTERS;
-
-      public:
-      // This constructor accepts a list of filters whose answers should be conjoined
-      AndFilter(std::list<BasicFilter> filters) : FILTERS(filters) { }
-
-      bool keep(const std::string& line) override {
-        bool ret = true;
-        for (auto it = FILTERS.begin(); it != FILTERS.end(); ++it) {
-          ret &= it->keep(line);
-        }
-        return ret;
-      }
-    };
-
-    // All filters must agree to keep a line
-    // NOTE: This filter tests until first FALSE is returned, thus it should be used to conjoin flow-filters without memory only.
-    struct LazyAndFilter : BasicFilter {
-      private:
-      // Filters that should be conjoined
-      std::list<BasicFilter> FILTERS;
-
-      public:
-      // This constructor accepts a list of filters whose answers should be conjoined
-      LazyAndFilter(std::list<BasicFilter> filters) : FILTERS(filters) { }
-
-      bool keep(const std::string& line) override {
-        for (auto it = FILTERS.begin(); it != FILTERS.end(); ++it) {
-          if (!it->keep(line)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    };
-
-    // At least one filter must agree to keep a line
-    // NOTE: This filter should be used to disjoin filters with memory, where is necessary to propagate input to all filters.
-    struct OrFilter : BasicFilter {
-      private:
-      // Filters that should be conjoined
-      std::list<BasicFilter> FILTERS;
-
-      public:
-      // This constructor accepts a list of filters whose answers should be conjoined
-      OrFilter(std::list<BasicFilter> filters) : FILTERS(filters) { }
-
-      bool keep(const std::string& line) override {
-        bool ret = false;
-        for (auto it = FILTERS.begin(); it != FILTERS.end(); ++it) {
-          ret |= it->keep(line);
-        }
-        return ret;
-      }
-    };
-
-    // At least one filter must agree to keep a line
-    // NOTE: This filter tests until first TRUE is returned, thus it should be used to cdisjoin flow-filters without memory only.
-    struct LazyOrFilter : BasicFilter {
-      private:
-      // Filters that should be conjoined
-      std::list<BasicFilter> FILTERS;
-
-      public:
-      // This constructor accepts a list of filters whose answers should be conjoined
-      LazyOrFilter(std::list<BasicFilter> filters) : FILTERS(filters) { }
-
-      bool keep(const std::string& line) override {
-        for (auto it = FILTERS.begin(); it != FILTERS.end(); ++it) {
-          if (it->keep(line)) {
-            return true;
-          }
-        }
-        return false;
-      }
-    };
-
-    // Skips all water defined in 'HETATM' line;
-    // it is expected, that water is marked as 'HOH'.
-    // TODO: Skip it outside chains only? It will require memory of the filter and duplicite parsing of a file though in a limited form.
-    struct SkipH2OFilter : BasicFilter {
-      bool keep(const std::string& line) override {
-        return line.size() < 20 || !elemental::string::starts_with(line, "HETATM") || !elemental::string::contains_at(line, "HOH", 17);
-      }
-    };
-
-    // Skips all atoms in 'ATOM' section except Carbon alphas
-    // NOTE: If an aminoacid has no C_alpha specified, it is lost
-    struct CalphaOnlyFilter : BasicFilter {
-      bool keep(const std::string& line) override {
-        return line.size() < 16 || !elemental::string::starts_with(line, "ATOM  ") || elemental::string::contains_at(line, " CA ", 12);
-      }
-    };
-
-    // Skips all hydrogens in 'ATOM' section
-    struct SkipHydrogenFilter : BasicFilter {
-      bool keep(const std::string& line) override {
-        return line.size() < 78 || !elemental::string::starts_with(line, "ATOM  ") || elemental::string::contains_at(line, " H", 76);
-      }
-    };
-
-    // Skips header
-    // NOTE: Usefull for basic atomic features, where interdistances between chains are not used, e.g. aminoacid type, charge or temperature factor.
-    struct SkipRemarksFilter : BasicFilter {
-      bool keep(const std::string& line) override {
-        return !elemental::string::starts_with(line, "REMARK ");
-      }
-    };
-
-    /////////
-    // END //
-    /////////
-
     // A class grouping methods for parsing from pdb file
     struct Pdb {
       private:
@@ -228,16 +83,16 @@ namespace inspire {
         if (!biomolecule.second) {
           throw elemental::exception::TitledException("Unexpected format of REMARK 350 section: multiple biomolecules with the same id: '" + lines[0] + "'");
         }
-        std::string chains;
+        std::set<std::string> chains;
         do {
           if (elemental::string::starts_with(lines[i], "REMARK 350 APPLY THE FOLLOWING TO CHAINS:")) {
-            std::stringstream buffer;
+            chains.clear();
             size_t j = 41;
             do {
               for (; j < lines[i].size(); ++j) {
                 if (((lines[i][j] >= 'A' && lines[i][j] <= 'Z') || (lines[i][j] >= 'a' && lines[i][j] <= 'z') || (lines[i][j] >= '0' && lines[i][j] <= '9'))) {
                   if (allowed_chains.count(lines[i][j])) {
-                    buffer << lines[i][j];
+                    chains.emplace(std::string(1, lines[i][j]));
                   }
                 } else if (lines[i][j] != ' ' && lines[i][j] != ',' &&lines[i][j] != ';') {
 
@@ -258,11 +113,10 @@ namespace inspire {
                 j = -1;
               }
             } while (i < lines.size() && j != -1);
-            chains = buffer.str();
           } else if (elemental::string::starts_with(lines[i], "REMARK 350   BIOMT1")) {
             size_t stop = find_transformation_id_end(lines[i], "biomolecule");
             // TODO: Does not it needlessly recreate objects?
-            if (!biomolecule.first->second.TRANSFORMATIONS.insert({std::stoi(lines[i].substr(19, stop-19)), {parseTransformation(lines, i, "REMARK 350   BIOMT", stop, "biomolecule"), chains}}).second) {
+            if (!biomolecule.first->second.TRANSFORMATIONS.insert({elemental::string::trim(lines[i].substr(19, stop-19)), {parseTransformation(lines, i, "REMARK 350   BIOMT", stop, "biomolecule"), chains}}).second) {
               throw elemental::exception::TitledException("Unexpected format of biomolecule: multiple matrices with the same id: " + lines[i] + "'");
             }
             i += 3;
@@ -284,7 +138,7 @@ namespace inspire {
       //
       // NOTE: The last three arguments serves to save time during searchin the corresponding element within maps
       // NOTO: There is not also an atom as alternative location are not common and thus it does not save time
-      static void parse_atom_line(const std::string line, Protein& protein, std::pair<const int, Model>*& model, std::pair<const char, Chain>*& chain, std::pair<const std::pair<int, char>, Aminoacid>*& aminoacid) {
+      static void parse_atom_line(const std::string line, Protein& protein, std::pair<const int, Model>*& model, std::pair<const std::string, Chain>*& chain, std::pair<const std::pair<int, char>, Aminoacid>*& aminoacid) {
         if (model == nullptr) {
           if (protein.MODELS.empty()) {
             model = &*protein.MODELS.insert({1, Model()}).first;
@@ -295,13 +149,13 @@ namespace inspire {
           aminoacid = nullptr;
         }
         if (chain == nullptr) {
-          auto ins = model->second.CHAINS.insert({line[21], Chain()});
+          auto ins = model->second.CHAINS.insert({std::string(1, line[21]), Chain()});
           if (!ins.second) {
             throw elemental::exception::TitledException("Multiple chains with the same identifier: '" + line + "'");
           }
           chain = &*ins.first;
           aminoacid = nullptr;
-        } else if (chain->first != line[21]) {
+        } else if (chain->first[0] != line[21]) {
           throw elemental::exception::TitledException("Missing 'TER' line separating multiple chains: '" + line + "'");
         }
         const std::pair<int, char> aa_id = {std::stoi(line.substr(22, 4)), line[26]};
@@ -387,10 +241,10 @@ namespace inspire {
       //
       // TODO: Currently, there are parsed only aminoacids with ATOM/HETATM line, in the future, it will be better to use SEQRES for it.
       // However, if an aminoacid has no coordinates, it is totally unusefull for us. I.E. it should be coordinated with the validation part of processing.
-      static Protein parse_pdb(std::istream& input, BasicFilter* filter) {
+      static Protein parse_protein(std::istream& input, BasicFilter* filter) {
         Protein protein;
         std::pair<const int, Model>* model = nullptr;
-        std::pair<const char, Chain>* chain = nullptr;
+        std::pair<const std::string, Chain>* chain = nullptr;
         std::pair<const std::pair<int, char>, Aminoacid>* aminoacid = nullptr;
         std::set<char> chains;
         bool parse_chains = false;
@@ -507,7 +361,7 @@ namespace inspire {
               }
               // NOTE: if chain is not nullptr, than it is should be the same chain, else it is corrupted and throw an exception
               // If a model is nullptr, than it is corrupted and should throw an exception
-              if (chain == nullptr && (!chains.count(line[21]) || (model != nullptr && model->second.CHAINS.count(line[21])))) {
+              if (chain == nullptr && (!chains.count(line[21]) || (model != nullptr && model->second.CHAINS.count(std::string(1, line[21]))))) {
                 // TODO: If additional heteroatoms will be required too
               } else {
                 parse_atom_line(line, protein, model, chain, aminoacid);
@@ -526,15 +380,13 @@ namespace inspire {
         if (protein.BIOMOLECULES.empty()) {
           std::cerr << "WARNING [" << protein.ID_CODE << "]:    Protein does not contain a definition of biomolecules (REMARK 350)" << std::endl;
           Biomolecule &biomolecule = protein.BIOMOLECULES[1];
-          auto &transformation = biomolecule.TRANSFORMATIONS[1];
+          auto &transformation = biomolecule.TRANSFORMATIONS["1"];
           std::get<0>(std::get<0>(transformation.first)) = 1;
           std::get<1>(std::get<1>(transformation.first)) = 1;
           std::get<2>(std::get<2>(transformation.first)) = 1;
-          std::stringstream buffer;
           for (auto it = chains.begin(); it != chains.end(); ++it) {
-            buffer << *it;
+            transformation.second.emplace(std::string(1, *it));
           }
-          transformation.second = buffer.str();
         }
 
         if (protein.CRYSTALLOGRAPHIC_SYMMETRIES.empty()) {
