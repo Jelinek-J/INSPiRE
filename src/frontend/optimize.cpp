@@ -2,12 +2,12 @@
 //
 
 #include "../backend/optimize.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
-#define TESTING
+//#define TESTING
 
 void help() {
   std::cout << "Help\n\n";
@@ -60,7 +60,7 @@ int main(int argc, const char** argv) {
           if (optimizer != nullptr) {
             delete optimizer;
           }
-          if (elemental::string::starts_with(function, "f")) {
+          if (common::string::starts_with(function, "f")) {
             optimizer = new inspire::backend::FractionalOptimizer(std::string(argv[argv_index]).substr(2), std::stoi(function.substr(1)));
           }
           
@@ -74,7 +74,7 @@ int main(int argc, const char** argv) {
               return 6;
             }
             std::string input(argv[argv_index++]);
-            if (elemental::string::starts_with(argv[argv_index], "-o")) {
+            if (common::string::starts_with(argv[argv_index], "-o")) {
               std::string output(argv[argv_index++]);
               optimizer->optimize(input, output.substr(2));
             } else {
@@ -96,7 +96,7 @@ int main(int argc, const char** argv) {
       help();
       return 4;
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
 #ifdef TESTING

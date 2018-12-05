@@ -2,8 +2,8 @@
 //
 //#define TESTING
 
-#include "../elemental/string.h"
-#include "../elemental/filesystem.h"
+#include "../common/string.h"
+#include "../common/filesystem.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -33,7 +33,7 @@ namespace inspire {
       }
 
       inline static std::string validate(const std::string &value) {
-        std::string ret = elemental::string::trim(value);
+        std::string ret = common::string::trim(value);
         if (ret == "?") {
           return "";
         }
@@ -45,12 +45,12 @@ namespace inspire {
 
       static void parse(std::string input_path, std::string output_path) {
         std::ifstream input(input_path);
-        if (elemental::filesystem::is_directory(output_path) || output_path.size() == 0) {
-          if (output_path.size() > 0 && output_path[output_path.size()-1] != elemental::filesystem::directory_separator) {
-            output_path.push_back(elemental::filesystem::directory_separator);
+        if (common::filesystem::is_directory(output_path) || output_path.size() == 0) {
+          if (output_path.size() > 0 && output_path[output_path.size()-1] != common::filesystem::directory_separator) {
+            output_path.push_back(common::filesystem::directory_separator);
           }
           output_path += "aminoacid.moc";
-        } else if (!elemental::string::ends_with(output_path, ".moc")) {
+        } else if (!common::string::ends_with(output_path, ".moc")) {
           output_path += ".moc";
         }
         std::ofstream output(output_path);
@@ -102,7 +102,7 @@ namespace inspire {
 
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
-          if (elemental::string::starts_with(line, "data_")) {
+          if (common::string::starts_with(line, "data_")) {
             insert(dictionary, code, name, synonyms, parent, one);
             if (line.size() <= 8) {
               code = line.substr(5);
@@ -114,15 +114,15 @@ namespace inspire {
             synonyms = "";
             parent = "";
             one = ' ';
-          } else if (elemental::string::starts_with(line, "_chem_comp.name")) {
+          } else if (common::string::starts_with(line, "_chem_comp.name")) {
             name = validate(line.substr(15));
-          } else if (elemental::string::starts_with(line, "_chem_comp.mon_nstd_parent_comp_id")) {
+          } else if (common::string::starts_with(line, "_chem_comp.mon_nstd_parent_comp_id")) {
             parent = validate(line.substr(34));
-            parent = elemental::string::to_upper(parent);
-          } else if (elemental::string::starts_with(line, "_chem_comp.pdbx_synonyms")) {
+            parent = common::string::to_upper(parent);
+          } else if (common::string::starts_with(line, "_chem_comp.pdbx_synonyms")) {
             synonyms = validate(line.substr(24));
-          } else if (elemental::string::starts_with(line, "_chem_comp.one_letter_code")) {
-            std::string tmp = elemental::string::trim(line.substr(26));
+          } else if (common::string::starts_with(line, "_chem_comp.one_letter_code")) {
+            std::string tmp = common::string::trim(line.substr(26));
             if (tmp.size() != 1) {
               std::cerr << "Ambiguous one letter code: '" << tmp << "'" << std::endl;
             } else if (tmp == "?") {

@@ -1,15 +1,15 @@
 // mine.cpp : Defines the entry point for the console application.
 //
 
-#include "../elemental/filesystem.h"
-#include "../elemental/string.h"
-#include "../elemental/exception.h"
+#include "../common/filesystem.h"
+#include "../common/string.h"
+#include "../common/exception.h"
 #include "../backend/merge.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-#define TESTING
+//#define TESTING
 
 void help() {
   std::cout << "Help\n\n";
@@ -45,7 +45,7 @@ int main(int argc, const char** argv) {
     for (size_t i = 1; i < argc; i+=3) {
       inspire::backend::Merger::merge(argv[i], argv[i+1], argv[i+2]);
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
 #ifdef TESTING

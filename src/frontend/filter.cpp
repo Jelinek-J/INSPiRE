@@ -2,8 +2,8 @@
 //
 
 #include "../backend/filter.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -43,7 +43,7 @@ int main(int argc, const char** argv) {
     for (size_t i = 3; i < argc; i+=2) {
       filter.filter(argv[i], argv[i+1]);
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
 #ifdef TESTING
     log << "ERROR: " << e.what() << std::endl;

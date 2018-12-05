@@ -2,8 +2,8 @@
 //
 
 #include "../backend/classify.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -31,7 +31,7 @@ int main(int argc, const char** argv) {
   argv = args;
 #endif // TESTING
 
-  if ((argc < 6 && (argc < 4 || elemental::string::starts_with(argv[2], "-f"))) || ((argc % 2) != 0)) {
+  if ((argc < 6 && (argc < 4 || common::string::starts_with(argv[2], "-f"))) || ((argc % 2) != 0)) {
     if (argc > 1) {
       std::cerr << "Not enough arguments" << std::endl;
     }
@@ -42,11 +42,11 @@ int main(int argc, const char** argv) {
   try {
     inspire::backend::Classifier* classifier;
     size_t start;
-    if (elemental::string::starts_with(argv[2], "-f")) {
+    if (common::string::starts_with(argv[2], "-f")) {
       std::vector<std::string> features;
       std::stringstream parts(argv[3]);
       std::string part;
-      while (std::getline(parts,part,elemental::filesystem::directory_separator)) {
+      while (std::getline(parts,part,common::filesystem::directory_separator)) {
         features.push_back(part);
       }
       classifier = new inspire::backend::Classifier(argv[1], features);
@@ -59,7 +59,7 @@ int main(int argc, const char** argv) {
       classifier->classify(argv[i], argv[i+1]);
     }
     delete classifier;
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
 #ifdef TESTING

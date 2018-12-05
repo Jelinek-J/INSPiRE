@@ -80,7 +80,7 @@ int main(int argc, const char** argv) {
     }
 
     subgraphs.extract_subgraphs();
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 1;

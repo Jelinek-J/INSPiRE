@@ -4,8 +4,8 @@
 #include "../backend/index.h"
 #include "../backend/pdb.h"
 #include "../backend/iterators.h"
-#include "../elemental/filesystem.h"
-#include "../elemental/string.h"
+#include "../common/filesystem.h"
+#include "../common/string.h"
 #include <iostream>
 
 //#define TESTING

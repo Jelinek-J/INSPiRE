@@ -2,8 +2,8 @@
 //
 
 #include "../backend/predict.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -14,7 +14,7 @@ void help() {
   std::cout << "-h\tPrint this message.\n\n";
   std::cout << "((-f <tresholds>) ([-] <mine> <output>)+)+\tSelect the winning label according the given metric.\n";
   std::cout << "                                      \t-f <thresholds>\tlinear selector will be used;";
-  std::cout << "                                      \t               \t<thresholds> must contains number of 2-combination of <x> thresholds,";
+  std::cout << "                                      \t               \t<thresholds> must contains number of 2-combination of <x> thresholds,\n";
   std::cout << "                                      \t               \twhere <x> is number of labels in <mine> and they are ordered from the earlier to later\n";
   std::cout << "                                      \t-\tis required if a <mine> starts with '-'.";
   std::cout << "NOTE: Principially, <interfaces> could be an arbitrary features file.\n\n";
@@ -50,7 +50,7 @@ int main(int argc, const char** argv) {
           if (predictor != nullptr) {
             delete predictor;
           }
-          predictor = new inspire::backend::FractionalPredictor(elemental::string::trim(std::string(argv[argv_index]).substr(2)));
+          predictor = new inspire::backend::FractionalPredictor(common::string::trim(std::string(argv[argv_index]).substr(2)));
           while (++argv_index < argc && (strlen(argv[argv_index]) < 2 || argv[argv_index][0] != '-')) {
             if (argv[argv_index] == std::string("-")) {
               ++argv_index;
@@ -79,7 +79,7 @@ int main(int argc, const char** argv) {
       help();
       return 4;
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
 #ifdef TESTING

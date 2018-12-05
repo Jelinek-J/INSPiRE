@@ -1,9 +1,9 @@
 // mine.cpp : Defines the entry point for the console application.
 //
 
-#include "../elemental/filesystem.h"
-#include "../elemental/string.h"
-#include "../elemental/exception.h"
+#include "../common/filesystem.h"
+#include "../common/string.h"
+#include "../common/exception.h"
 #include "../backend/mine.h"
 #include <iostream>
 #include <fstream>
@@ -44,7 +44,7 @@ int main(int argc, const char** argv) {
   // NOTE: In the case of default (cs-CZ?) it writes 'á' instead of (non-breakable?) space.
 //  std::cout.imbue(std::locale("en_UK"));
   // Special case, the later initialization is useless
-  if (argc <= 1 || elemental::string::starts_with(argv[1], "-h")) {
+  if (argc <= 1 || common::string::starts_with(argv[1], "-h")) {
     help();
     return 0;
   }
@@ -71,7 +71,7 @@ int main(int argc, const char** argv) {
               filters.clear();
               std::stringstream arg(argv[i]);
               std::string part;
-              while (std::getline(arg, part, elemental::filesystem::directory_separator)) {
+              while (std::getline(arg, part, common::filesystem::directory_separator)) {
                 filters.insert(part);
               }
             }
@@ -177,7 +177,7 @@ int main(int argc, const char** argv) {
         mine->select(argv[i - 1], argv[i]);
       }
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
 #ifdef TESTING

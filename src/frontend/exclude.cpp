@@ -2,8 +2,8 @@
 //
 
 #include "../backend/exclude.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -46,7 +46,7 @@ int main(int argc, const char** argv) {
       excluder.add(argv[i]);
     }
     excluder.generate(argv[1], argv[2], argv[3]);
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
 #ifdef TESTING
     log << "ERROR: " << e.what() << std::endl;

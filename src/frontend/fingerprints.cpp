@@ -1,7 +1,7 @@
 // subgraphs.cpp : Defines the entry point for the console application.
 //
 
-#include "../elemental/exception.h"
+#include "../common/exception.h"
 #include "../backend/fingerprints.h"
 #include <iostream>
 #include <fstream>
@@ -72,7 +72,7 @@ int main(int argc, const char** argv) {
       default:
         break;
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     help();
     return 1;

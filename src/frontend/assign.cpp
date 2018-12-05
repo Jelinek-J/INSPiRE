@@ -2,8 +2,8 @@
 //
 
 #include "../backend/assign.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -83,7 +83,7 @@ int main(int argc, const char** argv) {
                   ch = '\\';
                   break;
                 default:
-                  throw elemental::exception::TitledException("Unknown escape character");
+                  throw common::exception::TitledException("Unknown escape character");
                   help();
                   return 6;
               }
@@ -98,7 +98,7 @@ int main(int argc, const char** argv) {
           break;
       }
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
 #ifdef TESTING
     log << "ERROR: " << e.what() << std::endl;

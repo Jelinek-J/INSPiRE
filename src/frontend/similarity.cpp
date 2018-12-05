@@ -2,8 +2,8 @@
 //
 
 #include "../backend/similarity.h"
-#include "../elemental/exception.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/string.h"
 #include <iostream>
 #include <fstream>
 
@@ -79,7 +79,7 @@ int main(int argc, const char** argv) {
     for (size_t i = 4; i < argc; i+=3) {
       similariter->analyze(argv[i], argv[i+1], argv[i+2]);
     }
-  } catch (const elemental::exception::TitledException& e) {
+  } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
 #ifdef TESTING
     log << "ERROR: " << e.what() << std::endl;
