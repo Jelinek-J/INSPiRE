@@ -2,9 +2,9 @@
 
 #include "protein.h"
 #include "filters.h"
-#include "../elemental/string.h"
-#include "../elemental/exception.h"
-#include "../elemental/xml.h"
+#include "../common/string.h"
+#include "../common/exception.h"
+#include "../common/xml.h"
 #include <vector>
 #include <set>
 #include <istream>
@@ -26,7 +26,7 @@ namespace inspire {
         size_t nonspace = line.find_first_not_of(' ', key.size());
         if (nonspace == line.npos) {
           if (!std::getline(input, line)) {
-            throw elemental::exception::TitledException("Unexpected end of file, missing value for " + line);
+            throw common::exception::TitledException("Unexpected end of file, missing value for " + line);
           }
           if (line.size() < 1 || line[0] != ';') {
             return line;
@@ -37,12 +37,12 @@ namespace inspire {
               return buffer.str();
             }
           }
-          throw elemental::exception::TitledException("Unexpected end of file, uncompleted value for key " + key + ": " + buffer.str());
+          throw common::exception::TitledException("Unexpected end of file, uncompleted value for key " + key + ": " + buffer.str());
         } else {
-          std::string value = elemental::string::trim(line.substr(nonspace));
+          std::string value = common::string::trim(line.substr(nonspace));
           if (value[0] == '\'' || value[0] == '"') {
             if (value.size() < 2 || value[value.size()-1] != value[0]) {
-              throw elemental::exception::TitledException("Unexpected format of line: " + line);
+              throw common::exception::TitledException("Unexpected format of line: " + line);
             }
             return value.substr(1, value.size()-2);
           } else if (value == "." || value == "?") {
@@ -62,7 +62,7 @@ namespace inspire {
         for (size_t i = 0; i < count; i++) {
           while (position == line.npos) {
             if (!std::getline(input, line)) {
-              throw elemental::exception::TitledException("Unexpected end of file");
+              throw common::exception::TitledException("Unexpected end of file");
             }
             position = line.find_first_not_of(' ', 0);
           }
@@ -73,13 +73,13 @@ namespace inspire {
               ++position;
               size_t next = line.find(line[position-1], position);
               if (next == line.npos) {
-                throw elemental::exception::TitledException("Missing closing quotation marks on line " + line);
+                throw common::exception::TitledException("Missing closing quotation marks on line " + line);
               }
               if (indices.find(i) != indices.end()) {
                 ret[i] = line.substr(position, next-position);
               }
               if (next < line.size()-1 && line[next+1] != ' ') {
-                throw elemental::exception::TitledException("Unexpected character after closing quotation marks on line " + line);
+                throw common::exception::TitledException("Unexpected character after closing quotation marks on line " + line);
               }
               position = next+1;
             }
@@ -90,18 +90,18 @@ namespace inspire {
                   ret[i] = line.substr(1);
                 }
                 if (!std::getline(input, line)) {
-                  throw elemental::exception::TitledException("Unexpected end of file within a matrix " + line);
+                  throw common::exception::TitledException("Unexpected end of file within a matrix " + line);
                 }
                 while (line.size() == 0 || line[0] != ';') {
                   if (indices.find(i) != indices.end()) {
                     ret[i] += line;
                   }
                   if (!std::getline(input, line)) {
-                    throw elemental::exception::TitledException("Unexpected end of file within a matrix " + line);
+                    throw common::exception::TitledException("Unexpected end of file within a matrix " + line);
                   }
                 }
                 if (line.size() > 1 && line[1] != ' ') {
-                  throw elemental::exception::TitledException("Unexpected character after closing semicolon of multiline value " + line);
+                  throw common::exception::TitledException("Unexpected character after closing semicolon of multiline value " + line);
                 }
                 position = 1;
               } else {
@@ -149,7 +149,7 @@ namespace inspire {
       // Parse what transformations should be used
       static std::map<std::string, TransformationMatrix> parseTransformations(const std::string &ids, const std::map<std::string, TransformationMatrix> &transformations) {
         if (ids.find('*') != ids.npos || ids.find('+') != ids.npos || ids.find('.') != ids.npos) {
-          throw elemental::exception::TitledException("Star '*', plus '+' and dot '.' are not currently supported in identifiers of pdbx_struct_oper_list");
+          throw common::exception::TitledException("Star '*', plus '+' and dot '.' are not currently supported in identifiers of pdbx_struct_oper_list");
         }
         std::map<std::string, TransformationMatrix> ret;
         auto transformations_it = transformations.find(ids);
@@ -187,18 +187,18 @@ namespace inspire {
         if (ret.size() > 0) {
           return ret;
         }
-        throw elemental::exception::TitledException("Operation expression expression '_pdbx_struct_assembly_gen.oper_expression' or the used format is not currently supported: " + ids);
+        throw common::exception::TitledException("Operation expression expression '_pdbx_struct_assembly_gen.oper_expression' or the used format is not currently supported: " + ids);
       }
 
       public:
       static std::string parse_id(std::istream& input) {
         // Load xml
-        elemental::xml::Xml xml(input);
+        common::xml::Xml xml(input);
         // id
         std::string id;
         // Protein identifier
         if (!xml.get_attribute("PDBx:datablock.PDBx:entryCategory.PDBx:entry", "id", id)) {
-          throw elemental::exception::TitledException("The file does not contain any identifier");
+          throw common::exception::TitledException("The file does not contain any identifier");
         }
         return id;
       }
@@ -217,20 +217,20 @@ namespace inspire {
         // Assignation of biomolecule transformations to chains <biomolecule_id, <transformation, chains>>
         std::map<int, std::map<std::string, std::set<std::string>>> generation;
         // Load xml
-        elemental::xml::Xml xml(input);
+        common::xml::Xml xml(input);
 
         // Protein identifier
         if (!xml.get_attribute("PDBx:datablock.PDBx:entryCategory.PDBx:entry", "id", protein.ID_CODE)) {
-          throw elemental::exception::TitledException("The file does not contain any identifier");
+          throw common::exception::TitledException("The file does not contain any identifier");
         }
 
         // Chains that should be parsed
-        std::vector<elemental::xml::Xml> nodes;
+        std::vector<common::xml::Xml> nodes;
         if (xml.get_nodes("PDBx:datablock.PDBx:entity_polyCategory", "PDBx:entity_poly", nodes)) {
           for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
             std::string value;
             if (!nodes_it->get_value("PDBx:pdbx_strand_id", value)) {
-              throw elemental::exception::TitledException("The file does not contain any identifier");
+              throw common::exception::TitledException("The file does not contain any identifier");
             }
             std::stringstream parts(value);
             std::string part;
@@ -239,10 +239,10 @@ namespace inspire {
             }
           }
           if (chains.size() == 0) {
-            throw elemental::exception::TitledException("Block 'entity_poly' does not contain any valid chain identifier");
+            throw common::exception::TitledException("Block 'entity_poly' does not contain any valid chain identifier");
           }
         } else {
-          throw elemental::exception::TitledException("Block 'entity_poly' is missing");
+          throw common::exception::TitledException("Block 'entity_poly' is missing");
         }
 
         // Crystallographic symmetry
@@ -258,7 +258,7 @@ namespace inspire {
             std::string affected;
             std::string transformations;
             if (!(nodes_it->get_attribute("assembly_id", id) && nodes_it->get_attribute("asym_id_list", affected) && nodes_it->get_attribute("oper_expression", transformations))) {
-              throw elemental::exception::TitledException("Incomplete definition of 'pdbx_struct_assembly_gen'");
+              throw common::exception::TitledException("Incomplete definition of 'pdbx_struct_assembly_gen'");
             }
             generation[std::stoi(id)][transformations] = parseChains(affected);
           }
@@ -272,17 +272,17 @@ namespace inspire {
             std::string cell;
             double matrix[3][4];
             if (!nodes_it->get_attribute("id", id)) {
-              throw elemental::exception::TitledException("Missing identifier of 'pdbx_struct_oper_list'");
+              throw common::exception::TitledException("Missing identifier of 'pdbx_struct_oper_list'");
             }
             for (size_t i = 0; i < 3; i++) {
               for (size_t j = 0; j < 3; j++) {
                 if (!nodes_it->get_value("PDBx:matrix" + std::to_string(i+1) + std::to_string(j+1), cell)) {
-                  throw elemental::exception::TitledException("Incomplete definition of 'pdbx_struct_oper_list', missing 'matrix" + std::to_string(i+1) + std::to_string(j+1) + "'");
+                  throw common::exception::TitledException("Incomplete definition of 'pdbx_struct_oper_list', missing 'matrix" + std::to_string(i+1) + std::to_string(j+1) + "'");
                 }
                 matrix[i][j] = std::stod(cell);
               }
               if (!nodes_it->get_value("PDBx:vector" + std::to_string(i+1), cell)) {
-                throw elemental::exception::TitledException("Incomplete definition of 'pdbx_struct_oper_list', missing 'vector" + std::to_string(i+1) + "'");
+                throw common::exception::TitledException("Incomplete definition of 'pdbx_struct_oper_list', missing 'vector" + std::to_string(i+1) + "'");
               }
               matrix[i][3] = std::stod(cell);
             }
@@ -396,7 +396,7 @@ namespace inspire {
             std::string residue_index2;
             if (!((nodes_it->get_value("PDBx:label_asym_id", chain_index)  | nodes_it->get_value("PDBx:auth_asym_id", chain_index2)) &&
                   (nodes_it->get_value("PDBx:label_seq_id", residue_index) | nodes_it->get_value("PDBx:auth_seq_id", residue_index2)))) {
-              throw elemental::exception::TitledException("Incomplete definition of 'atom_site'");
+              throw common::exception::TitledException("Incomplete definition of 'atom_site'");
             }
             if (chain_index == "") {
               chain_index = chain_index2;
@@ -425,7 +425,7 @@ namespace inspire {
               std::string charge;
               if (!(nodes_it->get_attribute("id", atom_index) && (nodes_it->get_value("PDBx:label_comp_id", residue_type) | nodes_it->get_value("PDBx:auth_comp_id", residue_type2)) &&
                                                                  (nodes_it->get_value("PDBx:label_atom_id", atom_name)    | nodes_it->get_value("PDBx:auth_atom_id", atom_name2)))) {
-                throw elemental::exception::TitledException("Incomplete definition of 'atom_site'");
+                throw common::exception::TitledException("Incomplete definition of 'atom_site'");
               }
               if (residue_type == "") {
                 residue_type = residue_type2;
@@ -454,7 +454,7 @@ namespace inspire {
               if (model == nullptr || model_id != model->first) {
                 auto ins = protein.MODELS.insert({model_id, Model()});
                 if (!ins.second) {
-                  throw elemental::exception::TitledException("Unexpected format of XML file: multiple models with the same serial number: '" + std::to_string(model_id) + "'");
+                  throw common::exception::TitledException("Unexpected format of XML file: multiple models with the same serial number: '" + std::to_string(model_id) + "'");
                 }
                 if (!missing_model && model_id != protein.MODELS.size()) {
                   missing_model = true;
@@ -470,7 +470,7 @@ namespace inspire {
               if (chain == nullptr || chain_index != chain->first) {
                 auto ins = model->second.CHAINS.insert({chain_index, Chain()});
                 if (!ins.second) {
-                  throw elemental::exception::TitledException("Multiple chains with the same identifier: '" + chain_index + "'");
+                  throw common::exception::TitledException("Multiple chains with the same identifier: '" + chain_index + "'");
                 }
                 chain = &*ins.first;
                 aminoacid = nullptr;
@@ -478,12 +478,12 @@ namespace inspire {
 
               // Set the current aminoacid
               if (residue_type != residue_type2) {
-                throw elemental::exception::TitledException("Different values of '_atom_site.auth_comp_id' and '_atom_site.label_comp_id' are not currently supported");
+                throw common::exception::TitledException("Different values of '_atom_site.auth_comp_id' and '_atom_site.label_comp_id' are not currently supported");
               }
               if (insertion == "?" || insertion.size() == 0) {
                 insertion = " ";
               } else if (insertion.size() > 1) {
-                throw elemental::exception::TitledException("Alternative location identifier should be a character, not a string: '" + insertion + "'");
+                throw common::exception::TitledException("Alternative location identifier should be a character, not a string: '" + insertion + "'");
               }
               const std::pair<int, char> aa_id = {std::stoi(residue_index), insertion[0]};
               if (aminoacid == nullptr || aa_id != aminoacid->first) {
@@ -493,40 +493,40 @@ namespace inspire {
                 } else if (residue_group == "HETATM") {
                   ins = chain->second.AMINOACIDS.insert({aa_id, ModifiedAminoacid(residue_type)});
                 } else {
-                  throw elemental::exception::TitledException("UNEXPECTED type of atom group: '" + residue_type + "'");
+                  throw common::exception::TitledException("UNEXPECTED type of atom group: '" + residue_type + "'");
                 }
                 if (!ins.second) {
-                  throw elemental::exception::TitledException("Multiple aminoacids with the same identifier: '" + std::to_string(aa_id.first) + aa_id.second + "'");
+                  throw common::exception::TitledException("Multiple aminoacids with the same identifier: '" + std::to_string(aa_id.first) + aa_id.second + "'");
                 }
                 aminoacid = &*ins.first;
               }
 
               // Set the current atom
               if (atom_name != atom_name2) {
-                throw elemental::exception::TitledException("Different values of '_atom_site.auth_atom_id' and '_atom_site.label_atom_id' are not currently supported");
+                throw common::exception::TitledException("Different values of '_atom_site.auth_atom_id' and '_atom_site.label_atom_id' are not currently supported");
               }
               if (altloc == "." || altloc.size() == 0) {
                 altloc = " ";
               } else if (altloc.size() > 1) {
-                throw elemental::exception::TitledException("Alternative location identifier should be a character, not a string: '" + altloc + "'");
+                throw common::exception::TitledException("Alternative location identifier should be a character, not a string: '" + altloc + "'");
               }
               Atom& atom = aminoacid->second.ATOMS[atom_name];
               if (altloc == " ") {
                 if (atom.ALTERNATIVE_LOCATIONS.size() > 0) {
-                  throw elemental::exception::TitledException("Multiple ATOM lines for the same atom without altLoc specifier: '" + altloc + "'");
+                  throw common::exception::TitledException("Multiple ATOM lines for the same atom without altLoc specifier: '" + altloc + "'");
                 }
                 atom.ELEMENT = atom_type;
               } else {
                 if (atom.ALTERNATIVE_LOCATIONS.empty()) {
                   atom.ELEMENT = atom_type;
                 } else if (atom.ELEMENT != atom_type) {
-                  throw elemental::exception::TitledException("Multiple ATOM lines for the same atom contains differents elements: '" + atom.ELEMENT + " vs. " + atom_type + "'");
+                  throw common::exception::TitledException("Multiple ATOM lines for the same atom contains differents elements: '" + atom.ELEMENT + " vs. " + atom_type + "'");
                 }
               }
               // Set the current coordinate
               auto coordinate = atom.ALTERNATIVE_LOCATIONS.insert({altloc[0], Characteristic()});
               if (!coordinate.second) {
-                throw elemental::exception::TitledException("Multiple alternative locations with the same identifier: '<PDBx:atom_site id=\"" + atom_index + "\">'");
+                throw common::exception::TitledException("Multiple alternative locations with the same identifier: '<PDBx:atom_site id=\"" + atom_index + "\">'");
               }
               coordinate.first->second.SERIAL_NUMBER = std::stoi(atom_index);
               coordinate.first->second.X = std::stod(x);

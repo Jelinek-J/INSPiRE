@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../elemental/filesystem.h"
+#include "../common/filesystem.h"
 #include "features.h"
 #include <vector>
 #include <map>
@@ -31,23 +31,23 @@ namespace inspire {
           std::stringstream buffer;
           for (size_t i = 0; i < features.size(); i++) {
             if (i > 0) {
-              buffer << elemental::filesystem::directory_separator;
+              buffer << common::filesystem::directory_separator;
             }
             buffer << reader.value(i);
           }
           const std::string &label = buffer.str();
           auto ins = LABELS.insert({reader.index(), label});
           if (!ins.second) {
-            throw elemental::exception::TitledException("Multiple features with the same index " + reader.index());
+            throw common::exception::TitledException("Multiple features with the same index " + reader.index());
           }
         }
         PRECISSION = threshold;
       }
 
       void optimize(std::string input) override {
-        if (elemental::string::ends_with(input, ".sas")) {
+        if (common::string::ends_with(input, ".sas")) {
           optimize(input, input.substr(0, input.size()-4));
-        } else if (elemental::string::ends_with(input, ".den")) {
+        } else if (common::string::ends_with(input, ".den")) {
           optimize(input, input+".den");
         } else {
           optimize(input, input);
@@ -55,16 +55,16 @@ namespace inspire {
       }
 
       void optimize(std::string input, std::string output) override {
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          size_t i = input.rfind(elemental::filesystem::directory_separator);
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = input.rfind(common::filesystem::directory_separator);
           std::string tmp = (i == input.npos ? input : input.substr(i+1));
-          if (elemental::string::ends_with(tmp, ".sas")) {
+          if (common::string::ends_with(tmp, ".sas")) {
             output += tmp.substr(0, tmp.size()-4);
           } else {
             output += tmp;
           }
           output += ".den";
-        } else if (!elemental::string::ends_with(output, ".den")) {
+        } else if (!common::string::ends_with(output, ".den")) {
           output += ".den";
         }
 
@@ -72,7 +72,7 @@ namespace inspire {
         
         std::string line;
         if (!std::getline(reader, line)) {
-          throw elemental::exception::TitledException("Input file '" + input + "' is empty.");
+          throw common::exception::TitledException("Input file '" + input + "' is empty.");
         }
 
         std::vector<std::string> headers;
@@ -83,7 +83,7 @@ namespace inspire {
           }
         }
         if (headers.size() > 2) {
-          throw elemental::exception::TitledException("General n-dimensional optimisation is not supported yet.");
+          throw common::exception::TitledException("General n-dimensional optimisation is not supported yet.");
         }
 
         size_t dimension = 1;
@@ -101,17 +101,17 @@ namespace inspire {
             std::stringstream parts(line);
             std::string count;
             if (!std::getline(parts, count, '\t')) {
-              throw elemental::exception::TitledException("Unexpected exception during parsing line '" + line + "' for residue #" + id + ".");
+              throw common::exception::TitledException("Unexpected exception during parsing line '" + line + "' for residue #" + id + ".");
             }
             for (size_t i = 0; i < counts.size(); i++) {
               if (!std::getline(parts, count, ':')) {
-                throw elemental::exception::TitledException("Incomplete line '" + line + "' for residue #" + id + ": missing numbers.");
+                throw common::exception::TitledException("Incomplete line '" + line + "' for residue #" + id + ": missing numbers.");
               }
               counts[i] += std::stol(count);
             }
             // Consider unclassified as optional
             if (std::getline(parts, count, ':') && std::getline(parts, count, ':')) {
-              throw elemental::exception::TitledException("Invalid line '" + line + "' for residue #" + id + ": too many numbers.");
+              throw common::exception::TitledException("Invalid line '" + line + "' for residue #" + id + ": too many numbers.");
             }
           }
 

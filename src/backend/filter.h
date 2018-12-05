@@ -21,7 +21,7 @@ namespace inspire {
             index[orig.protein()][orig.model()][orig.chain()][orig.aminoacid()] = orig.index()-1;
             MAPPING.push_back(0);
             if (MAPPING.size() != orig.index()) {
-              throw elemental::exception::TitledException("Unexpected format of index file");
+              throw common::exception::TitledException("Unexpected format of index file");
             }
           } while (orig.next());
         }

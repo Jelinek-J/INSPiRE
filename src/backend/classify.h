@@ -17,15 +17,15 @@ namespace inspire {
           std::stringstream buffer;
           for (size_t i = 0; i < features.size(); i++) {
             if (i > 0) {
-              buffer << elemental::filesystem::directory_separator;
-              none.push_back(elemental::filesystem::directory_separator);
+              buffer << common::filesystem::directory_separator;
+              none.push_back(common::filesystem::directory_separator);
             }
             buffer << input.value(i);
           }
           const std::string &label = buffer.str();
           auto ins = labels.insert({input.index(), label});
           if (!ins.second) {
-            throw elemental::exception::TitledException("Multiple features with the same index " + input.index());
+            throw common::exception::TitledException("Multiple features with the same index " + input.index());
           }
           headers.insert(label);
         }
@@ -51,7 +51,7 @@ namespace inspire {
         for (auto features_it = features.begin(); features_it != features.end(); ++features_it) {
           auto it = map.find(*features_it);
           if (it == map.end()) {
-            throw elemental::exception::TitledException("Feature '" + *features_it + "' is not present in feature file '" + input + "'");
+            throw common::exception::TitledException("Feature '" + *features_it + "' is not present in feature file '" + input + "'");
           }
           indices.push_back(it->second);
         }
@@ -59,16 +59,16 @@ namespace inspire {
       }
 
       void classify(std::string input, std::string output) {
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          size_t i = input.rfind(elemental::filesystem::directory_separator);
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = input.rfind(common::filesystem::directory_separator);
           std::string tmp = (i == input.npos ? input : input.substr(i+1));
-          if (elemental::string::ends_with(tmp, ".med")) {
+          if (common::string::ends_with(tmp, ".med")) {
             output += tmp.substr(0, tmp.size()-4);
           } else {
             output += tmp;
           }
           output += ".sas";
-        } else if (!elemental::string::ends_with(output, ".sas")) {
+        } else if (!common::string::ends_with(output, ".sas")) {
           output += ".sas";
         }
         std::ifstream input_file(input);

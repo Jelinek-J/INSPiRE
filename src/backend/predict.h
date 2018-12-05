@@ -22,14 +22,14 @@ namespace inspire {
         while (std::getline(parts, part, ' ')) {
           double threshold = std::stof(part);
           if (threshold < 0 || threshold > 1) {
-            throw elemental::exception::TitledException("Threshold '" + part + "' is out of boundaries; all threshold must be within interval [0; 1].");
+            throw common::exception::TitledException("Threshold '" + part + "' is out of boundaries; all threshold must be within interval [0; 1].");
           }
           tmp.push_back(threshold);
         }
 
         size_t dimension = std::sqrt(tmp.size()*2)+1.5;
         if (tmp.size() != dimension*(dimension-1)/2) {
-          throw elemental::exception::TitledException("Invalid number of threshold " + std::to_string(tmp.size()) + " instead of most probable " + std::to_string(dimension*(dimension-1)/2));
+          throw common::exception::TitledException("Invalid number of threshold " + std::to_string(tmp.size()) + " instead of most probable " + std::to_string(dimension*(dimension-1)/2));
         }
 
         size_t counter = 0;
@@ -43,16 +43,16 @@ namespace inspire {
       }
 
       void predict(std::string input, std::string output) override {
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          size_t i = input.rfind(elemental::filesystem::directory_separator);
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = input.rfind(common::filesystem::directory_separator);
           std::string tmp = (i == input.npos ? input : input.substr(i+1));
-          if (elemental::string::ends_with(tmp, ".sas")) {
+          if (common::string::ends_with(tmp, ".sas")) {
             output += tmp.substr(0, tmp.size()-4);
           } else {
             output += tmp;
           }
           output += ".pec";
-        } else if (!elemental::string::ends_with(output, ".pec")) {
+        } else if (!common::string::ends_with(output, ".pec")) {
           output += ".pec";
         }
 
@@ -60,7 +60,7 @@ namespace inspire {
         std::ofstream writer(output);
         std::string line;
         if (!std::getline(reader, line)) {
-          throw elemental::exception::TitledException("Input file '" + input + "' is empty.");
+          throw common::exception::TitledException("Input file '" + input + "' is empty.");
         }
 
         std::vector<std::string> headers;
@@ -71,7 +71,7 @@ namespace inspire {
           }
         }
         if (headers.size() != THRESHOLDS.size()) {
-          throw elemental::exception::TitledException("Input file '" + input + "' is not compatible with the selector: invalid number of classes.");
+          throw common::exception::TitledException("Input file '" + input + "' is not compatible with the selector: invalid number of classes.");
         }
 
         std::string id;
@@ -81,17 +81,17 @@ namespace inspire {
             std::stringstream parts(line);
             std::string count;
             if (!std::getline(parts, count, '\t')) {
-              throw elemental::exception::TitledException("Unexpected exception during parsing line '" + line + "' for residue #" + id + ".");
+              throw common::exception::TitledException("Unexpected exception during parsing line '" + line + "' for residue #" + id + ".");
             }
             for (size_t i = 0; i < counts.size(); i++) {
               if (!std::getline(parts, count, ':')) {
-                throw elemental::exception::TitledException("Incomplete line '" + line + "' for residue #" + id + ": missing numbers.");
+                throw common::exception::TitledException("Incomplete line '" + line + "' for residue #" + id + ": missing numbers.");
               }
               counts[i] += std::stol(count);
             }
             // Consider unclassified as optional
             if (std::getline(parts, count, ':') && std::getline(parts, count, ':')) {
-              throw elemental::exception::TitledException("Invalid line '" + line + "' for residue #" + id + ": too many numbers.");
+              throw common::exception::TitledException("Invalid line '" + line + "' for residue #" + id + ": too many numbers.");
             }
           }
           size_t best = 0;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../elemental/multithread.h"
+#include "../common/multithread.h"
 #include <set>
 #include <unordered_set>
 #include <map>
@@ -31,12 +31,12 @@ namespace inspire {
       // NOTE: Compare with sync_bounded_queue - should occupy less memory, on the other hand it require load file in temporary collection to find out its size and thus is slower.
       // NOTE: Of course, it could be JSON parser, but this approach allows a parallel parsing.
       // NOTE: Well, lines could be readed online when necessary, but it would result in delays caused by HDD characteristics.
-      elemental::multithread::synchronized_queue TASKS;
+      common::multithread::synchronized_queue TASKS;
 
 
       // Check whether file path contains all requered features and check its extension.
       bool kb_path_check(const std::string& file, const std::set<std::string> &filters) {
-        if (!elemental::string::ends_with(file, ".fin")) {
+        if (!common::string::ends_with(file, ".fin")) {
           return false;
         }
         for (auto filters_it = filters.begin(); filters_it != filters.end(); ++filters_it) {
@@ -202,23 +202,23 @@ namespace inspire {
         }
 
         // Basic check
-        if (!elemental::filesystem::exists(knowledge_base)) {
-          throw elemental::exception::TitledException("Path to the knowledge '" + knowledge_base + "' base does not exist");
+        if (!common::filesystem::exists(knowledge_base)) {
+          throw common::exception::TitledException("Path to the knowledge '" + knowledge_base + "' base does not exist");
         }
-        if (!elemental::filesystem::is_directory(knowledge_base)) {
-          throw elemental::exception::TitledException("Path to the knowledge base '" + knowledge_base + "' is not a directory");
+        if (!common::filesystem::is_directory(knowledge_base)) {
+          throw common::exception::TitledException("Path to the knowledge base '" + knowledge_base + "' is not a directory");
         }
 
         // Previously loaded elements to reuse them in the case of recurrence and thus save RAM
         std::unordered_set<std::string> fingerprints;
 
         // Iterate through knowledgebase files
-        elemental::filesystem::RecursiveDirectoryFileIterator file_iterator(knowledge_base);
+        common::filesystem::RecursiveDirectoryFileIterator file_iterator(knowledge_base);
         if (file_iterator.has_file()) {
           do {
-            if (!elemental::filesystem::is_regular_file(file_iterator.filename())) continue;
-            std::string relative = elemental::filesystem::relative(file_iterator.filename(), knowledge_base);
-            if (kb_path_check(std::string(1, elemental::filesystem::directory_separator) + relative, filters)) {
+            if (!common::filesystem::is_regular_file(file_iterator.filename())) continue;
+            std::string relative = common::filesystem::relative(file_iterator.filename(), knowledge_base);
+            if (kb_path_check(std::string(1, common::filesystem::directory_separator) + relative, filters)) {
               // Processing of knowledgebase file
               relative.erase(relative.length() - 4);
 
@@ -226,7 +226,7 @@ namespace inspire {
               std::stringstream name(relative);
               std::string part;
               std::map<std::string, std::string> features;
-              while (std::getline(name, part, elemental::filesystem::directory_separator)) {
+              while (std::getline(name, part, common::filesystem::directory_separator)) {
                 std::string::size_type position = part.find('_');
                 if (position != std::string::npos) {
                   std::string key = part.substr(0, position);
@@ -281,7 +281,7 @@ namespace inspire {
             }
           } while (file_iterator.has_next());
         } else {
-          throw elemental::exception::TitledException("There is no file in the directory '" + knowledge_base + "'");
+          throw common::exception::TitledException("There is no file in the directory '" + knowledge_base + "'");
         }
       }
 
@@ -318,15 +318,15 @@ namespace inspire {
       }
 
       void select(std::string input, std::string output) {
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          size_t i = input.rfind(elemental::filesystem::directory_separator);
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = input.rfind(common::filesystem::directory_separator);
           std::string tmp = (i == input.npos ? input : input.substr(i+1));
-          if (elemental::string::ends_with(tmp, ".fit")) {
+          if (common::string::ends_with(tmp, ".fit")) {
             output += tmp.substr(0, tmp.size()-4);
           } else {
             output += tmp;
           }
-        } else if (elemental::string::ends_with(output, ".med")) {
+        } else if (common::string::ends_with(output, ".med")) {
           output = output.substr(0, output.size()-4);
         }
         load_tasks(input);
@@ -340,14 +340,14 @@ namespace inspire {
           threads_it->second.join();
         }
         if (threads.size() >= 1) {
-          elemental::filesystem::move(threads.begin()->first, output + ".med");
+          common::filesystem::move(threads.begin()->first, output + ".med");
           if (threads.size() > 1) {
             std::ofstream out(output + ".med", std::ios_base::binary | std::ios_base::app);
             for (auto threads_it = ++threads.begin(); threads_it != threads.end(); ++threads_it) {
               std::ifstream in(threads_it->first, std::ios_base::binary);
               out << in.rdbuf();
               in.close();
-              elemental::filesystem::remove_file(threads_it->first);
+              common::filesystem::remove_file(threads_it->first);
             }
             out.close();
           }

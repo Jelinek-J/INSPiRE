@@ -36,7 +36,7 @@ namespace inspire {
           } while (index.next());
         }
 
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
           output += "related.exc";
         }
         std::ofstream stream(output);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../elemental/filesystem.h"
+#include "../common/filesystem.h"
 #include "index.h"
 #include "protein.h"
 #include "parser.h"
@@ -110,11 +110,11 @@ namespace inspire {
       static Coordinate parse(std::string coordinates) {
         size_t first = coordinates.find(' ');
         if (first == coordinates.npos) {
-          throw elemental::exception::TitledException("Invalid format of coordinate feature: '" + coordinates + "'");
+          throw common::exception::TitledException("Invalid format of coordinate feature: '" + coordinates + "'");
         }
         size_t last = coordinates.rfind(' ');
         if (last == first) {
-          throw elemental::exception::TitledException("Invalid format of coordinate feature, missing third coordinate: '" + coordinates + "'");
+          throw common::exception::TitledException("Invalid format of coordinate feature, missing third coordinate: '" + coordinates + "'");
         }
         return std::make_tuple(std::stod(coordinates.substr(0, first)), std::stod(coordinates.substr(first+1, last-first-1)), std::stod(coordinates.substr(last+1)));
       }
@@ -572,8 +572,8 @@ found:;
 
       // Add all pdb files the given path together with their protein identifiers in dictionary
       void index_pdb(const std::string &item) {
-        if (elemental::filesystem::is_directory(item)) {
-          elemental::filesystem::RecursiveDirectoryFileIterator file_iterator(item);
+        if (common::filesystem::is_directory(item)) {
+          common::filesystem::RecursiveDirectoryFileIterator file_iterator(item);
           if (file_iterator.has_file()) {
             do {
               index_pdb_file(file_iterator.filename());
@@ -591,7 +591,7 @@ found:;
       // features: feature extractors
       void extract_features(std::string &file, std::vector<Feature*> &features) {
         if (!INDEX.reset()) {
-          throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
+          throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
         
         // Header line
@@ -659,14 +659,14 @@ found:;
       FeatureReader(std::string file, std::string column) : NAME(file), INPUT(file), COLUMN(0), COLUMNS(0), INDEX(0), VALUE("") {
         std::string line;
         if (!std::getline(INPUT, line)) {
-          throw elemental::exception::TitledException("The feature file '" + file + "' is empty");
+          throw common::exception::TitledException("The feature file '" + file + "' is empty");
         }
         std::stringstream parts(line);
         std::string part;
         while (std::getline(parts, part, '\t')) {
           if (part == column) {
             if (COLUMN < COLUMNS) {
-              throw elemental::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
+              throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
             }
           } else if (COLUMN == COLUMNS) {
             ++COLUMN;
@@ -674,7 +674,7 @@ found:;
           ++COLUMNS;
         }
         if (COLUMN == COLUMNS) {
-          throw elemental::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
+          throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
         }
       }
 
@@ -692,13 +692,13 @@ found:;
           std::string part;
           for (size_t i = 0; i <= COLUMN; i++) {
             if (!std::getline(parts, part, '\t')) {
-              throw elemental::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
             }
           }
           VALUE = part;
           for (size_t i = COLUMN+1; i < COLUMNS; i++) {
             if (!std::getline(parts, part, '\t')) {
-              throw elemental::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
             }
           }
           if (std::getline(parts, part, '\t')) {
@@ -707,7 +707,7 @@ found:;
             ++INDEX;
           }
           if (std::getline(parts, part, '\t')) {
-            throw elemental::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
+            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
           }
         }
         return index == INDEX && VALUE.size() > 0;
@@ -732,7 +732,7 @@ found:;
       FeaturesReader(std::string file) : NAME(file), INPUT(file), INDEX(0) {
         std::string line;
         if (!std::getline(INPUT, line)) {
-          throw elemental::exception::TitledException("The feature file '" + file + "' is empty");
+          throw common::exception::TitledException("The feature file '" + file + "' is empty");
         }
         std::stringstream parts(line);
         std::string part;
@@ -756,7 +756,7 @@ found:;
           std::string part;
           for (size_t i = 0; i < HEADERS.size(); i++) {
             if (!std::getline(parts, part, '\t')) {
-              throw elemental::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
             }
             LINE.push_back(part);
           }
@@ -766,7 +766,7 @@ found:;
             ++INDEX;
           }
           if (std::getline(parts, part, '\t')) {
-            throw elemental::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
+            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
           }
         }
         return index == INDEX;

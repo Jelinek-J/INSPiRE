@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../elemental/exception.h"
+#include "../common/exception.h"
 #include "protein.h"
 #include <string>
 #include <iostream>
@@ -99,10 +99,10 @@ namespace inspire {
       public:
       bool init(Protein* protein) override {
         if (protein->BIOMOLECULES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no biomolecule definition");
+          throw common::exception::TitledException("Protein does contains no biomolecule definition");
         }
         if (protein->CRYSTALLOGRAPHIC_SYMMETRIES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no crystallographic transformation");
+          throw common::exception::TitledException("Protein does contains no crystallographic transformation");
         }
         PROTEIN = protein;
         return true;
@@ -282,10 +282,10 @@ namespace inspire {
       public:
       bool init(Protein* protein) override {
         if (protein->BIOMOLECULES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no biomolecule definition");
+          throw common::exception::TitledException("Protein does contains no biomolecule definition");
         }
         if (protein->CRYSTALLOGRAPHIC_SYMMETRIES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no crystallographic transformation");
+          throw common::exception::TitledException("Protein does contains no crystallographic transformation");
         }
         PROTEIN = protein;
         return true;
@@ -507,7 +507,7 @@ namespace inspire {
       public:
       bool init(Protein* protein) override {
         if (protein->BIOMOLECULES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no biomolecule definition");
+          throw common::exception::TitledException("Protein does contains no biomolecule definition");
         }
         PROTEIN = protein;
         return true;
@@ -765,7 +765,7 @@ namespace inspire {
       public:
       bool init(Protein* protein) override {
         if (protein->CRYSTALLOGRAPHIC_SYMMETRIES.empty()) {
-          throw elemental::exception::TitledException("Protein does contains no crystallographic transformation");
+          throw common::exception::TitledException("Protein does contains no crystallographic transformation");
         }
         PROTEIN = protein;
         return true;
@@ -850,7 +850,7 @@ namespace inspire {
             MODEL = PROTEIN->MODELS.find(std::stoi(name.substr(1, semicolon-1)));
           }
         } else {
-          throw elemental::exception::TitledException("Invalid format of model code, 'AllExceptAltLocIterator' does not recognize first character of '" + name + "'");
+          throw common::exception::TitledException("Invalid format of model code, 'AllExceptAltLocIterator' does not recognize first character of '" + name + "'");
         }
         return valid_model();
       }
@@ -1124,7 +1124,7 @@ namespace inspire {
             MODEL = PROTEIN->MODELS.find(std::stoi(name.substr(1, semicolon-1)));
           }
         } else {
-          throw elemental::exception::TitledException("Invalid format of model code, 'AllExceptAltLocIterator' does not recognize first character of '" + name + "'");
+          throw common::exception::TitledException("Invalid format of model code, 'AllExceptAltLocIterator' does not recognize first character of '" + name + "'");
         }
         return valid_model();
       }

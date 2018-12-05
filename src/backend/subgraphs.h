@@ -194,7 +194,7 @@ namespace inspire {
 
       Subgraphs(const std::string index, const std::string coordinates, const std::string path) : INDEX(index), FEATURES(coordinates, CoordinateFeature(nullptr).title()), PATH(path) {
         if (!INDEX.reset()) {
-          throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
+          throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
       }
       ~Subgraphs() {
@@ -323,7 +323,7 @@ namespace inspire {
             std::stringstream parts(line);
             std::string part;
             if (!std::getline(parts, part, '\t')) {
-              throw elemental::exception::TitledException("Unexpected empty row in subgraphs file '" + NAME + "'");
+              throw common::exception::TitledException("Unexpected empty row in subgraphs file '" + NAME + "'");
             }
             INDEX = std::stoi(part);
             NODES.clear();

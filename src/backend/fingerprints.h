@@ -3,10 +3,10 @@
 #include "index.h"
 #include "features.h"
 #include "subgraphs.h"
-#include "../elemental/exception.h"
-#include "../elemental/filesystem.h"
-#include "../elemental/graph.h"
-#include "../elemental/string.h"
+#include "../common/exception.h"
+#include "../common/filesystem.h"
+#include "../common/graph.h"
+#include "../common/string.h"
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -35,12 +35,12 @@ namespace inspire {
       std::vector<std::string> HEADERS;
       public:
       QueryStream(std::string path, std::vector<std::string> &headers) : HEADERS(headers) {
-        if (path.size() == 0 || path.back() == elemental::filesystem::directory_separator) {
+        if (path.size() == 0 || path.back() == common::filesystem::directory_separator) {
           path += "query.fit";
-        } else if (elemental::filesystem::is_directory(path)) {
+        } else if (common::filesystem::is_directory(path)) {
           path += "/query.fit";
         } else {
-          if (!elemental::string::ends_with(path, ".fit")) {
+          if (!common::string::ends_with(path, ".fit")) {
             path += ".fit";
           }
         }
@@ -82,21 +82,21 @@ namespace inspire {
         buffer << PATH;
         for (size_t i = 0; i < HEADERS.size() - 1; ++i) {
           std::string dir = HEADERS[i] + '_' + residues[i];
-          if (!elemental::filesystem::is_portable_directory(dir)) {
+          if (!common::filesystem::is_portable_directory(dir)) {
             // NOTE: Previously created directories and/or files are not deleted.
-            throw elemental::exception::TitledException("'" + dir + "' is not a valid portable directory name.");
+            throw common::exception::TitledException("'" + dir + "' is not a valid portable directory name.");
           }
-          buffer << dir << elemental::filesystem::directory_separator;
+          buffer << dir << common::filesystem::directory_separator;
         }
         std::string filepath = buffer.str();
-        if (!elemental::filesystem::exists(filepath) && !elemental::filesystem::create_directory_recursive(filepath)) {
+        if (!common::filesystem::exists(filepath) && !common::filesystem::create_directory_recursive(filepath)) {
           // NOTE: Previously created directories and/or files are not deleted.
-          throw elemental::exception::TitledException("It is not possible to create a directory structure '" + buffer.str() + "'");
+          throw common::exception::TitledException("It is not possible to create a directory structure '" + buffer.str() + "'");
         }
         std::string file = HEADERS.back() + '_' + residues.back() + ".fin";
-        if (!elemental::filesystem::is_portable_file(file)) {
+        if (!common::filesystem::is_portable_file(file)) {
           // NOTE: Previously created directories and/or files are not deleted.
-          throw elemental::exception::TitledException("'" + file + "' is not a valid portable file name");
+          throw common::exception::TitledException("'" + file + "' is not a valid portable file name");
         }
         buffer << file;
         // CHECK: Does not this create a new vector?
@@ -109,15 +109,15 @@ namespace inspire {
       public:
       KnowledgebaseStream(std::string path, std::vector<std::string> &headers, size_f length) : PATH(path), HEADERS(headers), LENGTH(length == 0 ? 0 : ((length-1)/CHAR_BIT+1)) {
         if (PATH.size() > 0) {
-          if (elemental::filesystem::exists(PATH)) {
-            if (!elemental::filesystem::is_directory(PATH)) {
-              throw elemental::exception::TitledException("'" + PATH + "' exists but is not a directory.");
+          if (common::filesystem::exists(PATH)) {
+            if (!common::filesystem::is_directory(PATH)) {
+              throw common::exception::TitledException("'" + PATH + "' exists but is not a directory.");
             }
-          } else if (!elemental::filesystem::create_directory_recursive(PATH)) {
-            throw elemental::exception::TitledException("It is not possible to create '" + PATH + "'");
+          } else if (!common::filesystem::create_directory_recursive(PATH)) {
+            throw common::exception::TitledException("It is not possible to create '" + PATH + "'");
           }
-          if (PATH.back() != elemental::filesystem::directory_separator) {
-            PATH.push_back(elemental::filesystem::directory_separator);
+          if (PATH.back() != common::filesystem::directory_separator) {
+            PATH.push_back(common::filesystem::directory_separator);
           }
         }
       }
@@ -151,7 +151,7 @@ namespace inspire {
           ++bytes;
         }
         if (bytes < LENGTH) {
-          throw elemental::exception::TitledException("The fingerprint no. " + std::to_string(id) + " has an invalid length");
+          throw common::exception::TitledException("The fingerprint no. " + std::to_string(id) + " has an invalid length");
         }
         /*for (; bytes < LENGTH; ++bytes) {
           stream.put(0);
@@ -216,8 +216,8 @@ namespace inspire {
             floyd_warshall(graph);
           }
           int get_distance(int left, int right) const {
-            elemental::graph::vertex left_vertex = name_to_vertex.at(left);
-            elemental::graph::vertex right_vertex = name_to_vertex.at(right);
+            common::graph::vertex left_vertex = name_to_vertex.at(left);
+            common::graph::vertex right_vertex = name_to_vertex.at(right);
             int distance = vertices_distances[left_vertex][right_vertex];
             // Check for unreachable.
             if (distance == std::numeric_limits<int>::max()) {
@@ -228,10 +228,10 @@ namespace inspire {
           private: // boost::floyd_warshall_all_pairs_shortest_paths
           void floyd_warshall(const graph& graph) {
             // Create names for vertices.
-            elemental::graph::undirected_graph g;
+            common::graph::undirected_graph g;
             auto vertices = graph.get_vertices_iterators();
             for (; vertices.first != vertices.second; ++vertices.first) {
-              add_to_index(*vertices.first, elemental::graph::add_vertex(g));
+              add_to_index(*vertices.first, common::graph::add_vertex(g));
             }
             // Add edges to the graph.				
             auto edges = graph.get_edges_iterators();
@@ -239,23 +239,23 @@ namespace inspire {
               const auto& edge = *edges.first;
               auto first = get_index(edge.first);
               auto second = get_index(edge.second);
-              elemental::graph::add_edge(first, second, g);
+              common::graph::add_edge(first, second, g);
             }
-            vertices_distances = elemental::graph::distance_matrix(name_to_vertex.size());
-            elemental::graph::distance_matrix_map distances_map(vertices_distances, g);
+            vertices_distances = common::graph::distance_matrix(name_to_vertex.size());
+            common::graph::distance_matrix_map distances_map(vertices_distances, g);
             // Every edge has weight 1.
-            elemental::graph::const_property_map const_one_property_map(1);
-            elemental::graph::shortest_paths(g, distances_map, const_one_property_map);
+            common::graph::const_property_map const_one_property_map(1);
+            common::graph::shortest_paths(g, distances_map, const_one_property_map);
           }
           private:
           void clear_data() {
             name_to_vertex.clear();
           }
-          void add_to_index(int vertex_name, elemental::graph::vertex new_vertex) {
+          void add_to_index(int vertex_name, common::graph::vertex new_vertex) {
             //int new_index = name_to_vertex.size();
             name_to_vertex.insert(std::make_pair(vertex_name, new_vertex));
           }
-          elemental::graph::vertex get_index(int vertex_name) {
+          common::graph::vertex get_index(int vertex_name) {
             auto iter = name_to_vertex.find(vertex_name);
             if (iter == name_to_vertex.end()) {
               throw std::runtime_error("Missing vertex.");
@@ -264,8 +264,8 @@ namespace inspire {
             }
           }
           private:
-          std::map<int, elemental::graph::vertex> name_to_vertex;
-          elemental::graph::distance_matrix vertices_distances;
+          std::map<int, common::graph::vertex> name_to_vertex;
+          common::graph::distance_matrix vertices_distances;
         };
 
       }
@@ -391,19 +391,19 @@ namespace inspire {
           std::vector<float> bins;
         };
 
-        verticies_pair_property* create_distance_property(elemental::graph::property_tree& settings) {
+        verticies_pair_property* create_distance_property(common::graph::property_tree& settings) {
           size_t size = settings.get_child("size").get_value<size_t>();
           return new verticies_distance(size);
         }
 
-        vertex_property* create_value_property(elemental::graph::property_tree& settings, std::map<std::string, int> &headers) {
+        vertex_property* create_value_property(common::graph::property_tree& settings, std::map<std::string, int> &headers) {
           size_t size = settings.get_child("size").get_value<size_t>();
           std::string name = settings.get_child("property").get_value<std::string>();
           value_property* calculator = new value_property(size, name, headers);
           return calculator;
         }
 
-        mapping_property* create_mapping_property(elemental::graph::property_tree& settings, std::map<std::string, int> &headers) {
+        mapping_property* create_mapping_property(common::graph::property_tree& settings, std::map<std::string, int> &headers) {
           size_t size = settings.get_child("size").get_value<size_t>();
           std::string name = settings.get_child("property").get_value<std::string>();
           mapping_property* calculator = new mapping_property(size, name, headers);
@@ -435,8 +435,8 @@ namespace inspire {
         std::vector<std::shared_ptr<properties::vertex_property> > vertex_properties;
         public:
         void load(const std::string& settings_path, std::map<std::string, int>& headers) {
-          elemental::graph::property_tree root;
-          elemental::graph::parse_json(settings_path, root);
+          common::graph::property_tree root;
+          common::graph::parse_json(settings_path, root);
           this->size = root.get_child("fingerprint.size").get_value<size_f>();
           for (auto& edge_settings : root.get_child("fingerprint.edge")) {
             add_verticies_pair_property(edge_settings.second);
@@ -461,7 +461,7 @@ namespace inspire {
           return vertex_size;
         }
         private:
-        void add_verticies_pair_property(elemental::graph::property_tree& settings) {
+        void add_verticies_pair_property(common::graph::property_tree& settings) {
           std::string type = settings.get_child("type").get_value<std::string>();
           if (type == "distance") {
             this->verticies_pair_properties.push_back(std::shared_ptr<properties::verticies_pair_property>(
@@ -471,7 +471,7 @@ namespace inspire {
             throw std::runtime_error(error.c_str());
           }
         }
-        void add_vertex_property(elemental::graph::property_tree& settings, std::map<std::string, int> &headers) {
+        void add_vertex_property(common::graph::property_tree& settings, std::map<std::string, int> &headers) {
           std::string type = settings.get_child("type").get_value<std::string>();
           if (type == "property") {
             this->vertex_properties.push_back(std::shared_ptr<properties::vertex_property>(
@@ -622,7 +622,7 @@ namespace inspire {
       public:
       FingerprintWriter(std::string index, std::string subgraphs_file) : INDEX(index), SUBGRAPHS(subgraphs_file) {
         if (!INDEX.reset()) {
-          throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
+          throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
       }
       ~FingerprintWriter() {
@@ -634,7 +634,7 @@ namespace inspire {
         for (size_t i = 0; i < FEATURES.back().size(); i++) {
           auto ins = HEADERS_MAP.insert({FEATURES.back().header(i), HEADERS.size()});
           if (!ins.second) {
-            throw elemental::exception::TitledException("Multiple columns contain the same header: '" + FEATURES.back().header(i));
+            throw common::exception::TitledException("Multiple columns contain the same header: '" + FEATURES.back().header(i));
           }
           HEADERS.push_back(FEATURES.back().header(i));
         }
@@ -651,7 +651,7 @@ namespace inspire {
             OUTPUT = new QueryStream(output_path, HEADERS);
             break;
           default:
-            throw elemental::exception::TitledException("Unexpected output format.");
+            throw common::exception::TitledException("Unexpected output format.");
             break;
         }
         fingerprint::fingerprint_calculator calculator(calculator_configuration);

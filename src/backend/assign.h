@@ -12,16 +12,16 @@ namespace inspire {
       std::ifstream INPUT;
 
       inline static std::string validate_name(std::string output, const std::string extension, const std::string input) {
-        if (output.size() == 0 || output.back() == elemental::filesystem::directory_separator) {
-          size_t sep = input.rfind(elemental::filesystem::directory_separator);
+        if (output.size() == 0 || output.back() == common::filesystem::directory_separator) {
+          size_t sep = input.rfind(common::filesystem::directory_separator);
           if (sep == input.npos) {
             output += input;
           } else {
             output += input.substr(sep+1);
           }
         }
-        if (!elemental::string::ends_with(output, extension)) {
-          if (elemental::string::ends_with(output, ".pec")) {
+        if (!common::string::ends_with(output, extension)) {
+          if (common::string::ends_with(output, ".pec")) {
             output = output.substr(0, output.size()-4);
           }
           output += extension;
@@ -33,12 +33,12 @@ namespace inspire {
       Assignator(const std::string &index, const std::string &results) : INPUT(results) {
         Index indices(index);
         if (!indices.reset()) {
-          throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
+          throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
         do {
           RESIDUES.push_back(std::make_tuple(indices.protein(), indices.model(), indices.chain(), indices.aminoacid()));
           if (RESIDUES.size() != indices.index()) {
-            throw elemental::exception::TitledException("Unexpected format of index file: expected continuous aritmetic sequence starting at 1 with step 1");
+            throw common::exception::TitledException("Unexpected format of index file: expected continuous aritmetic sequence starting at 1 with step 1");
           }
         } while (indices.next());
       }
@@ -48,7 +48,7 @@ namespace inspire {
         if (std::getline(INPUT, line)) {
           size_t tab = line.find('\t');
           if (tab == line.npos || tab == line.size()-1) {
-            throw elemental::exception::TitledException("Unexpected line format in results file: " + line);
+            throw common::exception::TitledException("Unexpected line format in results file: " + line);
           }
           auto &labels = RESIDUES[std::stoll(line.substr(0, tab))];
           protein = std::get<0>(labels);
@@ -64,7 +64,7 @@ namespace inspire {
       // Delimiter-separated value file format
       static void Csv(char delimiter, const std::string &index, const std::string &results, const std::string &output) {
         if (delimiter == '"') {
-          throw elemental::exception::TitledException("Double quotes are not allowed as a delimiter");
+          throw common::exception::TitledException("Double quotes are not allowed as a delimiter");
         }
         std::ofstream stream(validate_name(output, ".csv", results));
         Assignator assignator(index, results);
@@ -75,11 +75,11 @@ namespace inspire {
         std::string value;
         stream << "\"Protein\"" << delimiter << "\"Model\"" << delimiter << "\"Chain\"" << delimiter << "\"Residue\"" << delimiter << "\"value\"\n";
         while (assignator.next(protein, model, chain, aminoacid, value)) {
-          protein = elemental::string::replace_all(protein, '"', "\"\"");
-          model = elemental::string::replace_all(model, '"', "\"\"");
-          chain = elemental::string::replace_all(chain, '"', "\"\"");
-          aminoacid = elemental::string::replace_all(aminoacid, '"', "\"\"");
-          value = elemental::string::replace_all(value, '"', "\"\"");
+          protein = common::string::replace_all(protein, '"', "\"\"");
+          model = common::string::replace_all(model, '"', "\"\"");
+          chain = common::string::replace_all(chain, '"', "\"\"");
+          aminoacid = common::string::replace_all(aminoacid, '"', "\"\"");
+          value = common::string::replace_all(value, '"', "\"\"");
           stream << '"' << protein << '"' << delimiter << '"' << model << '"' << delimiter << '"' << chain << '"' << delimiter << '"' << aminoacid << '"' << delimiter << '"' << value << "\"\n";
         }
         stream.flush();
@@ -137,7 +137,7 @@ namespace inspire {
         std::string value;
         bool first = true;
         while (assignator.next(protein, model, chain, aminoacid, value)) {
-          value = elemental::string::replace_all(elemental::string::replace_all(elemental::string::replace_all(value, '&', "&amp;"), '<', "&lt;"), '>', "&gt;");
+          value = common::string::replace_all(common::string::replace_all(common::string::replace_all(value, '&', "&amp;"), '<', "&lt;"), '>', "&gt;");
           if (first) {
             first = false;
             stream << "<protein id=\"" << protein << "\">\n"

@@ -2,8 +2,8 @@
 
 #include "iterators.h"
 #include "parser.h"
-#include "../elemental/filesystem.h"
-#include "../elemental/string.h"
+#include "../common/filesystem.h"
+#include "../common/string.h"
 #include "protein.h"
 #include <string>
 #include <sstream>
@@ -33,7 +33,7 @@ namespace inspire {
         std::stringstream elements(line);
         std::string element;
         if (!std::getline(elements, element, '\t')) {
-          throw elemental::exception::TitledException("Unexpected empty line in the index file.");
+          throw common::exception::TitledException("Unexpected empty line in the index file.");
         }
         AMINOACID = element;
         if (std::getline(elements, element, '\t')) {
@@ -79,14 +79,14 @@ namespace inspire {
       // iterator: how to iterate proteins and what model(s), biomolecule(s) and crystallographic transformation(s) to use
       // filter: what parts of proteins are relevant
       Indexer(std::string filepath, ProteinIterator* iterator, BasicFilter* filter) : ITERATOR(iterator), FILTER(filter) {
-        if (filepath.empty() || filepath.back() == elemental::filesystem::directory_separator) {
+        if (filepath.empty() || filepath.back() == common::filesystem::directory_separator) {
           filepath += "residue.ind";
-        } else if (!elemental::string::ends_with(filepath, ".ind")) {
+        } else if (!common::string::ends_with(filepath, ".ind")) {
           filepath += ".ind";
         }
-        if (elemental::filesystem::exists(filepath)) {
-          if (elemental::filesystem::is_directory(filepath)) {
-            throw elemental::exception::TitledException("'" + filepath + "' exists and is a directory, please select another filename.");
+        if (common::filesystem::exists(filepath)) {
+          if (common::filesystem::is_directory(filepath)) {
+            throw common::exception::TitledException("'" + filepath + "' exists and is a directory, please select another filename.");
           }
           std::cerr << "'" << filepath << "' exists and will be overriden." << std::endl;
         }
@@ -141,7 +141,7 @@ namespace inspire {
           std::cout << "parsed    ";
           index(&protein);
           std::cout << "indexed\r";
-        } catch (const elemental::exception::TitledException& e) {
+        } catch (const common::exception::TitledException& e) {
           std::cerr << "ERROR: " << e.what() << std::endl;
         } catch (const std::exception& e) {
           std::cerr << "ERROR: " << e.what() << std::endl;
@@ -151,8 +151,8 @@ namespace inspire {
       }
 
       void process(std::string item) {
-        if (elemental::filesystem::is_directory(item)) {
-          elemental::filesystem::RecursiveDirectoryFileIterator file_iterator(item);
+        if (common::filesystem::is_directory(item)) {
+          common::filesystem::RecursiveDirectoryFileIterator file_iterator(item);
           if (file_iterator.has_file()) {
             do {
               index(file_iterator.filename());

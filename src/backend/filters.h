@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../elemental/string.h"
+#include "../common/string.h"
 
 namespace inspire {
   namespace backend {
@@ -114,7 +114,7 @@ namespace inspire {
     // TODO: Skip it outside chains only? It will require memory of the filter and duplicite parsing of a file though in a limited form.
     struct SkipH2OFilter : BasicFilter {
       bool keep(const std::string& line) override {
-        return line.size() < 20 || !elemental::string::starts_with(line, "HETATM") || !elemental::string::contains_at(line, "HOH", 17);
+        return line.size() < 20 || !common::string::starts_with(line, "HETATM") || !common::string::contains_at(line, "HOH", 17);
       }
     };
 
@@ -122,14 +122,14 @@ namespace inspire {
     // NOTE: If an aminoacid has no C_alpha specified, it is lost
     struct CalphaOnlyFilter : BasicFilter {
       bool keep(const std::string& line) override {
-        return line.size() < 16 || !elemental::string::starts_with(line, "ATOM  ") || elemental::string::contains_at(line, " CA ", 12);
+        return line.size() < 16 || !common::string::starts_with(line, "ATOM  ") || common::string::contains_at(line, " CA ", 12);
       }
     };
 
     // Skips all hydrogens in 'ATOM' section
     struct SkipHydrogenFilter : BasicFilter {
       bool keep(const std::string& line) override {
-        return line.size() < 78 || !elemental::string::starts_with(line, "ATOM  ") || elemental::string::contains_at(line, " H", 76);
+        return line.size() < 78 || !common::string::starts_with(line, "ATOM  ") || common::string::contains_at(line, " H", 76);
       }
     };
 
@@ -137,7 +137,7 @@ namespace inspire {
     // NOTE: Usefull for basic atomic features, where interdistances between chains are not used, e.g. aminoacid type, charge or temperature factor.
     struct SkipRemarksFilter : BasicFilter {
       bool keep(const std::string& line) override {
-        return !elemental::string::starts_with(line, "REMARK ");
+        return !common::string::starts_with(line, "REMARK ");
       }
     };
 

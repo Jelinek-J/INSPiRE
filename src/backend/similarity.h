@@ -65,7 +65,7 @@ namespace inspire {
       inline void initialize(const std::string &filename, Bimap &protein_names, Bimap &residue_names, std::vector<std::pair<size_t, size_t>> &proteins, std::map<size_t, size_t> &sizes) {
         Index index(filename);
         if (!index.reset()) {
-          throw elemental::exception::TitledException("The index file is empty or it is not possible to read it.");
+          throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
 
         do {
@@ -74,7 +74,7 @@ namespace inspire {
           size_t residue_index = residue_names.add_or_get(key.second);
           proteins.push_back(std::make_pair(protein_index, residue_index));
           if (proteins.size() != index.index()) {
-            throw elemental::exception::TitledException("Unexpected format of index file: expected continuous aritmetic sequence starting at 1 with step 1");
+            throw common::exception::TitledException("Unexpected format of index file: expected continuous aritmetic sequence starting at 1 with step 1");
           }
           auto sizes_it = sizes.insert({protein_index, 1});
           if (!sizes_it.second) {
@@ -124,16 +124,16 @@ namespace inspire {
         }
 
         // Output stream
-        if (output.empty() || output.back() == elemental::filesystem::directory_separator) {
-          size_t i = mined.rfind(elemental::filesystem::directory_separator);
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = mined.rfind(common::filesystem::directory_separator);
           std::string tmp = (i == mined.npos ? mined : mined.substr(i+1));
-          if (elemental::string::ends_with(tmp, ".med")) {
+          if (common::string::ends_with(tmp, ".med")) {
             output += tmp.substr(0, tmp.size()-4);
           } else {
             output += tmp;
           }
           output += ".rty";
-        } else if (!elemental::string::ends_with(output, ".rty")) {
+        } else if (!common::string::ends_with(output, ".rty")) {
           output += ".rty";
         }
         std::ofstream stream(output);

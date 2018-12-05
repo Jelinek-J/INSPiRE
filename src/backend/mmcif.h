@@ -2,8 +2,8 @@
 
 #include "protein.h"
 #include "filters.h"
-#include "../elemental/string.h"
-#include "../elemental/exception.h"
+#include "../common/string.h"
+#include "../common/exception.h"
 #include <vector>
 #include <set>
 #include <istream>
@@ -25,7 +25,7 @@ namespace inspire {
         size_t nonspace = line.find_first_not_of(' ', key.size());
         if (nonspace == line.npos) {
           if (!std::getline(input, line)) {
-            throw elemental::exception::TitledException("Unexpected end of file, missing value for " + line);
+            throw common::exception::TitledException("Unexpected end of file, missing value for " + line);
           }
           if (line.size() < 1 || line[0] != ';') {
             return line;
@@ -36,12 +36,12 @@ namespace inspire {
               return buffer.str();
             }
           }
-          throw elemental::exception::TitledException("Unexpected end of file, uncompleted value for key " + key + ": " + buffer.str());
+          throw common::exception::TitledException("Unexpected end of file, uncompleted value for key " + key + ": " + buffer.str());
         } else {
-          std::string value = elemental::string::trim(line.substr(nonspace));
+          std::string value = common::string::trim(line.substr(nonspace));
           if (value[0] == '\'' || value[0] == '"') {
             if (value.size() < 2 || value[value.size()-1] != value[0]) {
-              throw elemental::exception::TitledException("Unexpected format of line: " + line);
+              throw common::exception::TitledException("Unexpected format of line: " + line);
             }
             return value.substr(1, value.size()-2);
           } else if (value == "." || value == "?") {
@@ -61,7 +61,7 @@ namespace inspire {
         for (size_t i = 0; i < count; i++) {
           while (position == line.npos) {
             if (!std::getline(input, line)) {
-              throw elemental::exception::TitledException("Unexpected end of file");
+              throw common::exception::TitledException("Unexpected end of file");
             }
             position = line.find_first_not_of(' ', 0);
           }
@@ -72,13 +72,13 @@ namespace inspire {
                 ++position;
                 size_t next = line.find(line[position-1], position);
                 if (next == line.npos) {
-                  throw elemental::exception::TitledException("Missing closing quotation marks on line " + line);
+                  throw common::exception::TitledException("Missing closing quotation marks on line " + line);
                 }
                 if (indices.find(i) != indices.end()) {
                   ret[i] = line.substr(position, next-position);
                 }
                 if (next < line.size()-1 && line[next+1] != ' ') {
-                  throw elemental::exception::TitledException("Unexpected character after closing quotation marks on line " + line);
+                  throw common::exception::TitledException("Unexpected character after closing quotation marks on line " + line);
                 }
                 position = next+1;
               }
@@ -89,18 +89,18 @@ namespace inspire {
                   ret[i] = line.substr(1);
                 }
                 if (!std::getline(input, line)) {
-                  throw elemental::exception::TitledException("Unexpected end of file within a matrix " + line);
+                  throw common::exception::TitledException("Unexpected end of file within a matrix " + line);
                 }
                 while (line.size() == 0 || line[0] != ';') {
                   if (indices.find(i) != indices.end()) {
                     ret[i] += line;
                   }
                   if (!std::getline(input, line)) {
-                    throw elemental::exception::TitledException("Unexpected end of file within a matrix " + line);
+                    throw common::exception::TitledException("Unexpected end of file within a matrix " + line);
                   }
                 }
                 if (line.size() > 1 && line[1] != ' ') {
-                  throw elemental::exception::TitledException("Unexpected character after closing semicolon of multiline value " + line);
+                  throw common::exception::TitledException("Unexpected character after closing semicolon of multiline value " + line);
                 }
                 position = 1;
               } else {
@@ -148,7 +148,7 @@ namespace inspire {
       // Parse what transformations should be used
       static std::map<std::string, TransformationMatrix> parseTransformations(const std::string &ids, const std::map<std::string, TransformationMatrix> &transformations) {
         if (ids.find('*') != ids.npos || ids.find('+') != ids.npos || ids.find('.') != ids.npos) {
-          throw elemental::exception::TitledException("Star '*', plus '+' and dot '.' are not currently supported in identifiers of pdbx_struct_oper_list");
+          throw common::exception::TitledException("Star '*', plus '+' and dot '.' are not currently supported in identifiers of pdbx_struct_oper_list");
         }
         std::map<std::string, TransformationMatrix> ret;
         auto transformations_it = transformations.find(ids);
@@ -186,18 +186,18 @@ namespace inspire {
         if (ret.size() > 0) {
           return ret;
         }
-        throw elemental::exception::TitledException("Operation expression expression '_pdbx_struct_assembly_gen.oper_expression' or the used format is not currently supported: " + ids);
+        throw common::exception::TitledException("Operation expression expression '_pdbx_struct_assembly_gen.oper_expression' or the used format is not currently supported: " + ids);
       }
 
       public:
       static std::string parse_id(std::istream& input) {
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
-          if (line.size() > 10 && elemental::string::starts_with(line, "_entry.id ")) {
+          if (line.size() > 10 && common::string::starts_with(line, "_entry.id ")) {
             return parse_item(line, input, "_entry.id");
           }
         }
-        throw elemental::exception::TitledException("No id line");
+        throw common::exception::TitledException("No id line");
       }
 
       // Read pdb file from input filtered by filters and returns the corresponding protein
@@ -224,30 +224,30 @@ namespace inspire {
         while (!input.eof() && std::getline(input, line)) {
           if (filter->keep(line)) {
             // Type of block
-            if (elemental::string::starts_with(line, "loop_")) {
+            if (common::string::starts_with(line, "loop_")) {
               loop = true;
               index = 0;
             // Protein identifier
-            } else if (elemental::string::starts_with(line, "_entry.id ")) {
+            } else if (common::string::starts_with(line, "_entry.id ")) {
               if (loop) {
-                throw elemental::exception::TitledException("Unexpected protein ID within a loop");
+                throw common::exception::TitledException("Unexpected protein ID within a loop");
               }
               protein.ID_CODE = parse_item(line, input, "_entry.id ");
             // Identifiers of chains that should be parsed
-            } else if (elemental::string::starts_with(line, "_entity_poly.pdbx_strand_id")) {
+            } else if (common::string::starts_with(line, "_entity_poly.pdbx_strand_id")) {
               if (loop) {
                 size_t i = index;
                 do {
                   ++index;
                 } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
-                while (!elemental::string::starts_with(line, "#")) {
+                while (!common::string::starts_with(line, "#")) {
                   std::stringstream values(extract_item(line, input, index, {i})[i]);
                   std::string value;
                   while (std::getline(values, value, ',')) {
                     chains.emplace(value);
                   }
                   if (!std::getline(input, line)) {
-                    throw elemental::exception::TitledException("Unexpected end of file, missing closing sharp");
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
                   }
                 }
               } else {
@@ -258,29 +258,29 @@ namespace inspire {
                 }
               }
             // Crystallographic symmetry
-            } else if (elemental::string::starts_with(line, "_symmetry.space_group_name_H-M")) {
+            } else if (common::string::starts_with(line, "_symmetry.space_group_name_H-M")) {
               if (loop) {
-                throw elemental::exception::TitledException("Unexpected crystallographic space group within a loop");
+                throw common::exception::TitledException("Unexpected crystallographic space group within a loop");
               }
               space_group = parse_item(line, input, "_symmetry.space_group_name_H-M");
               // TODO: Dictionary of space groups and generate transformations
             // Biomolecules composition
-            } else if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.")) {
+            } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.")) {
               if (loop) {
                 size_t id;
                 size_t transformations;
                 size_t affected;
                 do {
-                  if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
+                  if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
                     id = index;
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
                     transformations = index;
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
                     affected = index;
                   }
                   ++index;
                 } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
-                while (!elemental::string::starts_with(line, "#")) {
+                while (!common::string::starts_with(line, "#")) {
                   auto values = extract_item(line, input, index, {id, transformations, affected});
                   auto &subgeneration = generation[std::stoi(values[id])];
                   auto subgeneration_it = subgeneration.find(values[transformations]);
@@ -291,7 +291,7 @@ namespace inspire {
                     subgeneration_it->second.insert(parsed.begin(), parsed.end());
                   }
                   if (!std::getline(input, line)) {
-                    throw elemental::exception::TitledException("Unexpected end of file, missing closing sharp");
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
                   }
                 }
               } else {
@@ -299,59 +299,59 @@ namespace inspire {
                 std::string transformations;
                 std::string affected;
                 do {
-                  if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
+                  if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
                     id = std::stoi(parse_item(line, input, "_pdbx_struct_assembly_gen.assembly_id"));
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
                     transformations = parse_item(line, input, "_pdbx_struct_assembly_gen.oper_expression");
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
                     affected = parse_item(line, input, "_pdbx_struct_assembly_gen.asym_id_list");
                   }
                 } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
                 if (id <= 0) {
-                  throw elemental::exception::TitledException("Missing ID of biomolecule transformations (_pdbx_struct_assembly_gen.assembly_id)");
+                  throw common::exception::TitledException("Missing ID of biomolecule transformations (_pdbx_struct_assembly_gen.assembly_id)");
                 }
                 generation[id][transformations] = parseChains(affected);
               }
             // Biomolecules transformations
-            } else if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.")) {
+            } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.")) {
               std::map<std::string, TransformationMatrix> matrices;
               if (loop) {
                 size_t id_index;
                 size_t matrix_indices[3][4];
                 std::set<size_t> indices;
                 do {
-                  if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
+                  if (common::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
                     id_index = index;
                     indices.emplace(index);
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.matrix[") && line[31] == ']' && line[32] == '[' && line[34] == ']') {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.matrix[") && line[31] == ']' && line[32] == '[' && line[34] == ']') {
                     matrix_indices[line[30]-'1'][line[33]-'1'] = index;
                     indices.emplace(index);
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.vector[") && line[31] == ']') {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.vector[") && line[31] == ']') {
                     matrix_indices[line[30]-'1'][3] = index;
                     indices.emplace(index);
                   }
                   ++index;
                 } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
                 if (indices.size() != 13 ) {
-                  throw elemental::exception::TitledException("Incorrectly deffined biomolecolue transformation matrix: _pdbx_struct_oper_list");
+                  throw common::exception::TitledException("Incorrectly deffined biomolecolue transformation matrix: _pdbx_struct_oper_list");
                 }
-                while (!elemental::string::starts_with(line, "#")) {
+                while (!common::string::starts_with(line, "#")) {
                   auto values = extract_item(line, input, index, indices);
                   TransformationMatrix matrix(std::make_tuple(std::make_tuple(std::stod(values[matrix_indices[0][0]]), std::stod(values[matrix_indices[0][1]]), std::stod(values[matrix_indices[0][2]]), std::stod(values[matrix_indices[0][3]])),
                                                               std::make_tuple(std::stod(values[matrix_indices[1][0]]), std::stod(values[matrix_indices[1][1]]), std::stod(values[matrix_indices[1][2]]), std::stod(values[matrix_indices[1][3]])),
                                                               std::make_tuple(std::stod(values[matrix_indices[2][0]]), std::stod(values[matrix_indices[2][1]]), std::stod(values[matrix_indices[2][2]]), std::stod(values[matrix_indices[2][3]]))));
                   matrices[values[id_index]] = matrix;
                   if (!std::getline(input, line)) {
-                    throw elemental::exception::TitledException("Unexpected end of file, missing closing sharp");
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
                   }
                 }
               } else {
                 std::string id;
                 TransformationMatrix matrix;
                 do {
-                  if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
+                  if (common::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
                     id = parse_item(line, input, "_pdbx_struct_oper_list.id");
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.matrix[")) { // It is not possible to use variable in std::get<i>(tuple)
+                  } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.matrix[")) { // It is not possible to use variable in std::get<i>(tuple)
                     switch (line[30]) {
                       case '1':
                         switch (line[33]) {
@@ -365,7 +365,7 @@ namespace inspire {
                             std::get<2>(std::get<0>(matrix)) = std::stod(parse_item(line, input, "_pdbx_struct_oper_list.matrix[1][3]"));
                             break;
                           default:
-                            throw elemental::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
+                            throw common::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
                             break;
                         }
                         break;
@@ -381,7 +381,7 @@ namespace inspire {
                             std::get<2>(std::get<1>(matrix)) = std::stod(parse_item(line, input, "_pdbx_struct_oper_list.matrix[2][3]"));
                             break;
                           default:
-                            throw elemental::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
+                            throw common::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
                             break;
                         }
                         break;
@@ -397,15 +397,15 @@ namespace inspire {
                             std::get<2>(std::get<2>(matrix)) = std::stod(parse_item(line, input, "_pdbx_struct_oper_list.matrix[3][3]"));
                             break;
                           default:
-                            throw elemental::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
+                            throw common::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
                             break;
                         }
                         break;
                       default:
-                        throw elemental::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
+                        throw common::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
                         break;
                     }
-                  } else if (elemental::string::starts_with(line, "_pdbx_struct_oper_list.vector[")) {
+                  } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.vector[")) {
                     switch (line[30]) {
                       case '1':
                         std::get<3>(std::get<0>(matrix)) = std::stod(parse_item(line, input, "_pdbx_struct_oper_list.vector[1]"));
@@ -417,13 +417,13 @@ namespace inspire {
                         std::get<3>(std::get<2>(matrix)) = std::stod(parse_item(line, input, "_pdbx_struct_oper_list.vector[3]"));
                         break;
                       default:
-                        throw elemental::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
+                        throw common::exception::TitledException("Unknown row index in biomolecule transformation amtrix: " + line);
                         break;
                     }
                   }
                 } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
                 if (id.size() == 0) {
-                  throw elemental::exception::TitledException("Missing ID of biomolecule transformations (_pdbx_struct_assembly_gen.assembly_id)");
+                  throw common::exception::TitledException("Missing ID of biomolecule transformations (_pdbx_struct_assembly_gen.assembly_id)");
                 }
                 matrices[id] = matrix;
               }
@@ -518,12 +518,12 @@ namespace inspire {
                 }
               }
             // Atoms
-            } else if (elemental::string::starts_with(line, "_atom_site.")) {
+            } else if (common::string::starts_with(line, "_atom_site.")) {
               if (chains.size() == 0) {
-                throw elemental::exception::TitledException("Block '_entity_poly' missing or occures after block '_atom_site' which is not currently supported");
+                throw common::exception::TitledException("Block '_entity_poly' missing or occures after block '_atom_site' which is not currently supported");
               }
               if (!loop) {
-                throw elemental::exception::TitledException("Single atom definition is not supported");
+                throw common::exception::TitledException("Single atom definition is not supported");
               }
               size_t model_index = -1;
               size_t chain_index = -1;
@@ -547,75 +547,75 @@ namespace inspire {
               size_t charge_index = -1;
               std::set<size_t> indices;
               do {
-                if (elemental::string::starts_with(line, "_atom_site.id")) {
+                if (common::string::starts_with(line, "_atom_site.id")) {
                   atom_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.auth_asym_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.auth_asym_id")) {
                   chain_index2 = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.auth_atom_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.auth_atom_id")) {
                   atom_name_index2 = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.auth_comp_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.auth_comp_id")) {
                   residue_type_index2 = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.auth_seq_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.auth_seq_id")) {
                   residue_index2 = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.B_iso_or_equiv")) {
+                } else if (common::string::starts_with(line, "_atom_site.B_iso_or_equiv")) {
                   temperature_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.Cartn_x")) {
+                } else if (common::string::starts_with(line, "_atom_site.Cartn_x")) {
                   x_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.Cartn_y")) {
+                } else if (common::string::starts_with(line, "_atom_site.Cartn_y")) {
                   y_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.Cartn_z")) {
+                } else if (common::string::starts_with(line, "_atom_site.Cartn_z")) {
                   z_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.group_PDB")) {
+                } else if (common::string::starts_with(line, "_atom_site.group_PDB")) {
                   residue_group_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.label_alt_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.label_alt_id")) {
                   altloc_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.label_asym_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.label_asym_id")) {
                   chain_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.label_atom_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.label_atom_id")) {
                   atom_name_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.label_comp_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.label_comp_id")) {
                   residue_type_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.label_seq_id")) {
+                } else if (common::string::starts_with(line, "_atom_site.label_seq_id")) {
                   residue_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.occupancy")) {
+                } else if (common::string::starts_with(line, "_atom_site.occupancy")) {
                   occupancy_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.pdbx_formal_charge")) {
+                } else if (common::string::starts_with(line, "_atom_site.pdbx_formal_charge")) {
                   charge_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.pdbx_PDB_ins_code")) {
+                } else if (common::string::starts_with(line, "_atom_site.pdbx_PDB_ins_code")) {
                   insertion_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.pdbx_PDB_model_num")) {
+                } else if (common::string::starts_with(line, "_atom_site.pdbx_PDB_model_num")) {
                   model_index = index;
                   indices.emplace(index);
-                } else if (elemental::string::starts_with(line, "_atom_site.type_symbol")) {
+                } else if (common::string::starts_with(line, "_atom_site.type_symbol")) {
                   atom_type_index = index;
                   indices.emplace(index);
                 }
                 ++index;
               } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
               if (indices.size() != 20) {
-                throw elemental::exception::TitledException("Incorrectly deffined atom headers: _atom_sites");
+                throw common::exception::TitledException("Incorrectly deffined atom headers: _atom_sites");
               }
               if (chain_index == -1) {
                 if (chain_index2 == -1) {
-                  throw elemental::exception::TitledException("Chain identifier is not specified");
+                  throw common::exception::TitledException("Chain identifier is not specified");
                 } else {
                   chain_index = chain_index2;
                 }
@@ -626,7 +626,7 @@ namespace inspire {
               }
               if (residue_index == -1) {
                 if (residue_index2 == -1) {
-                  throw elemental::exception::TitledException("Residue identifier is not specified");
+                  throw common::exception::TitledException("Residue identifier is not specified");
                 } else {
                   residue_index = residue_index2;
                 }
@@ -637,7 +637,7 @@ namespace inspire {
               }
               if (residue_type_index == -1) {
                 if (residue_type_index2 == -1) {
-                  throw elemental::exception::TitledException("Residue type identifier identifier is not specified");
+                  throw common::exception::TitledException("Residue type identifier identifier is not specified");
                 } else {
                   residue_type_index = residue_type_index2;
                 }
@@ -648,7 +648,7 @@ namespace inspire {
               }
               if (atom_name_index == -1) {
                 if (atom_name_index2 == -1) {
-                  throw elemental::exception::TitledException("Residue type identifier identifier is not specified");
+                  throw common::exception::TitledException("Residue type identifier identifier is not specified");
                 } else {
                   residue_type_index = atom_name_index2;
                 }
@@ -663,7 +663,7 @@ namespace inspire {
               std::pair<const std::pair<int, char>, Aminoacid>* aminoacid = nullptr;
               bool missing_model = false;
               std::set<std::string> warnings;
-              while (!elemental::string::starts_with(line, "#")) {
+              while (!common::string::starts_with(line, "#")) {
                 auto values = extract_item(line, input, index, indices);
                 std::string chain_id2 = values[chain_index2];
                 std::string residue = values[residue_index];
@@ -673,7 +673,7 @@ namespace inspire {
                   if (model == nullptr || model_id != model->first) {
                     auto ins = protein.MODELS.insert({model_id, Model()});
                     if (!ins.second) {
-                      throw elemental::exception::TitledException("Unexpected format of mmCIF file: multiple models with the same serial number: '" + std::to_string(model_id) + "'");
+                      throw common::exception::TitledException("Unexpected format of mmCIF file: multiple models with the same serial number: '" + std::to_string(model_id) + "'");
                     }
                     if (!missing_model && model_id != protein.MODELS.size()) {
                       missing_model = true;
@@ -692,7 +692,7 @@ namespace inspire {
                   if (chain == nullptr || chain_id != chain->first) {
                     auto ins = model->second.CHAINS.insert({chain_id, Chain()});
                     if (!ins.second) {
-                      throw elemental::exception::TitledException("Multiple chains with the same identifier: '" + chain_id + "'");
+                      throw common::exception::TitledException("Multiple chains with the same identifier: '" + chain_id + "'");
                     }
                     chain = &*ins.first;
                     aminoacid = nullptr;
@@ -702,13 +702,13 @@ namespace inspire {
                     warnings.emplace("Different values of '_atom_site.auth_seq_id' and '_atom_site.label_seq_id' are not currently supported");
                   }
                   if (values[residue_type_index] != values[residue_type_index2]) {
-                    throw elemental::exception::TitledException("Different values of '_atom_site.auth_comp_id' and '_atom_site.label_comp_id' are not currently supported");
+                    throw common::exception::TitledException("Different values of '_atom_site.auth_comp_id' and '_atom_site.label_comp_id' are not currently supported");
                   }
                   std::string insertion = insertion_index == -1 ? " " : values[insertion_index];
                   if (insertion == "?" || insertion.size() == 0) {
                     insertion = " ";
                   } else if (insertion.size() > 1) {
-                    throw elemental::exception::TitledException("Alternative location identifier should be a character, not a string: '" + insertion + "'");
+                    throw common::exception::TitledException("Alternative location identifier should be a character, not a string: '" + insertion + "'");
                   }
                   const std::pair<int, char> aa_id = {std::stoi(values[residue_index]), insertion[0]};
                   if (aminoacid == nullptr || aa_id != aminoacid->first) {
@@ -718,41 +718,41 @@ namespace inspire {
                     } else if (values[residue_group_index] == "HETATM") {
                       ins = chain->second.AMINOACIDS.insert({aa_id, ModifiedAminoacid(values[residue_type_index])});
                     } else {
-                      throw elemental::exception::TitledException("UNEXPECTED type of atom group: '" + values[residue_type_index] + "'");
+                      throw common::exception::TitledException("UNEXPECTED type of atom group: '" + values[residue_type_index] + "'");
                     }
                     if (!ins.second) {
-                      throw elemental::exception::TitledException("Multiple aminoacids with the same identifier: '" + std::to_string(aa_id.first) + aa_id.second + "'");
+                      throw common::exception::TitledException("Multiple aminoacids with the same identifier: '" + std::to_string(aa_id.first) + aa_id.second + "'");
                     }
                     aminoacid = &*ins.first;
                   }
                   // Set the current atom
                   std::string atom_name = values[atom_name_index];
                   if (atom_name != values[atom_name_index2]) {
-                    throw elemental::exception::TitledException("Different values of '_atom_site.auth_atom_id' and '_atom_site.label_atom_id' are not currently supported");
+                    throw common::exception::TitledException("Different values of '_atom_site.auth_atom_id' and '_atom_site.label_atom_id' are not currently supported");
                   }
                   std::string altloc = altloc_index == -1 ? " " : values[altloc_index];
                   if (altloc == "." || altloc.size() == 0) {
                     altloc = " ";
                   } else if (altloc.size() > 1) {
-                    throw elemental::exception::TitledException("Alternative location identifier should be a character, not a string: '" + altloc + "'");
+                    throw common::exception::TitledException("Alternative location identifier should be a character, not a string: '" + altloc + "'");
                   }
                   Atom& atom = aminoacid->second.ATOMS[atom_name];
                   if (altloc == " ") {
                     if (atom.ALTERNATIVE_LOCATIONS.size() > 0) {
-                      throw elemental::exception::TitledException("Multiple ATOM lines for the same atom without altLoc specifier: '" + altloc + "'");
+                      throw common::exception::TitledException("Multiple ATOM lines for the same atom without altLoc specifier: '" + altloc + "'");
                     }
                     atom.ELEMENT = values[atom_type_index];
                   } else {
                     if (atom.ALTERNATIVE_LOCATIONS.empty()) {
                       atom.ELEMENT = values[atom_type_index];
                     } else if (atom.ELEMENT != values[atom_type_index]) {
-                      throw elemental::exception::TitledException("Multiple ATOM lines for the same atom contains differents elements: '" + atom.ELEMENT + " vs. " + values[atom_type_index] + "'");
+                      throw common::exception::TitledException("Multiple ATOM lines for the same atom contains differents elements: '" + atom.ELEMENT + " vs. " + values[atom_type_index] + "'");
                     }
                   }
                   // Set the current coordinate
                   auto coordinate = atom.ALTERNATIVE_LOCATIONS.insert({altloc[0], Characteristic()});
                   if (!coordinate.second) {
-                    throw elemental::exception::TitledException("Multiple alternative locations with the same identifier: '" + line + "'");
+                    throw common::exception::TitledException("Multiple alternative locations with the same identifier: '" + line + "'");
                   }
                   coordinate.first->second.SERIAL_NUMBER = std::stoi(values[atom_index]);
                   coordinate.first->second.X = std::stod(values[x_index]);
@@ -764,7 +764,7 @@ namespace inspire {
                   coordinate.first->second.CHARGE = charge.size() == 0 ? 0 : std::stoi(charge);
                 }
                 if (!std::getline(input, line)) {
-                  throw elemental::exception::TitledException("Unexpected end of file, missing closing sharp");
+                  throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
                 }
               }
               for (auto warnings_it = warnings.begin(); warnings_it != warnings.end(); ++warnings_it) {
@@ -774,7 +774,7 @@ namespace inspire {
             if (loop && line.size() > 0 && line[0] == '_') {
               ++index;
             }
-            if (elemental::string::starts_with(line, "#")) {
+            if (common::string::starts_with(line, "#")) {
               loop = false;
               index = 0;
             }
