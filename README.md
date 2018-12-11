@@ -42,5 +42,5 @@ There is also a premaked knowledge-base to make the use of INSPiRE easier. It is
 9. Reduction of redundancies:
     1. Fingerprints were grouped by aminoacid type, fingerprint and interface.
     2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were thrown out and only one was preserved.)
-    3. For each group of size k, leave only ⌈log<sub>6</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>6</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>6</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>6</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid typa and fingerprint, but for different interface labels.
+    3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid typa and fingerprint, but for different interface labels.
     4. Renumber fingerprints and interfaces file to make the interfaces file smaller.
