@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include "boost\filesystem.hpp"
+#include "string.h"
+#include "boost/filesystem.hpp"
 
 // NOTE: If you do not like Boost or have problems with getting it to work, all usages of Boost are concentrated in namespace 'common'
 // to make its replacement as easy as possible
@@ -73,7 +74,7 @@ namespace common {
     inline void move(std::string from, std::string to) {
       boost::filesystem::rename(from, to);
     }
-    
+
     // Delete directory and all its content
     inline void remove_recursively(std::string directory) {
       boost::filesystem::remove_all(directory);
@@ -81,6 +82,55 @@ namespace common {
 
     inline void remove_file(std::string file) {
       boost::filesystem::remove(file);
+    }
+
+    // Check, whether <path> ends with file or directory name (separator); in the second case, add the <filename>.
+    // Then check, whether path ends with <extension> - if not, add the extension.
+    // NOTE: To consider path as a directory, it must end with a directory separator, otherwise an extension is added only.
+    // NOTE: Dot is not added prior extension implicitly.
+    inline std::string complete(const std::string &path, const std::string &filename, const std::string &extension) {
+      if (!extension.empty() && string::ends_with(filename, extension)) {
+        std::string filename2 = filename.substr(0, filename.size()-extension.size());
+        return complete(path, filename2, extension);
+      }
+
+      if (path.empty()) {
+        return filename + extension;
+      }
+      if (string::ends_with(path, directory_separator)) {
+        if (!is_directory(path)) {
+          create_directory_recursive(path);
+        }
+        return path + filename + extension;
+      }
+      /* See the upper NOTE
+      if (is_directory(path)) {
+        return path + std::string(1, directory_separator) + filename + extension;
+      }*/
+      if (string::contains(path, directory_separator)) {
+        std::string dir = path.substr(0, path.rfind(directory_separator));
+        if (!is_directory(dir)) {
+          create_directory_recursive(dir);
+        }
+        if (dir.size()+1 == path.size()) {
+          return path + filename + extension;
+        }
+      }
+      if (string::ends_with(path, extension)) {
+        return path;
+      }
+      return path + extension;
+    }
+
+    // Identify basename in <pattern> and then call complete(<path>, basename, <extension>)
+    inline std::string copy_filename(const std::string &path, const std::string &pattern, const std::string &extension) {
+      size_t separator = pattern.rfind(directory_separator);
+      size_t dot = pattern.rfind('.');
+      if (separator == pattern.npos) {
+        return complete(path, dot == pattern.npos || extension.empty() ? pattern : pattern.substr(0, dot), extension);
+      } else {
+        return complete(path, (dot == pattern.npos || dot < separator || extension.empty()) ? pattern.substr(separator+1) : pattern.substr(separator+1, dot-separator-1), extension);
+      }
     }
 
     // Iterates through all files in a given directory and all its subdirectories

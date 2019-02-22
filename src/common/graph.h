@@ -6,7 +6,6 @@
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
 
-
 namespace common {
   namespace graph {
     typedef boost::property<boost::edge_weight_t, int> edge_weight_property;

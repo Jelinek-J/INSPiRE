@@ -10,6 +10,10 @@ namespace common {
       return !str.compare(0, prefix.size(), prefix);
     }
 
+    inline bool contains(const std::string &str, char ch) {
+      return str.find(ch) != str.npos;
+    }
+
     // Check, whether string 'str' contains 'infix' at position 'at'
     inline bool contains_at(const std::string &str, const std::string &infix, const size_t &at) {
       if (str.size() < at + infix.size()) {
@@ -52,7 +56,7 @@ namespace common {
 
     // Replace all occurances
     inline std::string replace_all(std::string str, const char find, const std::string replace) {
-      for (size_t i = str.size(); i=str.rfind(find, i--) != str.npos; ) {
+      for (size_t i = str.size(); i = str.rfind(find, i--) != str.npos; ) {
         str = str.replace(i, 1, replace);
       }
       return str;
