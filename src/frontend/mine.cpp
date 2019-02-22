@@ -13,17 +13,30 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "([-t <threads>] [-n <nearest elements>] [-C] [-c <central features>] -k <knowledge-base> ([-S] [-s <siblings>] [-p] <input> <output>)+)+\n";
-  std::cout << "-t <threads>\tNumber of threads that should be used for data mining. Default value is 1.\n";
-  std::cout << "-n <nearest elements>\tNumber of the most similar elements that will be returned. Default value is 1.\n";
-  std::cout << "-CtClean filtering previously set with '-c' switch.\n";
-  std::cout << "-c <central features>\tFeatures of central nodes used for filtering of knowledge-base separated by a directory separator.\n";
-  // TODO: Path to file with binning.
-  std::cout << "-k <knowledge-base>\tPath to the root directory of knowledge-base.\n";
-  std::cout << "-S\tClean siblings previously set with '-s' switch.\n";
-  std::cout << "-s <siblings>\tPath to the file with a specification of siblings that should be skipped.\n";
-  std::cout << "[-p] <input>\tA path to A file with elements that should be predicted\n            \t-p switcher is necessary in the case that the filename starts with '-'.\n\n";
+
+  std::cout << "For each query fingerprint finds indices of k-most similar fingerprints with the same features of the central residue in the knowledge-base.\n\n";
+
+  std::cout << "Usage:\t([-t <THREADS>] [-n <COUNT>] [-C] [-c <CENTRAL-FEATURES>] -k <KNOWLEDGE-BASE> ([-S] [-s <SIBLINGS-FILE>] [-p] <QUERY-FILE> <OUTPUT-PATH>)+)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t-t <THREADS>           \tNumber of threads that should be used for data mining. Default value is 1.\n";
+  std::cout << "        \t-n <COUNT>             \tNumber of the most similar elements that will be returned.\n";
+  std::cout << "        \t                       \tIf multiple fingerprints have the same similarity score, all fingerprints with the score equal to the score of the <COUNT>-th most similar element are returned too.\n";
+  std::cout << "        \t                       \tDefault value is 1.\n";
+  std::cout << "        \t-c <CENTRAL-FEATURES>  \tWhat features of central residues will be used for prefiltering of knowledge-base.\n";
+  std::cout << "        \t                       \tMultiple features must be separated by a directory separator.\n";
+  std::cout << "        \t-C                     \tClean filtering previously set with '-c' switch.\n";
+  std::cout << "        \t-k <KNOWLEDGE-BASE>    \tPath to the root directory of a knowledge-base.\n";
+  std::cout << "        \t-s <SIBLINGS-FILE>     \tPath to a file with defining, what knowledge-base's fingerprints should be skipped when mining most similar fingerprints for individual query fingerprints.\n";
+  std::cout << "        \t                       \tThis is usefull for benchmarking to exclude fingerprints from the same protein/ benchmark instead of construction of new knowledge-base for each benchmark.\n";
+  std::cout << "        \t-S                     \tClean siblings previously set with '-s' switch.\n";
+  std::cout << "        \t<QUERY-FILE>           \tA path to a file with query fingerprints for which the most similar elements should be find.\n";
+  std::cout << "        \t-p                     \tA switcher saying that the next one argument will be a <QUERY-FILE>.\n";
+  std::cout << "        \t                       \tThis switcher is mandatory if a <QUERY-FILE> starts with a hyphen-minus sign.\n";
+  std::cout << "        \t<OUTPUT-PATH>          \tWhere to store output file.\n";
+  std::cout << "        \t                       \tIf <OUTPUT-PATH> is empty or ends with a directory separator, <QUERY-FILE>'s basename is used as the file name with '.med' as an extension.\n";
+  std::cout << "        \t                       \tIf <OUTPUT-PATH> does not end with '.med' extension, the extension is appended.\n";
+  std::cout << "        \t-h                     \tShow informations about the program\n\n";
 }
 
 int main(int argc, const char** argv) {
@@ -35,9 +48,9 @@ int main(int argc, const char** argv) {
     "-t", "1",
     "-n", "1",
     "-c", "aminoacid",
-    "-k", "C:\\Inspire\\test\\fingerprints",
-    "-s", "C:\\Inspire\\test\\siblings.exc",
-    "C:\\Inspire\\test\\fingerprints.fit", "C:\\Inspire\\test\\mined"
+    "-k", "C:\\Inspire\\precompiled\\fingerprints\\",
+    "-s", "C:\\Inspire\\gvin\\related.exc",
+    "C:\\Inspire\\test\\inspire\\fingerprints.fit", "C:\\Inspire\\test\\mint"
   };
   argv = args;
 #endif // TESTING
@@ -49,8 +62,8 @@ int main(int argc, const char** argv) {
     return 0;
   }
 
+  inspire::backend::Mine* mine = nullptr;
   try {
-    inspire::backend::Mine* mine = nullptr;
     std::set<std::string> filters;
     int threads = 1;
     int limit = 1;
@@ -197,6 +210,9 @@ int main(int argc, const char** argv) {
 #ifdef TESTING
     log << "UNKNOWN ERROR" << std::endl;
 #endif // TESTING
+  }
+  if (mine != nullptr) {
+    delete mine;
   }
 
   return 0;

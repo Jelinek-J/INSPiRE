@@ -13,8 +13,23 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "(<first> <second> <output>)+\tMerges fingerprints in <first> and <second> and save it into <output>\n\n";
+
+  std::cout << "Pairs fingerprints with the same index in different sets of fingerprints and concatenate them.\n\n";
+
+  std::cout << "Usage:\t(<FINGERPRINTS> <FINGERPRINTS> <OUTPUT-PATH>)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t<FINGERPRINTS>  \tSet of fingerprints.\n";
+  std::cout << "        \t                \tBoth sets must be of the same type (knowledge-base, or query) and they must have the same directory structure (in the case of knowledge-base file format).\n";
+  std::cout << "        \t<OUTPUT-PATH>   \tWhere to store output fingerprints.\n";
+  std::cout << "        \t                \tIf <FINGERPRINTS>s are in text format and <OUTPUT-PATH> is empty or ends with a directory separator,\n";
+  std::cout << "        \t                \t\t<FINGERPRINTS>'s basenames are concatenated with hyphen-minus sign is used as a file name.\n";
+  std::cout << "        \t                \t\tIf filename does not end with '.fit' extension, the extension is appended.\n";
+  std::cout << "        \t                \tIf <FINGERPRINTS>s are in binary format and <OUTPUT-PATH> is considered as a directory. Directory structure of <FINGERPRINTS>s is preserved.\n";
+  std::cout << "        \t-h                 \tShow informations about the program\n\n";
+
+  std::cout << "Notes:\tEach index number must be unique in each set of fingerprints.\n";
+  std::cout << "      \tFingerprints must be sorted by index numbers due to performancy reasons.\n\n";
 }
 
 int main(int argc, const char** argv) {

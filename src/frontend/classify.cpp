@@ -11,10 +11,19 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "<interfaces> [-f <feature>] (<mine> <output>)+\tParse file with mined residues and clasify them according to labels in <interfaces>\n";
-  std::cout << "                                              \t-f\tuse only <feature> for labeling; multiple features can be separated by a directory separator\n";
-  std::cout << "NOTE: Principially, <interfaces> could be an arbitrary features file.\n\n";
+
+  std::cout << "Parse a file with mined residues, classify them according to given labels file and write summary statistics.\n\n";
+
+  std::cout << "Usage:\t<FEATURES-FILE> [-f <FEATURE-NAMES>] (<MINED-FILE> <OUTPUT-PATH>)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t<MINED-FILE>        \tPath to a file with mined residues\n";
+  std::cout << "        \t<FEATURES-FILE>     \tPath to a features file that will by used for classification\n";
+  std::cout << "        \t-f <FEATURE-NAMES>  \tSpecify, what features should be used for clasification; multiple features can be separated by a directory separator\n";
+  std::cout << "        \t<OUTPUT-PATH>       \tWhere to store output file.\n";
+  std::cout << "        \t                    \tIf <OUTPUT-PATH> is a directory or ends with a directory separator, <PREDICTION-FILE>'s basename is used as the file name;\n";
+  std::cout << "        \t                    \tif the path is not a directory but does not but not ends with '.sas' extension, the extension is appended.\n";
+  std::cout << "        \t-h                  \tShow informations about the program\n\n";
 }
 
 int main(int argc, const char** argv) {
@@ -39,8 +48,8 @@ int main(int argc, const char** argv) {
     return 0;
   }
 
+  inspire::backend::Classifier* classifier = nullptr;
   try {
-    inspire::backend::Classifier* classifier;
     size_t start;
     if (common::string::starts_with(argv[2], "-f")) {
       std::vector<std::string> features;
@@ -58,7 +67,6 @@ int main(int argc, const char** argv) {
     for (size_t i = start; i < argc; i+=2) {
       classifier->classify(argv[i], argv[i+1]);
     }
-    delete classifier;
   } catch (const common::exception::TitledException& e) {
     std::cerr << "ERROR: " << e.what() << std::endl;
     return 1;
@@ -79,6 +87,9 @@ int main(int argc, const char** argv) {
 #ifdef TESTING
     log << "UNKNOWN ERROR" << std::endl;
 #endif // TESTING
+  }
+  if (classifier == nullptr) {
+    delete classifier;
   }
 
   return 0;

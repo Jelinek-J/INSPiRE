@@ -11,15 +11,22 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "((-r[<weight>]) (-a[<weight>]) (-d[<weight>]) ([-] <mine> <output>)+)+\tPrioritize residues in <mine> file based on their statistics.\n";
-  std::cout << "                                                                      \tWeights of individual attributes can be set.\n";
-  std::cout << "                                                                      \t-r\tratio of positive and negative examples is used;\n";
-  std::cout << "                                                                      \t-a\tabsolute number of positive examples is used;\n";
-  std::cout << "                                                                      \t-d\tdistance of examples from the query is used.\n";
-  std::cout << "                                                                      \tIf <weight> is not specified, it is set to '1'.\n";
-  std::cout << "                                                                      \t-\tis required if a <mine> starts with '-'.";
-  std::cout << "NOTE: Principially, <interfaces> could be an arbitrary features file.\n\n";
+
+  std::cout << "Calculate priority score for each query residue based on mined statistics.\n\n";
+
+  std::cout << "Usage:\t((-r[<WEIGHT>]|-a[<WEIGHT>]|-d[<WEIGHT>])+ ([-] <MINED-FILE> <OUTPUT-PATH>)+)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t[-] <MINED-FILE>  \tPath to a file with mined residues.\n";
+  std::cout << "        \t                  \t'-' is required if a <MINED-FILE> starts with hyphen-minus sign.\n";
+  std::cout << "        \t<OUTPUT-PATH>     \tWhere to store output file.\n";
+  std::cout << "        \t                  \tIf <OUTPUT-PATH> is empty or ends with a directory separator, <MINED-FILE>'s basename is used as the file name with '.pot' as an extension.\n";
+  std::cout << "        \t                  \tIf <OUTPUT-PATH> does not end with '.pot' extension, the extension is appended.\n";
+  std::cout << "        \t-h                \tShow informations about the program\n";
+  std::cout << "    Weights: (what should be taken into account during prioritization and how important it should be)\n";
+  std::cout << "        \t-r                \tRatio of positive and negative examples is used\n";
+  std::cout << "        \t-a                \tAbsolute number of positive examples is used\n";
+  std::cout << "        \t-d                \tDistance of examples from the query is used\n\n";
 }
 
 int main(int argc, const char** argv) {

@@ -11,12 +11,25 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "(-x|-n) (-p|-c) <knowledge_base_index> (<query_index> <mine> <output>)+\tParse file with mined residues and identify the most similar:\n";
-  std::cout << "                                                                       \t\t-p\tproteins; or\n";
-  std::cout << "                                                                       \t\t-c\tchains. And use:\n";
-  std::cout << "                                                                       \t\t-x\tthe higher of query/ template scores; or\n";
-  std::cout << "                                                                       \t\t-c\tthe lower of query/ template scores.\n";
+
+  std::cout << "Parse file with mined residues and identify the most similar proteins/chains.\n\n";
+
+  std::cout << "Usage:\t-x|-n -p|-c <KNOWLEDGE-BASE-INDEX> (<QUERY-INDEX> <MINED-FILE> <OUTPUT-PATH>)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t<KNOWLEDGE-BASE-INDEX>  \tPath to the index file of the knowledge-base used for mining\n";
+  std::cout << "        \t<QUERY-INDEX>           \tPath to the index file of a query\n";
+  std::cout << "        \t<MINED-FILE>            \tPath to a file with mined residues\n";
+  std::cout << "        \t<OUTPUT-PATH>           \tWhere to store output file.\n";
+  std::cout << "        \t                        \tIf <OUTPUT-PATH> is empty or ends with a directory separator, <MINED-FILE>'s basename is used as the file name with '.rty' as an extension.\n";
+  std::cout << "        \t                        \tIf OUTPUT-PATH does not end with '.rty' extension, the extension is appended.\n";
+  std::cout << "        \t-h                      \tShow informations about the program\n";
+  std::cout << "    Entities: identify the most similar\n";
+  std::cout << "        \t-p                      \tproteins;\n";
+  std::cout << "        \t-c                      \tchains.\n";
+  std::cout << "    Aggregator: (how should be combined scores of query protein/ chain and template protein/ chain)\n";
+  std::cout << "        \t-x                      \tthe higher of query/ template scores will be taken;\n";
+  std::cout << "        \t-n                      \tthe lower of query/ template scores will be taken.\n\n";
 }
 
 int main(int argc, const char** argv) {

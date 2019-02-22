@@ -14,18 +14,34 @@
 static void help() {
   std::cout << "Help\n\n";
 
-  std::cout << "Create index of residues in the knowledge-base.\n";
-  std::cout << "<index_name> [-(b|c|bc)] (<pdb_directory>|<pdb_file>)+\tIndex all PDB files from the every <pdb_directory> and every <pdb_file>.\n";
-  std::cout << "                                          \tIndex is stored in a file '<index_name>.ind', resp. '<index_name>/residue.ind' if <index_name> is a directory.\n\n";
+  std::cout << "Create index of all residues in selected protein files.\n\n";
 
-  std::cout << "-cb\tAll biomolecules, models and crystallographic transformations are used\n";
-  std::cout << "-b\tAll biomolecules and models, but only the first crystallographic transformation are used.\n";
-  std::cout << "-c\tAll crystallographic transformations, but only the first biomolecule and model are used.\n";
-  std::cout << "\tIf not switch is typed, only the first biomolecule, model and crystallographic transformations are used.\n\n";
+  std::cout << "Usage:\t<OUTPUT-PATH> [-b|-c|-bc|-w] (<PROTEINS-PATH>)+\n";
+  std::cout << "      \t-h\n\n";
 
-  std::cout << "Format of lines in index files is '<residue_id>[\t<chain_id>[\t<pdb_file_basename>]]'.\n";
-  std::cout << "Each residue is on separate line and the number of residue is the number of line where it is. The first index is 1.\n";
-  std::cout << "Each identifier (chain, complex) also applies to the following lines until it is redefined.\n\n";
+  std::cout << "Options:\t<PROTEINS-PATH>     \tPath to a protein or a directory with proteins that should be indexed.\n";
+  std::cout << "        \t                    \tSupported file formats are PDB('*.pdb'), PDBx/mmCIF('*.cif') and ('*.xml').\n";
+  std::cout << "        \t<OUTPUT-PATH> [-s]  \tWhere to store output file.\n";
+  std::cout << "        \t                    \tIf <OUTPUT-PATH> is empty or ends with a directory separator, 'residue.ind' is used as the file name.\n";
+  std::cout << "        \t                    \tIf <OUTPUT-PATH> does not end with '.ind' extension, the extension is appended.\n";
+  std::cout << "        \t-h                  \tShow informations about the program\n";
+  std::cout << "    Iterators: If no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation is used\n";
+  std::cout << "        \t-b                  \tAll biomolecules and models, but only the first crystallographic transformation are used\n";
+  std::cout << "        \t-c                  \tAll crystallographic transformations, but only the first biomolecule and model are used\n";
+  std::cout << "        \t-bc                 \tAll biomolecules, models and crystallographic transformations are used\n";
+  std::cout << "        \t-w                  \tIgnore both biomolecules and crystallographic transformation, use all chains as they are\n";
+  std::cout << "    File Formats:\n";
+  std::cout << "        \tk                   \tFingerprints are stored in binary files splitted in directories based on features of central residues\n";
+  std::cout << "        \tq                   \tAll fingerprints are stored in a single text file\n\n";
+
+  std::cout << "Index File Format:\n";
+  std::cout << "\tOnly the most probable alternative location is used for each atom. (It can be changed in some future iterators.)\n";
+  std::cout << "\tEach residue is on separate line and the number of the residue is the number of its line.\n";
+  std::cout << "\tThe index of the first line is 1.\n";
+  std::cout << "\tFor each residue, index file contains residue identifier, chain identifier, model identifier and protein identifier in this order and separated by tab.\n";
+  std::cout << "\tIf any identifier except residue identifier is missing, it is the same as in the previous line and trailing tabs are trimmed.\n\n";
+
+  std::cout << "Notes:\tOnly the most probable alternative location is used for each atom. (It can be changed in some future iterators.)\n\n";
 }
 
 int main(int argc, const char** argv) {

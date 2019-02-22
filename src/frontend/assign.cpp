@@ -11,11 +11,24 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "((-x|-c<delimiter>|-l) <index> <prediction> <output>)+\tParse prediction file, label them according to protein, model, chain and residue, and store as:\n";
-  std::cout << "                                                      \t\t-x\tXML file;\n";
-  std::cout << "                                                      \t\t-c\t<delimiter>-separated value file; or\n";
-  std::cout << "                                                      \t\t-l\tstructured list.\n";
+
+  std::cout << "Parse prediction file, label them according to protein, model, chain and residue, and store them in a file.\n\n";
+
+  std::cout << "Usage:\t(-x|-c<DELIMITER>|-l <INDEX-FILE> <PREDICTION-FILE> <OUTPUT-PATH>)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t<PREDICTION-FILE> \tPath to a file with prediction that should be transformed to a human-readable format\n";
+  std::cout << "        \t<INDEX-FILE>      \tPath to a index file with labels of residues\n";
+  std::cout << "        \t<OUTPUT-PATH>     \tWhere to store output file.\n";
+  std::cout << "        \t                  \tIf <OUTPUT-PATH> is a directory or ends with a directory separator, <PREDICTION-FILE>'s basename is used as the file name;\n";
+  std::cout << "        \t                  \tif the path is not a directory but does not but not ends with an extension corresponding to a choosen file format, the extension is appended.\n";
+  std::cout << "        \t-h                \tShow informations about the program\n";
+  std::cout << "    Output file format switchers:\n";
+  std::cout << "        \t-x            \tXML file format. This file format has '.xml' as the extension.\n";
+  std::cout << "        \t-c<DELIMITER> \tDelimiter-separated-value file format with <DELIMITER> as the delimiter.\n";
+  std::cout << "        \t              \tThis file format has '.csv' as the extension.\n";
+  std::cout << "        \t-l            \tSpace efficient variation of tab-separated-value file, where repeated values are ommited.\n";
+  std::cout << "        \t              \tThis file format has '.les' as the extension.\n\n";
 }
 
 int main(int argc, const char** argv) {

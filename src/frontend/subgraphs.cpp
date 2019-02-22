@@ -1,21 +1,33 @@
 // subgraphs.cpp : Defines the entry point for the console application.
 //
 
-//#define TESTING
-
 #include "../backend/subgraphs.h"
+
+//#define TESTING
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "Extract subgraphs for residues in the knowledge-base.\n\n";
-  std::cout << "<index> <positions> <path> (-c <limit>|-d <distance>|-e <distance> <limit>)+\n";
-  std::cout << "\tExtract subgraphs for each residue in the index file that has defined position in the file <positions>.\n";
-  std::cout << "\tGraphs are stored in a file '<path>{type}[<distance>_]<limit>', where {type} is 'c', 'd' or 'e'.\n\n";
-  std::cout << "\tIn a subgraph is a central residue and:\n";
-  std::cout << "\t-c:\t<limit>-nearest neighbours (if several neighbours are within the same distance, they all are taken);\n";
-  std::cout << "\t-d:\tall residues that are at most <distance>Angstroems away (according to carbon alpha);\n";
-  std::cout << "\t-e:\tall residues that are at most <limit> edges away and\n";
-  std::cout << "\t\ttwo residues are considered to be connected by an edge if they are at most <distance> distant.\n";
+
+  std::cout << "Extracts required features from proteins indexed in a given index file.\n\n";
+
+  std::cout << "Usage:\t<INDEX-FILE> <POSITIONS-PATH> <OUTPUT-PATH> ( -c <LIMIT>+ | -d <DISTANCE>+ | -e <DISTANCE> <LIMIT>+ )+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t<INDEX-FILE>       \tPath to a index file\n";
+  std::cout << "        \t<POSITIONS-PATH>   \tFeatures file with coordinates of residues\n";
+  std::cout << "        \t<OUTPUT-PATH>      \tWhere to store output file(s).\n";
+  std::cout << "        \t                   \tTo the <OUTPUT-PATH> is appended code of the used subgraph type(see that section) and '.sup' extension.\n";
+  std::cout << "        \t-h                 \tShow informations about the program\n";
+  std::cout << "    Subgraphs: in each subgraph is a central residue and\n";
+  std::cout << "        \t-c <LIMIT>         \t<LIMIT>-nearest neighbours (if several neighbours are within the same distance as the <LIMIT>th-nearest neighbour, they all are taken).\n";
+  std::cout << "        \t                   \tFilename suffix is 'c<LIMIT>.sup'.\n";
+  std::cout << "        \t-d DISTANCE        \tAll residues that are at most <DISTANCE> Angstroems away.\n";
+  std::cout << "        \t                   \tFilename suffix is 'd<DISTANCE>.sup'.\n";
+  std::cout << "        \t-e DISTANCE LIMIT  \tAll residues that are at most <LIMIT> edges away, and\n";
+  std::cout << "        \t                   \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Angstroems distant.\n";
+  std::cout << "        \t                   \tFilename suffix is 'e<DISTANCE>_<LIMIT>.sup' (<DISTANCE> and <LIMIT> are separated by underscore).\n\n";
+
+  std::cout << "Note: Currently, DISTANCE is parsed and then converted back to string to create filenames, so formatting is not preserved.\n\n";
 }
 
 int main(int argc, const char** argv) {

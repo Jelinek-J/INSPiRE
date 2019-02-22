@@ -11,13 +11,23 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "((-f <tresholds>) ([-] <mine> <output>)+)+\tSelect the winning label according the given metric.\n";
-  std::cout << "                                      \t-f <thresholds>\tlinear selector will be used;";
-  std::cout << "                                      \t               \t<thresholds> must contains number of 2-combination of <x> thresholds,\n";
-  std::cout << "                                      \t               \twhere <x> is number of labels in <mine> and they are ordered from the earlier to later\n";
-  std::cout << "                                      \t-\tis required if a <mine> starts with '-'.";
-  std::cout << "NOTE: Principially, <interfaces> could be an arbitrary features file.\n\n";
+
+  std::cout << "Selects a winning label for each query residue according the given metric.\n\n";
+
+  std::cout << "Usage:\t(-f<THRESHOLDS> ([-] <STATISTICS-FILE> <OUTPUT-PATH>)+)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t-f<THRESHOLDS>     \tFractional  binary tree classificator with the given thresholds will be used for the prediction,\n";
+  std::cout << "        \t                   \ti.e. it is tested whether number of hits with label 0 divided by a number of hits with labels 0 or 1 is at least threshold_0_1 and\n";
+  std::cout << "        \t                   \tso on with the winning label and label 2...\n";
+  std::cout << "        \t                   \t<THRESHOLDS> must contains number of 2-combination of x space-separated decimal numbers greater than or equal to 0 and less than or equal to 1,\n";
+  std::cout << "        \t                   \twhere x is number of labels in <STATISTICS-FILE> and order of labels in STATISTICS-FILE's header must be preserved.\n";
+  std::cout << "        \t<STATISTICS-FILE>  \tSet of mined statistics used for prediction.\n";
+  std::cout << "        \t                   \tPreceding '-' is mandatory, if a <STATISTICS-FILE> starts with a hyphen-minus sign.\n";
+  std::cout << "        \t<OUTPUT-PATH>      \tWhere to store output file.\n";
+  std::cout << "        \t                   \tIf <OUTPUT-PATH> is empty or ends with a directory separator, <STATISTICS-FILE>'s basename is used as the file name with '.pec' as an extension.\n";
+  std::cout << "        \t                   \tIf <OUTPUT-PATH> does not end with '.pec' extension, the extension is appended.\n";
+  std::cout << "        \t-h                 \tShow informations about the program\n\n";
 }
 
 int main(int argc, const char** argv) {
@@ -41,9 +51,9 @@ int main(int argc, const char** argv) {
     return 0;
   }
 
+  inspire::backend::Predictor* predictor = nullptr;
   try {
     size_t argv_index = 1;
-    inspire::backend::Predictor* predictor = nullptr;
     while (argv_index < argc && strlen(argv[argv_index]) >= 2 && argv[argv_index][0] == '-') {
       switch (argv[argv_index][1]) {
         case 'f':
@@ -73,7 +83,6 @@ int main(int argc, const char** argv) {
       }
     }
 
-    delete predictor;
     if (argv_index < argc && strlen(argv[1]) < 2 || argv[1][0] != '-') {
       std::cerr << "Missing selector at position #" << argv_index << " '" << argv[argv_index] << "'." << std::endl;
       help();
@@ -99,6 +108,9 @@ int main(int argc, const char** argv) {
 #ifdef TESTING
     log << "UNKNOWN ERROR" << std::endl;
 #endif // TESTING
+  }
+  if (predictor != nullptr) {
+    delete predictor;
   }
 
   return 0;

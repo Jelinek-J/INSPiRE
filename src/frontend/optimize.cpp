@@ -11,16 +11,21 @@
 
 void help() {
   std::cout << "Help\n\n";
-  std::cout << "-h\tPrint this message.\n\n";
-  std::cout << "(-f<precision (-l<interfaces> ([-] <stats> [-o<output>])+)+)+\tSelect the optimal parameters for the given predictor based on the given input.\n";
-  std::cout << "                                                             \t-f<precision>\tlinear selector will be optimised iwth the given precission;\n";
-  std::cout << "                                                             \t<thresholds> must contains number of 2-combination of <x> thresholds,\n";
-  std::cout << "                                                             \twhere <x> is number of labels in <mine> and they are ordered from the earlier to later\n";
-  std::cout << "                                                             \t-\tis required if a <mine> starts with '-'.\n";
-  std::cout << "                                                             \t<stats>\tset used for optimization.\n";
-  std::cout << "                                                             \t-l<interface>\treal labels.\n";
-  std::cout << "                                                             \t-o<output>\tlocation to store output.\n";
-  std::cout << "NOTE: Principially, <interfaces> could be an arbitrary features file.\n\n";
+
+  std::cout << "Optimize parameters of a classifier based on the selected feature and mined statistics.\n\n";
+
+  std::cout << "Usage:\t(-f<PRECISION> (-l<FEATURES-FILE> ([-] <STATISTICS-FILE> -o<OUTPUT-PATH>)+)+)+\n";
+  std::cout << "      \t-h\n\n";
+
+  std::cout << "Options:\t-f<PRECISION>      \tFractional binary classificator's threshold will be optimised with the given precission,\n";
+  std::cout << "        \t                   \ti.e. (i+0.5)/<PRECISION> for i from 0 to (<PRECISION>-1) is tested as threshold for ratio of positive and negative cases.\n";
+  std::cout << "        \t                   \tThreshold is optimized using Matthews correlation coefficient as a prediction quality metric.\n";
+  std::cout << "        \t-l<FEATURES-FILE>  \tReal labels of residues their classification is optimized.\n";
+  std::cout << "        \t<STATISTICS-FILE>  \tSet of mined statistics used for optimization.\n";
+  std::cout << "        \t<OUTPUT-PATH>      \tWhere to store output file.\n";
+  std::cout << "        \t                   \tIf OUTPUT-PATH is empty or ends with a directory separator, STATISTICS-FILE's basename is used as the file name with '.den' as an extension.\n";
+  std::cout << "        \t                   \tIf OUTPUT-PATH does not end with '.den' extension, the extension is appended.\n";
+  std::cout << "        \t-h                 \tShow informations about the program\n\n";
 }
 
 int main(int argc, const char** argv) {
@@ -44,10 +49,10 @@ int main(int argc, const char** argv) {
     return 0;
   }
 
+  inspire::backend::Optimizer* optimizer = nullptr;
   try {
     size_t argv_index = 1;
     std::string function = "f1000";
-    inspire::backend::Optimizer* optimizer = nullptr;
     while (argv_index < argc && strlen(argv[argv_index]) >= 2 && argv[argv_index][0] == '-') {
       switch (argv[argv_index][1]) {
         case 'f':
@@ -62,6 +67,10 @@ int main(int argc, const char** argv) {
           }
           if (common::string::starts_with(function, "f")) {
             optimizer = new inspire::backend::FractionalOptimizer(std::string(argv[argv_index]).substr(2), std::stoi(function.substr(1)));
+          } else {
+            std::cerr << "Unknown optimize '" << function << "'." << std::endl;
+            help();
+            return 7;
           }
           
           while (++argv_index < argc && (strlen(argv[argv_index]) < 2 || argv[argv_index][0] != '-')) {
@@ -90,7 +99,6 @@ int main(int argc, const char** argv) {
       }
     }
 
-    delete optimizer;
     if (argv_index < argc && strlen(argv[1]) < 2 || argv[1][0] != '-') {
       std::cerr << "Missing selector at position #" << argv_index << " '" << argv[argv_index] << "'." << std::endl;
       help();
@@ -116,6 +124,9 @@ int main(int argc, const char** argv) {
 #ifdef TESTING
     log << "UNKNOWN ERROR" << std::endl;
 #endif // TESTING
+  }
+  if (optimizer != nullptr) {
+    delete optimizer;
   }
 
   return 0;
