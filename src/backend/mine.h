@@ -69,22 +69,21 @@ namespace inspire {
         }
       }
 
-      std::vector<uint32_t>* filter_siblings(int id, std::vector<uint32_t>* fingerprints) {
+      std::vector<uint32_t> filter_siblings(const int id, const std::vector<uint32_t> &fingerprints) {
         // Sibilings are not defined.
         if (EXCLUDE.size() == 0) {
           return fingerprints;
         }
 
         //? Initialize buffer for fingerprints.size() length - some indices can be filtered out, but it is just temporary structure, so resizing could lead to worse performance
-        std::vector<uint32_t>* ret = new std::vector<uint32_t>();
+        std::vector<uint32_t> ret;
         //? 'for each' is not C++ construct - it is only in Visual C++, right?
-        for (std::vector<uint32_t>::iterator it = fingerprints->begin(); it != fingerprints->end(); it++) {
+        for (auto it = fingerprints.begin(); it != fingerprints.end(); it++) {
           auto siblings = EXCLUDE.find(id);
           if (siblings == EXCLUDE.end() || siblings->second->find(*it) == siblings->second->end()) {
-            ret->push_back(*it);
+            ret.push_back(*it);
           }
         }
-        //? How does it work, does it also create a new copy of it for the caller, or does it return exactly this one instance like in C# etc.?
         return ret;
       }
 
@@ -143,16 +142,18 @@ namespace inspire {
 
           auto group = KNOWLEDGE_BASE.find(key);
           if (group != KNOWLEDGE_BASE.end()) {
-            //? As I read somewhere, if key does not exists, it return default value. Is it true? Does it return an empty vector, or some like null - i.e. is .size() valid? And is it effective?
-            //? It often does not find the key even if it does exists!?
-            std::vector<uint32_t>* templates = &group->second[fingerprint];
+            auto templates_it = group->second.find(fingerprint);
             //? 'templates = filter_siblings(id, templates)' create new instance of the output, so it is necessary to expand it into more complex branching?
             //?   Or extract it into function, but it is also paid, right? How about inline functions, should be some marked as it?
-            if (templates->size() >= LIMIT && (templates = filter_siblings(id, templates))->size() >= LIMIT) {
-              // TODO: A later filtering is useless for this branch.
-              //? Actually, how this works, does not it create new instances of inserted value?
-              distances.insert({0, *templates});
-            } else {
+            if (templates_it != group->second.end() && templates_it->second.size() >= LIMIT) {
+              const std::vector<uint32_t> &templates = filter_siblings(id, templates_it->second);
+              if (templates.size() >= LIMIT) {
+                // TODO: A later filtering is useless for this branch.
+                //? Actually, how this works, does not it create new instances of inserted value, i.e. should be 'templates' deleted?
+                distances.insert({0, templates});
+              }
+            } 
+            if (distances.empty()) {
               //? What is the map::local_iterator?
               for (std::unordered_map<std::string, std::vector<uint32_t> >::iterator it = group->second.begin(); it != group->second.end(); it++) {
                 int distance = 0;
@@ -174,15 +175,12 @@ namespace inspire {
           size_t count = 0;
           for (std::map<int, std::vector<uint32_t> >::iterator it = distances.begin(); count < LIMIT && it != distances.end(); it++) {
             //? Does 'templates = filter_siblings(id, templates)' create new instance of the output, so it is necessary to use a new variable?
-            std::vector<uint32_t>* templates = filter_siblings(id, &it->second);
-            count += templates->size();
-            for (std::vector<uint32_t>::iterator i = templates->begin(); i != templates->end(); i++) {
+            std::vector<uint32_t> templates = filter_siblings(id, it->second);
+            count += templates.size();
+            for (std::vector<uint32_t>::iterator i = templates.begin(); i != templates.end(); ++i) {
               uint32_t t = *i;
               // Format: index of the element (to allow stats)  \t  distance
               stream << t << '\t' << it->first << '\n';
-            }
-            if (templates->size() > 0) {
-              std::string info = std::to_string(id) + "\t" + std::to_string(it->first) + "\t" + std::to_string(count) + "\t\r";
             }
           }
           stream << std::endl;
@@ -298,6 +296,7 @@ namespace inspire {
               std::stringstream keys(line.substr(0, tab));
               int id;
               while (keys >> id) {
+                //? Should be 'exclude' deleted, i.e. is it created new in 'EXCLUDE', or copied?
                 EXCLUDE.insert({id, exclude});
               }
             }
@@ -306,6 +305,9 @@ namespace inspire {
       }
 
       void clear_excludes() {
+        for (auto exclude_it = EXCLUDE.begin(); exclude_it != EXCLUDE.end(); ++exclude_it) {
+          delete exclude_it->second;
+        }
         EXCLUDE.clear();
       }
 

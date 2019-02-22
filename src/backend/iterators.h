@@ -27,6 +27,7 @@ namespace inspire {
       virtual bool nextAminoacid() { return false; };
       virtual bool nextAtom() { return false; }
       
+      virtual std::string getProteinName() = 0;
       virtual std::string getModelName() = 0;
       virtual std::string getChainName() = 0;
       virtual std::string getAminoacidName() = 0;
@@ -167,6 +168,10 @@ namespace inspire {
         return valid_atom();
       }
 
+      // Returns protein's id_code
+      std::string getProteinName() override {
+        return PROTEIN->ID_CODE;
+      };
       // Returns ""
       std::string getModelName() override {
         return "";
@@ -371,6 +376,10 @@ namespace inspire {
         return valid_atom();
       }
 
+      // Returns protein's id_code
+      std::string getProteinName() override {
+        return PROTEIN->ID_CODE;
+      };
       // Returns ""
       std::string getModelName() override {
         return "";
@@ -622,6 +631,10 @@ namespace inspire {
         return valid_atom();
       }
 
+      // Returns protein's id_code
+      std::string getProteinName() override {
+        return PROTEIN->ID_CODE;
+      };
       // Returns ""
       std::string getModelName() override {
         return "";
@@ -888,6 +901,10 @@ namespace inspire {
         return valid_atom();
       }
 
+      // Returns protein's id_code
+      std::string getProteinName() override {
+        return PROTEIN->ID_CODE;
+      };
       // Returns ;'biomoleculeID','modelID'
       std::string getModelName() override {
         std::string ret = "";
@@ -1186,6 +1203,10 @@ namespace inspire {
         return valid_atom();
       }
 
+      // Returns protein's id_code
+      std::string getProteinName() override {
+        return PROTEIN->ID_CODE;
+      };
       // Returns ;'biomoleculeID','modelID'
       std::string getModelName() override {
         std::string ret = "";

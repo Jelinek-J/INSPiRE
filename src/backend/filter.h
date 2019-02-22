@@ -29,14 +29,26 @@ namespace inspire {
         if (filt.reset()) {
           do {
             // TODO: Not optimal, but this should not be critical
-            MAPPING[index[filt.protein()][filt.model()][filt.chain()][filt.aminoacid()]] = filt.index();
+            auto protein_it = index.find(filt.protein());
+            if (protein_it != index.end()) {
+              auto model_it = protein_it->second.find(filt.model());
+              if (model_it != protein_it->second.end()) {
+                auto chain_it = model_it->second.find(filt.chain());
+                if (chain_it != model_it->second.end()) {
+                  auto aminoacid_it = chain_it->second.find(filt.aminoacid());
+                  if (aminoacid_it != chain_it->second.end()) {
+                    MAPPING[aminoacid_it->second] = filt.index();
+                  }
+                }
+              }
+            }
           } while (filt.next());
         }
       }
 
       void filter(std::string original, std::string filtered) {
         FeaturesReader features(original);
-        std::ofstream output(filtered);
+        std::ofstream output(common::filesystem::copy_filename(filtered, original, ".tur"));
         for (size_t i = 0; i < features.size(); i++) {
           if (i > 0) {
             output << '\t';

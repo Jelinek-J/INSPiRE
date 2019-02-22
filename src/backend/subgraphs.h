@@ -203,26 +203,32 @@ namespace inspire {
 
       std::string k_nearest(int k) {
         std::string path = PATH + "c" + std::to_string(k) + ".sup";
-        if (!COUNT.insert({k, std::ofstream(path)}).second) {
+				std::ofstream& output = COUNT[k];
+				if (output.is_open()) {
           std::cerr << "Duplicit request to generate subgraphs with " << k << "-nearest neighbours" << std::endl;
         }
-        return path;
+				output.open(path);
+				return path;
       }
 
       std::string distance_limit(double d) {
         std::string path = PATH + "d" + std::to_string(d) + ".sup";
-        if (!DISTANCE.insert({std::pow(d, 2), std::ofstream(path)}).second) {
+				std::ofstream& output = DISTANCE[std::pow(d, 2)];
+				if (output.is_open()) {
           std::cerr << "Duplicit request to generate subgraphs from neighbours within " << d << " distance" << std::endl;
         }
+				output.open(path);
         return path;
       }
 
       std::string edge_limit(double d, int e) {
         std::string path = PATH + "e" + std::to_string(d) + "_" + std::to_string(e) + ".sup";
         std::map<int, std::ofstream> &edges = EDGES[std::pow(d, 2)];
-        if (!edges.insert({e, std::ofstream(path)}).second) {
+				std::ofstream& output = edges[e];
+				if (output.is_open()) {
           std::cerr << "Duplicit request to generate subgraphs from neighbours within " << e << " edges distance where edge is between residues with distance at most " << d << std::endl;
         }
+				output.open(path);
         return path;
       }
 

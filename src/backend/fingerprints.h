@@ -101,7 +101,7 @@ namespace inspire {
         buffer << file;
         // CHECK: Does not this create a new vector?
         // CHECK: Does not it destroy stream on the end of this method?
-        auto stream = STREAMS.insert({residues, std::ofstream(buffer.str(), std::ios::binary)}).first;
+        auto stream = STREAMS.emplace(std::piecewise_construct, std::forward_as_tuple(residues), std::forward_as_tuple(buffer.str(), std::ios::binary)).first;
         stream->second.write(reinterpret_cast<const char*>(&LENGTH), sizeof(LENGTH));
         return stream;
       }
@@ -163,6 +163,138 @@ namespace inspire {
           streams_it->second.close();
         }
         //? Is not necessary to destruct streams?
+        STREAMS.clear();
+      }
+    };
+
+    class KnowledgebaseDiverseStream : public AbstractStream {
+      private:
+      std::string PATH;
+      std::vector<std::string> HEADERS;
+      /* List of files to store fingerprints */
+      std::map<std::string, std::ofstream> STREAMS;
+      /* Size of fingerprints in bytes */
+      size_f LENGTH;
+      // Identifier of a residue => labels of the given residue
+      // TODO: Consider not store them here, but reload them later
+      std::map<int, std::vector<std::string>> FEATURES;
+
+      std::map<std::string, std::ofstream>::iterator init(std::string &path, size_t level, std::string &residue, std::map<std::string, std::ofstream> &streams) {
+        std::string file = HEADERS[level] + '_' + residue + ".fin";
+        if (!common::filesystem::is_portable_file(file)) {
+          // NOTE: Previously created directories and/or files are not deleted.
+          throw common::exception::TitledException("'" + file + "' is not a valid portable file name");
+        }
+        auto stream = streams.emplace(std::piecewise_construct, std::forward_as_tuple(residue), std::forward_as_tuple(path + file, std::ios::binary)).first;
+        stream->second.write(reinterpret_cast<const char*>(&LENGTH), sizeof(LENGTH));
+        return stream;
+      }
+
+      void finalize(size_t level, std::string dir, std::string prefix) {
+        if (level == HEADERS.size()) {
+          return;
+        }
+        if (!common::filesystem::is_portable_directory(prefix)) {
+          // NOTE: Previously created directories and/or files are not deleted.
+          throw common::exception::TitledException("'" + prefix + "' is not a valid portable directory name.");
+        }
+        std::string dir_next = dir + prefix + common::filesystem::directory_separator;
+        if (!common::filesystem::exists(dir_next) && !common::filesystem::create_directory_recursive(dir_next)) {
+          // NOTE: Previously created directories and/or files are not deleted.
+          throw common::exception::TitledException("It is not possible to create a directory structure '" + dir_next + "'");
+        }
+        size_t level_next = level+1;
+
+        std::map<std::string, std::ofstream> streams;
+        std::ifstream input(dir + prefix + ".fin", std::ios::in | std::ios::binary);
+        size_f length;
+        input.read(reinterpret_cast<char *>(&length), sizeof(length));
+        while (input.peek() != EOF) {
+          uint32_t id;
+          input.read(reinterpret_cast<char *>(&id), sizeof(id));
+          std::string fingerprint(length, '\0');
+          input.read(&fingerprint[0], length);
+
+          std::string label = FEATURES[id][level];
+          auto stream = streams.find(label);
+          if (stream == streams.end()) {
+            stream = init(dir_next, level, label, streams);
+          }
+          stream->second.write(reinterpret_cast<const char*>(&id), sizeof(id));
+          stream->second << fingerprint;
+        }
+        for (auto streams_it = streams.begin(); streams_it != streams.end(); ++streams_it) {
+          streams_it->second.flush();
+          streams_it->second.close();
+        }
+        for (auto streams_it = streams.begin(); streams_it != streams.end(); ++streams_it) {
+          finalize(level_next, dir_next, HEADERS[level] + '_' + streams_it->first);
+        }
+      }
+
+      public:
+      KnowledgebaseDiverseStream(std::string path, std::vector<std::string> &headers, size_f length) : PATH(path), HEADERS(headers), LENGTH(length == 0 ? 0 : ((length-1)/CHAR_BIT+1)) {
+        if (HEADERS.size() == 0) {
+          throw common::exception::TitledException("KnowledgebaseStream should be used instead if headers vector is empty");
+        }
+        if (PATH.size() > 0) {
+          if (common::filesystem::exists(PATH)) {
+            if (!common::filesystem::is_directory(PATH)) {
+              throw common::exception::TitledException("'" + PATH + "' exists but is not a directory.");
+            }
+          } else if (!common::filesystem::create_directory_recursive(PATH)) {
+            throw common::exception::TitledException("It is not possible to create '" + PATH + "'");
+          }
+          if (PATH.back() != common::filesystem::directory_separator) {
+            PATH.push_back(common::filesystem::directory_separator);
+          }
+        }
+      }
+      ~KnowledgebaseDiverseStream() { }
+      void write(int id, std::vector<std::string> &residue, std::vector<bool> &fingerprint) {
+        FEATURES[id] = residue;
+        auto stream = STREAMS.find(residue[0]);
+        if (stream == STREAMS.end()) {
+          stream = init(PATH, 0, residue[0], STREAMS);
+        }
+        //std::ofstream &stream = STREAMS[residue];
+        stream->second.write(reinterpret_cast<const char*>(&id), sizeof(id));
+        // TODO: Move into special file to use in prediction for query fingerprints too.
+        size_t bytes = 0;
+        char bites = 0;
+        char byte = 0;
+        for (auto fingerprint_it = fingerprint.begin(); fingerprint_it != fingerprint.end(); ++fingerprint_it) {
+          if (*fingerprint_it) {
+            byte += (1 << bites);
+          }
+          if (++bites == CHAR_BIT) {
+            stream->second.put(byte);
+            bites = 0;
+            if (++bytes == LENGTH) {
+              break;
+            }
+            byte = 0;
+          }
+        }
+        if (bites > 0) {
+          stream->second.write(&byte, sizeof(byte));
+          ++bytes;
+        }
+        if (bytes < LENGTH) {
+          throw common::exception::TitledException("The fingerprint no. " + std::to_string(id) + " has an invalid length");
+        }
+        /*for (; bytes < LENGTH; ++bytes) {
+        stream.put(0);
+        }*/
+      }
+      void finalize() {
+        for (auto streams_it = STREAMS.begin(); streams_it != STREAMS.end(); ++streams_it) {
+          streams_it->second.flush();
+          streams_it->second.close();
+        }
+        for (auto streams_it = STREAMS.begin(); streams_it != STREAMS.end(); ++streams_it) {
+          finalize(1, PATH, HEADERS[0] + '_' + streams_it->first);
+        }
         STREAMS.clear();
       }
     };
@@ -582,7 +714,7 @@ namespace inspire {
       private:
       Index INDEX;
       SubgraphReader SUBGRAPHS;
-      AbstractStream* OUTPUT;
+      AbstractStream* OUTPUT = nullptr;
       // This is a definition of column names for the vector of features of the variable RESIDUES.
       // This splitted representation is 3x space saving and 15% quicker than single map<int, map<string, string> >.
       // Actually there is no space difference between map and unordered_map, but map is 10% quicker.
@@ -630,7 +762,7 @@ namespace inspire {
       }
 
       void add_features(std::string file)  {
-        FEATURES.push_back(FeaturesReader(file));
+        FEATURES.emplace_back(file);
         for (size_t i = 0; i < FEATURES.back().size(); i++) {
           auto ins = HEADERS_MAP.insert({FEATURES.back().header(i), HEADERS.size()});
           if (!ins.second) {
@@ -643,9 +775,12 @@ namespace inspire {
       void process(std::string settings_file, std::string edges_file, std::string output_path, FingerprintFormat format) {
         fingerprint::configuration calculator_configuration;
         calculator_configuration.load(settings_file, HEADERS_MAP);
+        if (OUTPUT != nullptr) {
+          delete OUTPUT;
+        }
         switch (format) {
           case FingerprintFormat::Binary:
-            OUTPUT = new KnowledgebaseStream(output_path, HEADERS, calculator_configuration.size);
+            OUTPUT = new KnowledgebaseDiverseStream(output_path, HEADERS, calculator_configuration.size);
             break;
           case FingerprintFormat::Text:
             OUTPUT = new QueryStream(output_path, HEADERS);

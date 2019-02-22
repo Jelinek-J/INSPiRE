@@ -96,7 +96,7 @@ namespace inspire {
           }
           size_t best = 0;
           for (size_t i = 1; i < THRESHOLDS.size(); i++) {
-            if (counts[i] > 0 && counts[best]/(double)(counts[best]+counts[i]) < THRESHOLDS[best][i-1]) {
+            if (counts[i] > 0 && counts[best]/(double)(counts[best]+counts[i]) < THRESHOLDS[best][i-best-1]) {
               best = i;
             }
           }

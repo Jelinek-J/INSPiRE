@@ -17,27 +17,29 @@ namespace inspire {
       }
 
       void generate(std::string knowledge_base, std::string queries, std::string output) {
-        Index index(queries);
-        if (index.reset()) {
+        Index index_queries(queries);
+        if (index_queries.reset()) {
           do {
-            auto it = EXCLUDES.find(index.protein());
+            auto it = EXCLUDES.find(index_queries.protein());
             if (it != EXCLUDES.end()) {
-              it->second.first.push_back(index.index());
+              it->second.first.push_back(index_queries.index());
             }
-          } while (index.next());
+          } while (index_queries.next());
         }
-        index = Index(knowledge_base);
-        if (index.reset()) {
+        Index index_kb(knowledge_base);
+        if (index_kb.reset()) {
           do {
-            auto it = EXCLUDES.find(index.protein());
+            auto it = EXCLUDES.find(index_kb.protein());
             if (it != EXCLUDES.end()) {
-              it->second.second.push_back(index.index());
+              it->second.second.push_back(index_kb.index());
             }
-          } while (index.next());
+          } while (index_kb.next());
         }
 
         if (output.empty() || output.back() == common::filesystem::directory_separator) {
           output += "related.exc";
+        } else if (!common::string::ends_with(output, ".exc")) {
+          output += ".exc";
         }
         std::ofstream stream(output);
         for (auto excludes_it = EXCLUDES.begin(); excludes_it != EXCLUDES.end(); ++excludes_it) {
