@@ -1,0 +1,158 @@
+.\" Manpage for inspire.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "inspire man page" 
+.SH NAME
+inspire \- protein\-protein INteraction Sites PREdictor
+.SH SYNOPSIS
+.B inspire
+[\fB\-s\fR \fIPROTEINS\-PATH\fR+] (\fB\-S\fR \fIPROTEIN\-FILE\fR)* [\fB\-x\fR\fITEMP\-DIR\fR] [\fB\-k\fR\fIKNOWLEDGE\-BASE\fR]
+[\fB\-p\fR\fITHREADS\fR]
+[\fB\-n\fR\fICOUNT\fR]
+[\fB\-o\fR\fICENTRAL\-FEATURES\fR]
+[\fB\-j\fR\fIEXCLUDE\-FILE\fR]
+[\fB\-l\fR\fITHRESHOLDS\fR]
+[\fB\-q\fR\fIOUTPUT\-PATH\fR]
+
+.B inspire
+[\fB\-s\fR \fIPROTEINS\-PATH\fR+] (\fB\-S\fR \fIPROTEIN\-FILE\fR)* [\fB\-x\fR\fITEMP\-DIR\fR] [\fB\-k\fR\fIKNOWLEDGE\-BASE\fR] \fB\-m\fR
+[\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR]
+[\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]
+[\fB\-F\fR ( \fB\-a\fR\fITRANSFORMATION\-FILE\fR | \fB\-e\fR | \fB\-r\fR[[\fIRADII\-FILE\fR;[\fICOMPOSITION\-FILE\fR;]]\fIMAX\-SASA\-FILE\fR] | \fB\-t\fR )* \fB\-f\fR]
+[\fB\-v\fR[\fBc\fR[\fILIMIT\fR]|\fBd\fR[\fIDISTANCE\fR]|\fBe\fR[\fIDISTANCE\fR[\fB\-\fR\fILIMIT\fR]]]]
+[\fB\-e\fR[\fBc\fR[\fILIMIT\fR]|\fBd\fR[\fIDISTANCE\fR]|\fBe\fR[\fIDISTANCE\fR[\fB\-\fR\fILIMIT\fR]]]]
+[\fB\-g\fR\fIFINGERPRINTS\-FORMAT\fR]
+
+.B inspire -h
+.SH DESCRIPTION
+Make a prediction of protein-protein interaction sites using INSPiRE method, resp. construct a knowledge-base for that.
+INSPiRE is a knowledge-based method that uses fingerprints to encode local structure of individual residues.
+Details about the method can be found in doi:10.1186/s12859\-017\-1921\-4.
+.SH ARGUMENTS
+.TP
+\fB\-s\fR \fIPROTEINS\-PATH\fR
+Path to a protein or a directory with proteins that should be used
+(path cannot start with a hyphen\-minus sign \- in that case use \fB\-S\fR switchers that accepts a single path only).
+Supported file formats are PDB ('*.pdb'), PDBx/mmCIF ('*.cif') and ('*.xml').
+If none path is typed (using \fB\-s\fR or \fB\-S\fR switcher), the current directory ('.') is used).
+.TP
+\fB\-S\fR \fIPROTEIN\-FILE\fR
+Path to a protein or a directory with proteins that should be used.
+.TP
+\fB\-x\fR\fITEMP\-DIR\fR
+Path to a directory, where to store temporary files.
+If the path is specified, temporary files are not deleted (usefull for reusing of files, debugging etc.).
+If the path is not specified, operating system's temporary directory is used and all temporary files are deleted on regular finish.
+.TP
+\fB\-k\fR\fIKNOWLEDGE\-BASE\fR
+Path to a directory, where is/ should be stored a knowledge\-base.
+If the directory does not exist, it is created.
+Without the switcher, the current directory ('.') is used defaultly.
+.TP
+\fB-p\fR \fITHREADS\fR
+Number of threads that should be used for data mining.
+Default value is 1.
+.TP
+\fB-n\fR \fICOUNT\fR
+Number of the most similar elements that will be used for prediction.
+If multiple fingerprints have the same similarity score, all fingerprints with the score equal to the score of the n\-th most similar element are used too.
+Default value is 1.
+.TP
+\fB-o\fR \fICENTRAL\-FEATURES\fR
+What features of central residues will be used for prefiltering of knowledge-base.
+Multiple features must be separated by a directory separator.
+Default feature is amino acid type.
+.TP
+\fB-j\fR \fISIBLINGS\-FILE\fR
+Path to a file with defining, what knowledge-base's fingerprints should be skipped when searching for most similar fingerprints for individual query fingerprints.
+
+This is usefull for benchmarking to exclude fingerprints from the same protein/ benchmark instead of construction of new knowledge-base for each benchmark.
+.TP
+\fB-l\fITHRESHOLDS\fR
+Fractional binary classificator with the given threshold will be used for the prediction,
+i.e. it is tested whether number of hits with label 'I' divided by a number of all hits is at least \fITHRESHOLDS\fR.
+.TP
+\fB-q\fIOUTPUT\-PATH\fR
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 'prediction.pec' is used as a filename.
+If \fIOUTPUT\-PATH\fR does not end with '.pec' extension, the extension is appended.
+
+Without the switcher, prediction is printed to standard output.
+.TP
+.B -m
+Construction mode: knowledge\-base will be constructed instead of used for prediction.
+.TP
+\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]
+Redefines radii of chemical elements using \fR\fIRADII\-FILE\fR and
+optionally \fIDISTANCE\fR resets the maximal allowed distance of two radiuses (0.5 ? is a default value) to be classified as an interface.
+\fIDISTANCE\fR must be separated by a space from \fIRADII\-FILE\fR.
+.TP
+\fB\-g\fR\fIFINGERPRINTS\-FORMAT\fR
+Path to a file defining how should be fingerprints constructed
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SS Iterators
+What residues will be used (if none of them is choosed, the first biomolecule with the first model and first crystallographic transformation is used):
+.TP
+.B \-b
+All biomolecules and models, but only the first crystallographic transformation are used
+.TP
+.B \-c
+All crystallographic transformations, but only the first biomolecule and model are used
+.TP
+.B \-bc
+All biomolecules, models and crystallographic transformations are used
+.TP
+.B \-w
+Ignore both biomolecules and crystallographic transformation, use all chains as they are
+.SS Features
+It is possible to redefine, what features of aminoacids (and how) will be computed:
+.TP
+.B \-F
+Features section follows until \fB\-f\fR switcher.
+.TP
+.B \-f
+Terminates features section.
+.TP
+\fB\-a\fR\fITRANSFORMATION\-FILE\fR
+Aminoacid type three-letter code is transformed with transformation defined in \fITRANSFORMATION\-FILE\fR, that should be in format 'key<TAB>value'.
+.TP
+.B \-e
+Atomic composition of a residue (helium and deuterium are skipped) will be extracted for each residue.
+.TP
+\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE
+Relative solvent accessible surface area is calculated with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
+atomic radiuses defined in \fIRADII\-FILE\fR and reference solvent accessible surface areas defined in \fIMAX\-SASA\-FILE\fR.
+.TP
+.B \-t
+Temperature factor will be extracted for each residue.
+.SS Subgraphs
+What component of graphs will be redefined:
+.TP
+.B \-v
+Follows definition saying, what nodes belong to a particular neighbourhood
+.TP
+.B \-e
+Follows definition saying, what pairs of nodes are connected by an edge
+.TP
+How it will be redefined:
+.TP
+\fBc\fILIMIT\fR
+\fILIMIT\fR\-nearest neighbours (if several neighbours are within the same distance as the \fILIMIT\fRth-nearest neighbour, they all are taken).
+.TP
+\fBd\fIDISTANCE\fR
+All residues that are at most \fIDISTANCE\fR ?ngströms away.
+.TP
+\fBe\fIDISTANCE\fR\-\fILIMIT\fR
+All residues that are at most \fILIMIT\fR edges away, and
+two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngströms distant.
+.SH TO DO
+Does it make a sense to add interface feature in optional features too?
+
+Repetition is useless for the target group?
+
+Allow to predict just selected chains from a protein file?
+.SH SEE ALSO
+inspire(1), features(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

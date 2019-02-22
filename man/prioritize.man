@@ -1,0 +1,41 @@
+.\" Manpage for prioritize.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "prioritize man page" 
+.SH NAME
+prioritize \- prioritize query residues
+.SH SYNOPSIS
+\fBprioritize\fR ((\fB-r\fR[\fIWEIGHT\fR]|\fB-a\fR[\fIWEIGHT\fR]|\fB-d\fR[\fIWEIGHT\fR])+ ([\fB-\fR] \fIMINED\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
+
+.B prioritize \-h
+.SH DESCRIPTION
+Calculate priority score for each query residue based on mined statistics.
+.SH ARGUMENTS
+.TP
+.I MINED\-FILE
+Path to a file with mined residues.
+.TP
+.B \-
+It is required if a \fIMINED\-FILE\fR starts with hyphen\-minus sign.
+.TP
+.I OUTPUT\-PATH
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fIMINED\-FILE\fR's basename is used as the file name with '.pot' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.pot' extension, the extension is appended.
+.TP
+.B -h
+Show informations about the program
+.SS Weights:
+What should be taken into account during prioritization and how important it should be
+.TP
+.B \-r
+Ratio of positive and negative examples is used
+.TP
+.B \-a
+Absolute number of positive examples is used
+.TP
+.B \-d
+Distance of examples from the query is used
+.SH SEE ALSO
+inspire(1), mine(1), classify(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

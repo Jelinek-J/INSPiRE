@@ -1,0 +1,76 @@
+.\" Manpage for fingerprints.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "fingerprints man page" 
+.SH NAME
+fingerprints \- construct fingerprints for specified residues
+.SH SYNOPSIS
+.BR fingerprints " (" k | q ") "
+.IR OUTPUT\-PATH " " SETTINGS\-FILE " " INDEX\-FILE " " NODES\-FILE " " EDGES\-FILE " (" FEATURES\-PATH ")*"
+
+.B fingerprints \-h
+.SH DESCRIPTION
+Constructs fingerprints defined in \fISETTINGS\-FILE\fR for subgraphs specified in '.sup' files with features of nodes defined in '.tur' files.
+.SH ARGUMENTS
+.TP 4
+.I INDEX\-FILE
+Path to a index file
+.TP
+.I SETTINGS\-FILE
+Path to a file defining how should be fingerprints constructed
+.TP
+.I FEATURES\-PATH
+Features file or directory with features files required to construction of fingerprints or that could be used latter durring prediction
+.TP
+.I OUTPUT\-PATH
+Where to store output file(s).
+
+.RS 4
+.TP
+With \fBq\fR switcher:
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 'query.fit' is used as the file name.
+If \fIOUTPUT\-PATH\fR does not end with '.fit' extension, the extension is appended.
+.RE
+
+.RS 4
+.TP
+With \fBk\fR switcher:
+\fIOUTPUT\-PATH\fR is interpreted as a directory and 
+fingerprints are separated in directories and files named after features of central residues with '.fin' as a file extension.
+Order of directories hieararchy is the same as the order of features in \fIFEATURES\-PATH\fRs.
+.RE
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SS Subgraphs definition
+.TP
+.I NODES\-FILE
+Defines for what subgraphs should be fingerprints constructed
+.TP
+.I EDGES\-FILE
+Defines what nodes are connected by an edge
+.SS File Formats:
+.TP
+.B k
+Fingerprints are stored in binary files splitted in directories based on features of central residues
+.TP
+.B q
+All fingerprints are stored in a single text file
+.SH NOTE
+.TP
+Due to performancy reasons (saving RAM consumption), there are following expectations:
+Records in \fIINDEX\-FILE\fR are grouped by protein_name, then by model_name and finally by chain_name columns;
+
+Lines in \fINODES\-FILE\fR, \fIEDGES\-FILE\fR and files in \fIFEATURES\-PATH\fRs are sorted by index; and
+
+All indices within a single row in both \fINODES\-FILE\fR and \fIEDGES\-FILE\fR are within the same model, i.e. you cannot combine two pdb files nor two different models.
+.TP
+\fINODES\-FILE\fR, \fIEDGES\-FILE\fR have the same file format, but their interpretation is different:
+in the first case the whole row identify nodes in the graph with first node as a central residue;
+
+in the second case the first node is connected with all other nodes by an edge.
+.TP
+Although \fIEDGES\-FILE\fR's file format allows interpretation as directed edges, they are used as undirected edges.
+.SH SEE ALSO
+inspire(1), index(1), features(1), subgraphs(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

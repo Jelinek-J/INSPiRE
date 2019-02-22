@@ -1,0 +1,37 @@
+.\" Manpage for exclude.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "exclude man page" 
+.SH NAME
+exclude \- pair proteins in different index files
+.SH SYNOPSIS
+.B classify
+\fIKNOWLEDGE\-BASE\-INDEX\fR \fIQUERY\-INDEX\fR \fIOUTPUT\-PATH\fR (\fIPROTEIN\-ID\fR)+
+
+.B exclude \-h
+.SH DESCRIPTION
+Pair residues from two index files corresponding to the same given protein(s).
+It is usefull to skip related residues during benchmarking.
+.SH ARGUMENTS
+.TP
+.I KNOWLEDGE\-BASE\-INDEX
+Path to a knowledge\-base's index file
+.TP
+.I QUERY\-INDEX
+Path to a query's index file
+.TP
+.I PROTEIN\-ID
+Identifiers of proteins that should be paired
+.TP
+.I OUTPUT\-PATH
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 'related.exc' is used as the file name;
+if the path is not a directory but does not but not ends with '.exc' extension, the extension is appended.
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SH TO DO
+Allow to match proteins with different identifiers.
+.SH SEE ALSO
+inspire(1), mine(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

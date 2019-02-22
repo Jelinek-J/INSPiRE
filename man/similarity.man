@@ -1,0 +1,51 @@
+.\" Manpage for similarity.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "similarity man page" 
+.SH NAME
+similarity \- identify similar proteins/chains
+.SH SYNOPSIS
+\fBsimilarity\fR \fB\-x\fR|\fB\-n\fR \fB\-p\fR|\fB\-c\fR \fIKNOWLEDGE\-BASE\-INDEX\fR (\fIQUERY\-INDEX\fR \fIMINED\-FILE\fR \fIOUTPUT\-PATH\fR)+
+
+.B similarity \-h
+.SH DESCRIPTION
+Parse file with mined residues and identify the most similar proteins/chains.
+.SH ARGUMENTS
+.TP
+.I KNOWLEDGE\-BASE\-INDEX
+Path to the index file of the knowledge\-base used for mining
+.TP
+.I QUERY\-INDEX
+Path to the index file of a query
+.TP
+.I MINED\-FILE
+Path to a file with mined residues
+.TP
+.I OUTPUT\-PATH
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fIMINED\-FILE\fR's basename is used as the file name with '.rty' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.rty' extension, the extension is appended.
+.TP
+.B -h
+Show informations about the program
+.SS Entities:
+Identify the most similar
+.TP
+.B \-p
+proteins;
+.TP
+.B \-c
+chains.
+.SS Aggregator:
+How should be combined scores of query protein/chain and template protein/chain
+.TP
+.B \-x
+the higher of query/ template scores will be taken;
+.TP
+.B \-n
+the lower of query/ template scores will be taken.
+.SH TO DO
+Allow repetitions.
+.SH SEE ALSO
+inspire(1), mine(1), classify(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

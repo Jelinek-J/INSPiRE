@@ -1,0 +1,40 @@
+.\" Manpage for optimize.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "optimize man page" 
+.SH NAME
+optimize \- optimize parameters of a classifier
+.SH SYNOPSIS
+\fBoptimize\fR (\fB-f\fIPRECISION\fR (\fB-l\fIFEATURES\-FILE\fR ([\fB-\fR] \fISTATISTICS\-FILE\fR \fB-o\fIOUTPUT\-PATH\fR)+)+)+
+
+.B optimize \-h
+.SH DESCRIPTION
+Optimize parameters of a classifier based on the selected feature and mined statistics.
+.SH ARGUMENTS
+.TP
+\fB-f\fIPRECISION\fR
+Fractional binary classificator's threshold will be optimised with the given precission,
+i.e. (\fIi\fR+0.5)/\fIPRECISION\fR for \fIi\fR from 0 to (\fIPRECISION\fR\-1) is tested as threshold for ratio of positive and negative cases.
+
+Threshold is optimized using Matthews correlation coefficient as a prediction quality metric.
+.TP
+\fB-l\fIFEATURES\-FILE\fR
+Real labels of residues their classification is optimized.
+.TP
+\fISTATISTICS\-FILE\fR
+Set of mined statistics used for optimization.
+.TP
+\fIOUTPUT\-PATH\fR
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fISTATISTICS\-FILE\fR's basename is used as the file name with '.den' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.den' extension, the extension is appended.
+.SH TO DO
+Propose generalization of binary classifier to n\-ary data and more complex classifiers.
+
+Allow to load labels from multiple files and use just selected labels from loaded files.
+
+Consider to explicitly set all possible labels as some could not occurs in badly selected training set.
+However it does not allow to optimize that parameter, so it is actually more complicated...
+.SH SEE ALSO
+inspire(1), classify(1), predict(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

@@ -1,0 +1,46 @@
+.\" Manpage for assign.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "assign man page" 
+.SH NAME
+assign \- make a prediction human-readable
+.SH SYNOPSIS
+.BR assign " (" \-\fBx\fR|\-\fBc\fR\fIDELIMITER\fR|\-\fBl\fR
+\fIINDEX\-FILE\fR
+\fIPREDICTION\-FILE\fR
+\fIOUTPUT\-PATH\fR)+
+
+.B assign \-h
+.SH DESCRIPTION
+Parse prediction file, label them according to protein, model, chain and residue, and store them in a file.
+.SH ARGUMENTS
+.TP
+\fIPREDICTION\-FILE\fR
+Path to a file with prediction that should be transformed to a human-readable format
+.TP
+\fIINDEX\-FILE\fR
+Path to a index file with labels of residues
+.TP
+\fIOUTPUT\-PATH\fR
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, \fIPREDICTION\-FILE\fR's basename is used as the file name;
+if the path is not a directory but does not but not ends with an extension corresponding to a choosen file format, the extension is appended.
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SS Output file format switchers:
+.TP
+.B -x
+XML file format.
+This file format has '.xml' as the extension.
+.TP
+.B -c\fR\fIDELIMITER\fR
+Delimiter\-separated\-value file format with \fR\fIDELIMITER\fR as the delimiter.
+This file format has '.csv' as the extension.
+.TP
+.B -l
+Space efficient variation of tab\-separated\-value file, where repeated values are ommited.
+This file format has '.les' as the extension.
+.SH SEE ALSO
+inspire(1), prediction(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

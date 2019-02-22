@@ -1,0 +1,39 @@
+.\" Manpage for aminoacids.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "aminoacids man page" 
+.SH NAME
+aminoacids \- mine informations about residues
+.SH SYNOPSIS
+\fBaminoacids\fR \fICIF\-FILE\fR ( \fB\-c\fIOUTPUT\-PATH\fR | \fB\-p\fIOUTPUT\-PATH\fR | [\fB\-a\fR]\fIOUTPUT\-PATH\fR )+
+
+.B aminoacids -h
+.SH DESCRIPTION
+Extract informations about residues from IUPAC's components file.
+.SH ARGUMENTS
+.TP
+\fICIF\-FILE\fR
+Path to the components file
+.TP
+.B -h
+Show informations about the program
+.SS
+Extracted informations:
+.TP
+\fB\-c\fIOUTPUT\-PATH\fR
+Extracts chemical composition for each residue (hydrogens, deuteriums and atoms with leaving flag are skipped).
+If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'composition.cit' is used as the file name;
+if the path is not a directory but does not but not ends with '.cit', the extension is appended.
+.TP
+\fB\-p\fIOUTPUT\-PATH\fR
+Extracts parent aminacid single-letter codes where available.
+If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'aminoacid.moc' is used as the file name;
+if the path is not a directory but does not but not ends with '.moc', the extension is appended.
+.TP
+[\fB\-a\fR]\fIOUTPUT\-PATH\fR
+Shortcut for '\fB\-c\fIOUTPUT\-PATH\fR \fB\-p\fIOUTPUT\-PATH\fR'.
+\fB\-a\fR is mandatory, if \fIOUTPUT\-PATH\fR starts with a hyphen\-minus sign.
+.SH SEE ALSO
+inspire(1), features(1), validate(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)
+                        

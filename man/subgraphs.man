@@ -1,0 +1,51 @@
+.\" Manpage for fingerprints.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "subgraphs man page" 
+.SH NAME
+subgraphs \- extracts subgraphs for each residue
+.SH SYNOPSIS
+.B subgraphs
+.IR INDEX\-FILE " " POSITIONS\-PATH " " OUTPUT\-PATH
+( \fB\-c\fR \fILIMIT\fR+ | \fB\-d\fR \fIDISTANCE\fR+ | \fB\-e\fR \fIDISTANCE\fR \fILIMIT\fR+ )+
+
+.B subgraphs \-h
+.SH DESCRIPTION
+Extract subgraphs for each indexed residue (called as central residue) with defined position.
+.SH ARGUMENTS
+.TP
+.I INDEX\-FILE
+Path to a index file
+.TP
+.I POSITIONS\-PATH
+Features file with coordinates of residues
+.TP
+.I OUTPUT\-PATH
+Where to store output file(s).
+To the OUTPUT\-PATH is appended code of the used subgraph type (see that section) and '.sup' extension.
+.TP
+.B -h
+Show informations about the program
+.SS Subgraphs
+In each subgraph is a central residue and:
+.TP
+\fB\-c\fR \fILIMIT\fR
+\fILIMIT\fR\-nearest neighbours (if several neighbours are within the same distance as the \fILIMIT\fRth-nearest neighbour, they all are taken).
+
+Filename suffix is '\fBc\fR\fILIMIT\fR\fB\.sup\fR'.
+.TP
+\fB\-d\fR \fIDISTANCE\fR
+All residues that are at most \fIDISTANCE\fR Angstroems away.
+
+Filename suffix is '\fBd\fR\fIDISTANCE\fR\fB\.sup\fR'.
+.TP
+\fB\-e\fR \fIDISTANCE\fR \fILIMIT\fR
+All residues that are at most \fILIMIT\fR edges away, and
+two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR Angstroems distant.
+
+Filename suffix is '\fBe\fR\fIDISTANCE\fR\fB\_\fR\fILIMIT\fR\fB\.sup\fR' (\fR\fIDISTANCE\fR and \fILIMIT\fR are separated by underscore).
+.SH NOTE
+Currently, \fIDISTANCE\fR is parsed and then converted back to string to create filenames, so formatting is not preserved.
+.SH SEE ALSO
+inspire(1), index(1), features(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

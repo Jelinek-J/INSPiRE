@@ -1,0 +1,38 @@
+.\" Manpage for merge.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "merge man page" 
+.SH NAME
+merge \- merge two sets of fingerprints
+.SH SYNOPSIS
+\fBmerge\fR (\fIFINGERPRINTS\fR \fIFINGERPRINTS\fR \fIOUTPUT\-PATH\fR)+
+
+.B merge \-h
+.SH DESCRIPTION
+Pairs fingerprints with the same index in different sets of fingerprints and concatenate them.
+.SH ARGUMENTS
+.TP
+.I FINGERPRINTS
+Set of fingerprints. Both sets must be of the same type (knowledge-base, or query) and they must have the same directory structure (in the case of knowledge-base file format).
+.TP
+.I OUTPUT\-PATH
+Where to store output fingerprints.
+
+If \fIFINGERPRINTS\fRs are in text format and \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 
+\fIFINGERPRINTS\fR's basenames are concatenated with hyphen\-minus sign is used as a file name.
+If filename does not end with '.fit' extension, the extension is appended.
+
+If \fIFINGERPRINTS\fRs are in binary format and \fIOUTPUT\-PATH\fR is considered as a directory.
+Directory structure of \fIFINGERPRINTS\fRs is preserved.
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SH NOTE
+Each index number must be unique in each set of fingerprints.
+
+Fingerprints must be sorted by index numbers due to performancy reasons.
+.SH TO DO
+Consider sacrifize repetitions for merging of more than two sets only.
+.SH SEE ALSO
+inspire(1), mine(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

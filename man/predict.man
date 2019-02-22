@@ -1,0 +1,38 @@
+.\" Manpage for predict.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "predict man page" 
+.SH NAME
+predict \- make prediction
+.SH SYNOPSIS
+\fBpredict\fR (\fB-f\fR\fITHRESHOLDS\fR ([\fB-\fR] \fISTATISTICS\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
+
+.B predict \-h
+.SH DESCRIPTION
+Selects a winning label for each query residue according the given metric.
+.SH ARGUMENTS
+.TP
+\fB-f\fITHRESHOLDS\fR
+Fractional binary tree classificator with the given thresholds will be used for the prediction,
+i.e. it is tested whether number of hits with label \fB0\fR divided by a number of hits with labels \fB0\fR or \fB1\fR is at least \fIthreshold_0_1\fR and so on with the winning label and label \fB2\fR...
+
+\fITHRESHOLDS\fR must contains number of 2\-combination of \fIx\fR space\-separated decimal numbers greater than or equal to 0 and less than or equal to 1,
+where \fIx\fR is number of labels in \fISTATISTICS\-FILE\fR and order of labels in \fISTATISTICS\-FILE\fR's header must be preserved.
+.TP
+\fISTATISTICS\-FILE\fR
+Set of mined statistics used for prediction.
+
+Preceding \fB\-\fR is mandatory, if a \fISTATISTICS\-FILE\fR starts with a hyphen\-minus sign.
+.TP
+\fIOUTPUT\-PATH\fR
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fISTATISTICS\-FILE\fR's basename is used as the file name with '.pec' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.pec' extension, the extension is appended.
+.TP
+.B -h
+Show informations about the program
+.SH TO DO
+Propose better generalization of binary classifier to n\-ary data and more complex classifiers.
+.SH SEE ALSO
+inspire(1), classify(1), optimize(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

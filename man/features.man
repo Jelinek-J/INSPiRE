@@ -1,0 +1,91 @@
+.\" Manpage for features.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "features man page" 
+.SH NAME
+features \- extracts features of residues
+.SH SYNOPSIS
+.B features
+[\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR]
+\fIINDEX\-FILE\fR \fIOUTPUT\-PATH\fR [\fB\-s\fR]
+(\fB\-a\fR\fITRANSFORMATION\-FILE\fR|\fB\-c\fR|\fB\-e\fR|\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]|\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE\fR|\fB\-t\fR)+
+(\fIPROTEINS\-PATH\fR)+
+
+.B features \-h
+.SH DESCRIPTION
+Extracts required features from proteins indexed in a given index file.
+.SH ARGUMENTS
+.TP
+.I INDEX\-FILE
+Path to a index file
+.TP
+\fB\-s\fR
+Save each feature in a separate file (otherwise all features are stored together in one file)
+.TP
+\fIOUTPUT\-PATH\fR
+Where to store output file.
+
+If '\fB\-s\fR' is typed, \fIOUTPUT\-PATH\fR must be a directory; and
+each feature is stored in a separated file named according to the corresponding feature with '.tur' as an extension.
+
+Otherwise (if '\fB\-s\fR' is not typed), all features are stored in the same file.
+If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'features.tur' is used as the file name.
+If \fIOUTPUT\-PATH\fR does not end with '.tur' extension, the extension is appended.
+.TP
+.I PROTEINS\-PATH
+Path to a protein or a directory with proteins
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SS Iterators:
+.TP
+.B \-b
+All biomolecules and models, but only the first crystallographic transformation are used
+.TP
+.B \-c
+All crystallographic transformations, but only the first biomolecule and model are used
+.TP
+.B \-bc
+All biomolecules, models and crystallographic transformations are used
+.TP
+.B \-w
+Ignore both biomolecules and crystallographic transformation, use all chains as they are
+.TP
+If no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation is used
+.SS Features:
+.TP
+\fB\-a\fR\fITRANSFORMATION\-FILE\fR
+Aminoacid type three-letter code is transformed with transformation defined in \fITRANSFORMATION\-FILE\fR, that should be in format 'key<TAB>value'
+.TP
+.B \-c
+Coordinates of carbon_alpha of an aminoacid
+.TP
+.B \-e
+Atomic composition of a residue (helium and deuterium are skipped)
+.TP
+\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]
+Whether a residue is an interfacial residue with \fR\fIRADII\-FILE\fR defining radiuses of chemical elements and
+\fIDISTANCE\fR sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value).
+\fIDISTANCE\fR must be separated by a space from \fIRADII\-FILE\fR
+.TP
+\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE
+Relative solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
+atomic radiuses defined in \fIRADII\-FILE\fR and reference solvent accessible surface areas defined in \fIMAX\-SASA\-FILE\fR.
+.TP
+.B \-t
+Temperature factor of an aminoacid
+.SH FORMAT OF FEATURE FILES
+.SS Header line
+The first line of each feature file;
+names of columns (features) are separated by a tabulator.
+.SS Data line
+Each feature is separated by a tabulator, if it is not possible to extract an feature, the corresponding cell is empty.
+Defaultly, index of each line is an index of the previous line plus one (the first line has index '1').
+If a line has not consecutive index, the index is specified in an extra (last) column.
+.SH NOTE
+RASA feature may not be available if it is not specified during compilation as it requires an external library.
+.SH TO DO
+Actually, the specification of iterator is redundant and should be specified in the index file.
+.SH SEE ALSO
+inspire(1), index(1), aminoacids(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

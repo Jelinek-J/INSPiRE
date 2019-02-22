@@ -1,0 +1,35 @@
+.\" Manpage for filter.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "filter man page" 
+.SH NAME
+filter \- reassign feature file
+.SH SYNOPSIS
+.B filter
+\fIORIGINAL\-INDEX\fR \fIFILTERED\-INDEX\fR (\fIORIGINAL\-FEATURES\fR \fIFILTERED\-FEATURES\fR)+
+
+.B filter \-h
+.SH DESCRIPTION
+Filters feature(s) file(s) base on the corresponding index files.
+It is usefull e.g. for benchmarking or reusing of index-independent features.
+.SH ARGUMENTS
+.TP
+.I ORIGINAL\-INDEX
+Index file for feature file(s) to be filtered
+.TP
+.I FILTERED\-INDEX
+Index file by which to filter
+.TP
+.I ORIGINAL\-FEATURES
+Features file that will be filtered
+.TP
+.I FILTERED\-FEATURES
+Where to store output file with filtered features.
+If \fIFILTERED\-FEATURES\fR is empty or ends with a directory separator, \fIORIGINAL\-FEATURES\fR's basename is used as the file name;
+if \fIFILTERED\-FEATURES\fR is not a directory but does not but not ends with '.tur' extension, the extension is appended.
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SH SEE ALSO
+inspire(1), features(1), index(1), optimize(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

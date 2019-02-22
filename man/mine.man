@@ -1,0 +1,61 @@
+.\" Manpage for mine.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "mine man page" 
+.SH NAME
+mine \- find the most similar fingerprints
+.SH SYNOPSIS
+\fBmine\fR ([\fB-t\fR \fITHREADS\fR] [\fB-n\fR \fICOUNT\fR] [\fB-C\fR] [\fB-c\fR \fICENTRAL\-FEATURES\fR] \fB-k\fR \fIKNOWLEDGE\-BASE\fR
+([\fB-S\fR] [\fB-s\fR \fISIBLINGS\-FILE\fR] [\fB-p\fR] \fIQUERY\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
+
+.B mine \-h
+.SH DESCRIPTION
+For each query fingerprint finds indices of k\-most similar fingerprints with the same features of the central residue in the knowledge\-base.
+.SH ARGUMENTS
+.TP
+\fB-t\fR \fITHREADS\fR
+Number of threads that should be used for data mining.
+Default value is 1.
+.TP
+\fB-n\fR \fICOUNT\fR
+Number of the most similar elements that will be returned.
+If multiple fingerprints have the same similarity score, all fingerprints with the score equal to the score of the n\-th most similar element are returned too.
+Default value is 1.
+.TP
+\fB-c\fR \fICENTRAL\-FEATURES\fR
+What features of central residues will be used for prefiltering of knowledge-base.
+Multiple features must be separated by a directory separator.
+.TP
+.B \-C
+Clean filtering previously set with '\fB-c\fR' switch.
+.TP
+\fB-k\fR \fIKNOWLEDGE\-BASE\fR
+Path to the root directory of a knowledge-base.
+.TP
+\fB-s\fR \fISIBLINGS\-FILE\fR
+Path to a file with defining, what knowledge-base's fingerprints should be skipped when mining most similar fingerprints for individual query fingerprints.
+
+This is usefull for benchmarking to exclude fingerprints from the same protein/ benchmark instead of construction of new knowledge-base for each benchmark.
+.TP
+.B \-S
+Clean siblings previously set with '\fB-s\fR' switch.
+.TP
+.I QUERY\-FILE
+A path to a file with query fingerprints for which the most similar elements should be find.
+.TP
+.B \-p
+A switcher saying that the next one argument will be a \fIQUERY\-FILE\fR.
+This switcher is mandatory if a \fIQUERY\-FILE\fR starts with a hyphen\-minus sign.
+.TP
+\fIOUTPUT\-PATH\fR
+Where to store output file.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fIQUERY\-FILE\fR's basename is used as the file name with '.med' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.med' extension, the extension is appended.
+.TP
+.B -h
+Show informations about the program
+.SH TO DO
+Besides k\-most similar elements (\fB\-n\fR switcher) allow also best*\fBCONST\fR and best+\fBCONST\fR.
+.SH SEE ALSO
+inspire(1), features(1), fingerprints(1), exclude(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)
