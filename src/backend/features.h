@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "protein.h"
 #include <map>
+#include <cmath>
 #include <iostream>
 #include <limits>
 
