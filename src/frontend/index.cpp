@@ -30,9 +30,6 @@ static void help() {
   std::cout << "        \t-c                  \tAll crystallographic transformations, but only the first biomolecule and model are used\n";
   std::cout << "        \t-bc                 \tAll biomolecules, models and crystallographic transformations are used\n";
   std::cout << "        \t-w                  \tIgnore both biomolecules and crystallographic transformation, use all chains as they are\n";
-  std::cout << "    File Formats:\n";
-  std::cout << "        \tk                   \tFingerprints are stored in binary files splitted in directories based on features of central residues\n";
-  std::cout << "        \tq                   \tAll fingerprints are stored in a single text file\n\n";
 
   std::cout << "Index File Format:\n";
   std::cout << "\tOnly the most probable alternative location is used for each atom. (It can be changed in some future iterators.)\n";
