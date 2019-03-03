@@ -7,7 +7,7 @@ features \- extracts features of residues
 .B features
 [\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR]
 \fIINDEX\-FILE\fR \fIOUTPUT\-PATH\fR [\fB\-s\fR]
-(\fB\-a\fR\fITRANSFORMATION\-FILE\fR|\fB\-c\fR|\fB\-e\fR|\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]|\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE\fR|\fB\-t\fR)+
+(\fB\-a\fR\fITRANSFORMATION\-FILE\fR|\fB\-c\fR|\fB\-e\fR|\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]|\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE\fR|\fB\-s\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR|\fB\-t\fR)+
 (\fIPROTEINS\-PATH\fR)+
 
 .B features \-h
@@ -70,6 +70,10 @@ Whether a residue is an interfacial residue with \fR\fIRADII\-FILE\fR defining r
 \fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE
 Relative solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
 atomic radiuses defined in \fIRADII\-FILE\fR and reference solvent accessible surface areas defined in \fIMAX\-SASA\-FILE\fR.
+.TP
+\fB\-s\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR
+Relative solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
+atomic radiuses defined in \fIRADII\-FILE\fR.
 .TP
 .B \-t
 Temperature factor of an aminoacid
