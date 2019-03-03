@@ -1,6 +1,8 @@
 // features.cpp : Defines the entry point for the console application.
 //
 
+#define FREESASA
+
 #include "../backend/features.h"
 #include "../common/exception.h"
 #ifdef FREESASA
@@ -98,7 +100,7 @@ static void help() {
 
   std::cout << "Extracts required features from proteins indexed in a given index file.\n\n";
 
-  std::cout << "Usage:\t[-b|-c|-bc|-w] <INDEX-FILE> <OUTPUT-PATH> [-s] (-a<TRANSFORMATION-FILE>|-c|-e|-i<RADII-FILE>[<DISTANCE>]";
+  std::cout << "Usage:\t[-b|-c|-bc|-w] <INDEX-FILE> <OUTPUT-PATH> [-] (-a<TRANSFORMATION-FILE>|-c|-e|-i<RADII-FILE>[<DISTANCE>]";
 #ifdef FREESASA
   std::cout << "|-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>";
 #endif // FREESASA
@@ -106,7 +108,7 @@ static void help() {
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t<INDEX-FILE>     \tPath to a index file\n";
-  std::cout << "        \t-s               \tSave each feature in a separate file (otherwise all features are stored together in one file)\n";
+  std::cout << "        \t-               \tSave each feature in a separate file (otherwise all features are stored together in one file)\n";
   std::cout << "        \t<OUTPUT-PATH>    \tWhere to store output file.\n";
   std::cout << "        \t                 \tIf '-s' is typed, <OUTPUT-PATH> must be a directory; and each feature is stored in a separated file named according to the corresponding feature with '.tur' as an extension.\n";
   std::cout << "        \t                 \tOtherwise(if '-s' is not typed), all features are stored in the same file.\n";
@@ -132,6 +134,8 @@ static void help() {
   std::cout << "        \t-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>\n";
   std::cout << "        \t    \tRelative solvent accessible surface area with residues' composition defined in <COMPOSITION-FILE>, atomic radiuses defined in <RADII-FILE> and\n";
   std::cout << "        \t    \treference solvent accessible surface areas defined in <MAX-SASA-FILE>.\n";
+  std::cout << "        \t-s<RADII-FILE>;<COMPOSITION-FILE>\n";
+  std::cout << "        \t    \tRelative solvent accessible surface area with residues' composition defined in <COMPOSITION-FILE>, atomic radiuses defined in <RADII-FILE>.\n";
 #endif // FREESASA
   std::cout << "        \t-t  \tTemperature factor of an aminoacid\n\n";
 
@@ -194,7 +198,7 @@ int main(int argc, const char** argv) {
 
   bool separate;
   std::string path(argv[start]);
-  if (argv[start+1] == std::string("-s")) {
+  if (argv[start+1] == std::string("-")) {
     if (!common::filesystem::is_directory(argv[start])) {
       std::cerr << "'" << argv[start] << "' is not a directory or does not exists." << std::endl;
       return 5;
@@ -296,6 +300,22 @@ int main(int argc, const char** argv) {
         subfeature = new common::sasa::SasaFeature(it, arg.substr(2, first-2), arg.substr(first+1, second-first-1));
         inner_features.push_back(subfeature);
         subfeature = new inspire::backend::RelativeAminoacidFeature(it, subfeature, arg.substr(second+1));
+        inner_features.push_back(subfeature);
+        inspire::backend::Feature<std::string>* feature;
+        feature = new inspire::backend::ToStringFeature<float>(it, subfeature);
+        features.push_back(feature);
+      }
+      break;
+      case 's':
+      {
+        std::string arg(argv[i]);
+        size_t first = arg.find(';');
+        if (first == arg.npos) {
+          std::cerr << "Solvent Accessible Surface Area switch miss a definition of aminoacids composition" << std::endl;
+          continue;
+        }
+        inspire::backend::Feature<float>* subfeature;
+        subfeature = new common::sasa::SasaFeature(it, arg.substr(2, first-2), arg.substr(first+1));
         inner_features.push_back(subfeature);
         inspire::backend::Feature<std::string>* feature;
         feature = new inspire::backend::ToStringFeature<float>(it, subfeature);
