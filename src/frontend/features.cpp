@@ -2,14 +2,13 @@
 //
 
 //#define FREESASA
+//#define TESTING
 
 #include "../backend/features.h"
 #include "../common/exception.h"
 #ifdef FREESASA
 #include "../common/sasa.h"
 #endif // FREESASA
-
-//#define TESTING
 
 namespace inspire {
   namespace frontend {
@@ -102,7 +101,7 @@ static void help() {
 
   std::cout << "Usage:\t[-b|-c|-bc|-w] <INDEX-FILE> <OUTPUT-PATH> [-] (-a<TRANSFORMATION-FILE>|-c|-e|-i<RADII-FILE>[<DISTANCE>]";
 #ifdef FREESASA
-  std::cout << "|-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>";
+  std::cout << "|-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>|-s<RADII-FILE>;<COMPOSITION-FILE>";
 #endif // FREESASA
   std::cout << "|-t)+ (<PROTEINS-PATH>)+\n";
   std::cout << "      \t-h\n\n";

@@ -1,6 +1,10 @@
 // inspire.cpp : Defines the entry point for the console application.
 // Last error id: 18
 
+//#define FREESASA
+//#define TESTING
+//#define MAKE
+
 #include "../backend/index.h"
 #include "../backend/features.h"
 #include "../backend/subgraphs.h"
@@ -14,9 +18,6 @@
 #include "../common/sasa.h"
 #endif // FREESASA
 #include <iostream>
-
-//#define TESTING
-//#define MAKE
 
 static const std::string CONFIGURATION_FILE = "config";
 static const std::string INDEX_FILE = "residues.ind";
