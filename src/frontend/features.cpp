@@ -1,7 +1,7 @@
 // features.cpp : Defines the entry point for the console application.
 //
 
-#define FREESASA
+//#define FREESASA
 
 #include "../backend/features.h"
 #include "../common/exception.h"
