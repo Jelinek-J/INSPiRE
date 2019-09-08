@@ -11,7 +11,7 @@ You can use the framework in three ways:
 
 ## Header-only library ##
 This use is ideal if you want to update INSPiRE algorithm or extend it for some new usecases.
-For this use, you only need to add header files from 'src/backend' and 'src/elemental' directories to your project (or set corresponding paths). 'src/backend' containts the basic parts of the algorithm. 'src/elemental' contains some elemental methods and constants and also hides all usage of boost library, so if you have some problems with boost, you need to rewrite this files only.
+For this use, you only need to add header files from 'src/backend' and 'src/common' directories to your project (or set corresponding paths). 'src/backend' containts the basic parts of the algorithm. 'src/common' contains some common methods and constants and also hides all usage of external libraries ([Boost](https://www.boost.org/) and [FreeSASA](https://freesasa.github.io/)), so if you have some problems with some of these libraries, you need to rewrite the corresponding files only.
 
 ## Fragmented INSPiRE tools ##
 This possibility is focused on the situation, when you want to optimize the INSPiRE algorithm's configuration, because some temporary files can be reused, so it is useless to compute them again and again.
@@ -27,10 +27,16 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 4. 'frontend/predict.cpp': pronounces a prediction based on the statistics computed using the tool from the previous step.
 5. 'frontend/optimize.cpp': finds the best parameters for predictors in 'frontend/predict.cpp'.
 
-## Single INSPiRE tool ##
-You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes. 
+You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
-There is also a premaked knowledge-base to make the use of INSPiRE easier. It is necessary to decompress it before using due to memory restrictions ('*.7z' files). To make this knowledge-base:
+## Single INSPiRE tool ##
+You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes.
+
+To use this option, you need just to type `make` to compile it and optionally `make install` to install it.
+
+There is also a premaked knowledge-base to make the use of INSPiRE easier. Firstly, it is necessary to decompress it before using due to memory restrictions ('*.7z' files) and install INSPiRE tool. Then you can use INSPiRE by typing `inspire` in the case that both query files and knowledge-base are in the current directory and you want to get results in the current directory too, respective `inspire -s <query_path> -k<knowledge-base_path> -q<output_path>` in the case query files are in the `<query_path>`, knowledge-base is in `<knowledge-base_path>` and you want to store results in `<output_path>`. For additional switchers please see the corresponding man pages.
+
+To make the premaked knowledge-base:
 1. All proteins without DNA and RNA were downloaded from Protein Data Bank in pdb format.
 2. Only complexes with 'REMARK 350' were taken.
 3. All complexes with monomer as 'BIOMOLECULE 1' were filtered out.
@@ -44,3 +50,8 @@ There is also a premaked knowledge-base to make the use of INSPiRE easier. It is
     2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were thrown out and only one was preserved.)
     3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid typa and fingerprint, but for different interface labels.
     4. Renumber fingerprints and interfaces file to make the interfaces file smaller.
+
+# Installation #
+Type `make` to install single INSPiRE tool or `make fragments` to install fragmented INSPiRE tools and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
+
+If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you should add argument `rasa=` when calling `make`. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
