@@ -1,9 +1,11 @@
 // inspire.cpp : Defines the entry point for the console application.
 // Last error id: 18
 
-//#define FREESASA
 //#define TESTING
+#ifdef TESTING
+//#define FREESASA
 //#define MAKE
+#endif // TESTING
 
 #include "../backend/index.h"
 #include "../backend/features.h"
@@ -259,13 +261,13 @@ int main(int argc, const char** argv) {
   std::ofstream log;
 
 #ifdef MAKE
-  argc = 10;
-  const char* arg[] = {argv[0], "-s", "C:\\Inspire\\sasa\\1cap.pdb", "-xC:\\Inspire\\sasa\\", "-kC:\\Inspire\\sasa\\", "-m", "-b", "-F" , "-r", "-f"};
+  argc = 7;
+  const char* arg[] = {argv[0], "-s", "C:\\Inspire\\pdb\\query\\1a6u.pdb", "-xC:\\Inspire\\test\\tmp\\", "-kC:\\Inspire\\test\\tmp\\", "-m", "-gC:\\Inspire\\test\\settings.json"};
   log.open("C:\\Inspire\\test\\error-make.log", std::ofstream::app);
 #else
   argc = 7;
-  const char* arg[] = {argv[0], "-s", "C:\\Inspire\\gvin\\pdb\\", "-xC:\\Inspire\\gvin\\prediction\\", "-kC:\\Inspire\\precompiled\\fingerprints\\",
-                                "-jC:\\Inspire\\gvin\\prediction\\related.exc", "-qC:\\Inspire\\gvin\\output"};
+  const char* arg[] = {argv[0], "-s", "C:\\Inspire\\2000\\valid\\pdb\\", "-xC:\\Inspire\\2000\\valid\\query\\", "-kC:\\Inspire\\2000\\valid\\kb\\",
+                                "-jC:\\Inspire\\2000\\valid\\kb\\related.exc", "-qC:\\Inspire\\2000\\valid\\output"};
   log.open("C:\\Inspire\\gvin\\error-predict.log", std::ofstream::app);
 #endif
   argv = arg;
@@ -497,41 +499,51 @@ int main(int argc, const char** argv) {
         std::string line;
         while (std::getline(config_file, line) && line != "--") {
           if (line == "-a") {
-            filters.emplace("aminoacid");
-            features.push_back(new inspire::backend::SingleAminoacidFeature(it, aminoacid_name));
+            inspire::backend::Feature<std::string>* subfeature;
+            subfeature = new inspire::backend::AminoacidFeature(it);
+            inner_features.push_back(subfeature);
+            features.push_back(new inspire::backend::StringProjectionFeature(aminoacid_name, subfeature));
           } else if (line == "-e") {
-            filters.emplace("composition");
             features.push_back(new inspire::backend::CompositionFeature(it));
 #ifdef FREESASA
           } else if (line == "-r") {
-            filters.emplace("sasa");
             inspire::backend::Feature<float>* subfeature;
             subfeature = new common::sasa::SasaFeature(it, rasa_radiuses_name, rasa_composition_name);
             inner_features.push_back(subfeature);
-            subfeature = new inspire::backend::RelativeAminoacidFeature(it, subfeature, rasa_max_name);
+            inspire::backend::Feature<std::string>* classes;
+            classes = new inspire::backend::AminoacidFeature(it);
+            inner_features.push_back(classes);
+            subfeature = new inspire::backend::RelativeAminoacidFeature(subfeature, classes, rasa_max_name);
             inner_features.push_back(subfeature);
-            features.push_back(new inspire::backend::ToStringFeature<float>(it, subfeature));
+            features.push_back(new inspire::backend::ToStringFeature<float>(subfeature));
 #endif // FREESASA
           } else if (line == "-t") {
-            filters.emplace("temperature");
-            features.push_back(new inspire::backend::TemperatureFeature(it));
+            inspire::backend::Feature<float>* subfeature;
+            subfeature = new inspire::backend::TemperatureFeature(it);
+            inner_features.push_back(subfeature);
+            features.push_back(new inspire::backend::ToStringFeature<float>(subfeature));
           } else {
             std::cerr << "Unexpected line '" << line << "' in the configuration file '" << config_name << "'.\n";
             return 11;
           }
         }
+        for (auto features_it = features.begin(); features_it != features.end(); ++features_it) {
+          filters.emplace((*features_it)->title());
+        }
       } else {
         if (argv_index < argc && common::string::starts_with(argv[argv_index], "-F")) {
-          while (++argv_index < argc && argv[argv_index] != "-f") {
+          while (++argv_index < argc && argv[argv_index] != std::string("-f")) {
             if (common::string::starts_with(argv[argv_index], "-a")) {
               if (strlen(argv[argv_index]) > 2) {
                 std::string path = std::string(argv[argv_index]).substr(2);
-                features.push_back(new inspire::backend::SingleAminoacidFeature(it, path));
                 common::filesystem::copy(path, aminoacid_name);
               } else {
                 create_aminoacid_file(aminoacid_name);
-                features.push_back(new inspire::backend::SingleAminoacidFeature(it, aminoacid_name));
               }
+              inspire::backend::Feature<std::string>* subfeature;
+              subfeature = new inspire::backend::AminoacidFeature(it);
+              inner_features.push_back(subfeature);
+              features.push_back(new inspire::backend::StringProjectionFeature(aminoacid_name, subfeature));
               config_file <<  "-a" << std::endl;
             } else if (argv[argv_index] == std::string("-e")) {
               features.push_back(new inspire::backend::CompositionFeature(it));
@@ -565,14 +577,20 @@ int main(int argc, const char** argv) {
               inspire::backend::Feature<float>* subfeature;
               subfeature = new common::sasa::SasaFeature(it, rasa_radiuses_name, rasa_composition_name);
               inner_features.push_back(subfeature);
-              subfeature = new inspire::backend::RelativeAminoacidFeature(it, subfeature, rasa_max_name);
+              inspire::backend::Feature<std::string>* classes;
+              classes = new inspire::backend::AminoacidFeature(it);
+              inner_features.push_back(classes);
+              subfeature = new inspire::backend::RelativeAminoacidFeature(subfeature, classes, rasa_max_name);
               inner_features.push_back(subfeature);
-              inspire::backend::Feature<std::string>* feature = new inspire::backend::ToStringFeature<float>(it, subfeature);
+              inspire::backend::Feature<std::string>* feature = new inspire::backend::ToStringFeature<float>(subfeature);
               features.push_back(feature);
               config_file <<  "-r" << std::endl;
 #endif // FREESASA
             } else if (argv[argv_index] == std::string("-t")) {
-              features.push_back(new inspire::backend::TemperatureFeature(it));
+              inspire::backend::Feature<float>* subfeature;
+              subfeature = new inspire::backend::TemperatureFeature(it);
+              inner_features.push_back(subfeature);
+              features.push_back(new inspire::backend::ToStringFeature<float>(subfeature));
               config_file <<  "-t" << std::endl;
             } else {
               std::cerr << "Unexpected parameter '" << argv[argv_index] << "' within the features section.\n";
@@ -584,7 +602,10 @@ int main(int argc, const char** argv) {
           }
         } else {
           create_aminoacid_file(aminoacid_name);
-          features.push_back(new inspire::backend::SingleAminoacidFeature(it, aminoacid_name));
+          inspire::backend::Feature<std::string>* subfeature;
+          subfeature = new inspire::backend::AminoacidFeature(it);
+          inner_features.push_back(subfeature);
+          features.push_back(new inspire::backend::StringProjectionFeature(aminoacid_name, subfeature));
           config_file <<  "-a" << std::endl;
         }
         config_file << "--" << std::endl;
@@ -755,11 +776,11 @@ int main(int argc, const char** argv) {
       if (predict) {
         fingerprints.process(fingerprints_name, edges_name, query_name, inspire::backend::FingerprintFormat::Text);
       } else {
-        if (argv_index < argc && argv[argv_index] == std::string("-g")) {
+        if (argv_index < argc && common::string::starts_with(argv[argv_index], std::string("-g"))) {
           common::filesystem::copy(std::string(argv[argv_index++]).substr(2), fingerprints_name);
         } else {
           std::ofstream settings(fingerprints_name);
-          settings << "{\"fingerprint\":{\"size\":1023,\"edge\":[{\"type\":\"distance\",\"size\":4}],\"vertex\": [{\"type\": \"mapping\",\"property\": \"aminoacid\",\"map\": {"
+          settings << "{\"fingerprint\":{\"size\":1023,\"edge\":[{\"type\":\"distance\",\"size\":4}],\"vertex\": [{\"type\": \"mapping\",\"property\": \"taminoacid\",\"map\": {"
                    << "\"A\": 1,\"B\": 2,\"C\": 3,\"D\": 4,\"E\": 5,\"F\": 6,\"G\": 7,\"H\": 8,\"I\": 9,\"J\": 10,\"K\": 11,\"L\": 12,\"M\": 13,\"N\":14,\"O\": 15,"
                    << "\"P\": 16,\"Q\": 17,\"R\": 18,\"S\": 19,\"T\": 20,\"U\": 21,\"V\": 22,\"W\": 23,\"X\": 0,\"Y\": 24,\"Z\": 25,\"\": 26},\"size\": 5}]}}\n";
           settings.flush();
@@ -787,7 +808,7 @@ int main(int argc, const char** argv) {
             std::cerr << "Missing integer in switcher saying how many the most similar fingerprints should be taken.\n";
             return 16;
           }
-          limit = std::stoi(argv[argv_index]);
+          limit = std::stoi(std::string(argv[argv_index]).substr(2));
         } else if (argv[argv_index][1] == 'o') {
           filters.clear();
           std::stringstream parts(argv[argv_index]);

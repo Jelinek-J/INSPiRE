@@ -43,8 +43,8 @@ static void help() {
 
 int main(int argc, const char** argv) {
 #ifdef TESTING
-  argc = 3;
-  const char* arg[] = { argv[0], "C:\\Inspire\\diff\\", "C:\\pdb\\" };
+  argc = 4;
+  const char* arg[] = { argv[0], "C:\\Inspire\\test\\", "-b", "C:\\pdb\\pdb\\multimer\\selected\\" };
   argv = arg;
 #endif // TESTING
 
@@ -62,7 +62,7 @@ int main(int argc, const char** argv) {
       it = new inspire::backend::BiomoleculesIterator();
     } else if (argv[2] == std::string("-bc")) {
       it = new inspire::backend::AllExceptAltLocIterator();
-    } else if (argv[1] == std::string("-w")) {
+    } else if (argv[2] == std::string("-w")) {
       it = new inspire::backend::ExplicitIterator();
     } else {
       std::cerr << "ERROR: Modifier '" << argv[2] << "' is not currently supported." << std::endl;

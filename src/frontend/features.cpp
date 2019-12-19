@@ -1,8 +1,10 @@
 // features.cpp : Defines the entry point for the console application.
 //
 
-//#define FREESASA
 //#define TESTING
+#ifdef TESTING
+//#define FREESASA
+#endif // TESTING
 
 #include "../backend/features.h"
 #include "../common/exception.h"
@@ -90,6 +92,218 @@ namespace inspire {
 #endif // DEBUG
       }
     };
+
+    static backend::Feature<std::string>* StringFactory(const char **& argv, const size_t argc, size_t & argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator * it);
+    static backend::Feature<float>* FloatFactory(const char **& argv, const size_t argc, size_t & argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator * it);
+    static backend::Feature<size_t>* IntFactory(const char **& argv, const size_t argc, size_t & argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator * it);
+    static void FactoryCheck(const size_t argi, const size_t argc, const char** &argv) {
+      if (argi >= argc) {
+        throw common::exception::TitledException("Argument #" + std::to_string(argi) + " is empty.");
+      }
+      if (strlen(argv[argi]) == 0) {
+        throw common::exception::TitledException("Argument #" + std::to_string(argi) + " is empty.");
+      }
+      if (argv[argi][0] != '-') {
+        throw common::exception::TitledException("Argument expected at position #" + std::to_string(argi) + " instead of '" + argv[argi] + "'.");
+      }
+      if (strlen(argv[argi]) == 1) {
+        throw common::exception::TitledException("Feature specifier missing at position #" + std::to_string(argi) + ": '" + argv[argi] + "'");
+      }
+    }
+
+    static backend::Feature<std::string>* StringFactory(const char** &argv, const size_t argc, size_t &argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator* it) {
+      FactoryCheck(argi, argc, argv);
+      switch (argv[argi][1]) {
+        case 's':
+        case 't':
+        case 'F':
+        case 'R':
+          {
+            inspire::backend::Feature<float>* subfeature = FloatFactory(argv, argc, argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::ToStringFeature<float>(subfeature);
+          }
+          break;
+        case 'B':
+          {
+            inspire::backend::Feature<size_t>* subfeature = IntFactory(argv, argc, argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::ToStringFeature<size_t>(subfeature);
+          }
+          break;
+        case 'a':
+          return new inspire::backend::AminoacidFeature(it);
+          break;
+        case 'c':
+          return new inspire::backend::CoordinateFeature(it);
+          break;
+        case 'e':
+          return new inspire::backend::CompositionFeature(it);
+          break;
+        case 'i':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Interface type switch miss a definition of translation table");
+          }
+          {
+            std::string arg(argv[argi]);
+            size_t space = arg.find_last_of(';');
+            if (space != arg.npos && space != arg.size()-1 && arg[arg.size()-1] != '"' && arg[arg.size()-1] != '\'') {
+              return new inspire::backend::InterfaceLargeFeature(it, arg.substr(2, space-2), std::stod(arg.substr(space+1)));
+            } else {
+              return new inspire::backend::InterfaceLargeFeature(it, arg.substr(2), 0.5);
+            }
+          }
+          break;
+        case 'p':
+          return new inspire::backend::ProteinIdFeature();
+          break;
+        case 'L':
+          {
+            std::string arg(argv[argi]);
+            size_t first = arg.find(';');
+            if (first == arg.npos) {
+              throw common::exception::TitledException("String feature loader miss a definition of header to load");
+            }
+            return new inspire::backend::StringLoaderFeature(arg.substr(2, first-2), arg.substr(first+1));
+          }
+          break;
+        case 'N':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+          }
+          {
+            std::string name = std::string(argv[argi]).substr(2);
+            inspire::backend::Feature<std::string>* subfeature = StringFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::RenameFeature<std::string>(name, subfeature);
+          }
+          break;
+        case 'P':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Projection feature switch miss a definition of translation table");
+          }
+          {
+            std::string mapping = std::string(argv[argi]).substr(2);
+            inspire::backend::Feature<std::string>* subfeature = StringFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::StringProjectionFeature(mapping, subfeature);
+          }
+          break;
+        default:
+          throw common::exception::TitledException("Unknown feature specifier: '" + std::string(argv[argi]) + "'");
+      }
+    }
+
+    static backend::Feature<float>* FloatFactory(const char** &argv, const size_t argc, size_t &argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator* it) {
+      FactoryCheck(argi, argc, argv);
+      switch (argv[argi][1]) {
+        case 'a':
+        case 'c':
+        case 'e':
+        case 'i':
+        case 'p':
+        case 'B':
+        case 'L':
+        case 'P':
+          throw common::exception::TitledException("Unexpected feature that is not convertible to float at position #" + std::to_string(argi) + ": '" + argv[argi] + "'");
+          break;
+#ifdef FREESASA
+        case 's':
+          {
+            std::string arg(argv[argi]);
+            size_t first = arg.find(';');
+            if (first == arg.npos) {
+              throw common::exception::TitledException("Solvent Accessible Surface Area switch miss a definition of aminoacids composition");
+            }
+            inspire::backend::Feature<float>* subfeature;
+            return new common::sasa::SasaFeature(it, arg.substr(2, first-2), arg.substr(first+1));
+          }
+          break;
+#endif // FREESASA
+        case 't':
+          return new inspire::backend::TemperatureFeature(it);
+          break;
+        case 'F':
+          {
+            std::string arg(argv[argi]);
+            size_t first = arg.find(';');
+            if (first == arg.npos) {
+              throw common::exception::TitledException("Float feature loader miss a definition of header to load");
+            }
+            return new inspire::backend::FloatLoaderFeature(arg.substr(2, first-2), arg.substr(first+1));
+          }
+          break;
+        case 'N':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+          }
+          {
+            std::string name = std::string(argv[argi]).substr(2);
+            inspire::backend::Feature<float>* subfeature = FloatFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::RenameFeature<float>(name, subfeature);
+          }
+          break;
+        case 'R':
+          {
+            if (strlen(argv[argi]) <= 2) {
+              throw common::exception::TitledException("Relative feature miss a definition of reference values");
+            }
+            std::string arg(argv[argi]);
+            inspire::backend::Feature<float>* floatfeature = FloatFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(floatfeature);
+            inspire::backend::Feature<std::string>* stringfeature = StringFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(stringfeature);
+            return new inspire::backend::RelativeAminoacidFeature(floatfeature, stringfeature, arg.substr(2));
+          }
+          break;
+        default:
+          throw common::exception::TitledException("Unknown feature specifier: '" + std::string(argv[argi]) + "'");
+      }
+    }
+
+    static backend::Feature<size_t>* IntFactory(const char** &argv, const size_t argc, size_t &argi, std::vector<inspire::backend::IFeature*> inner_features, inspire::backend::ProteinIterator* it) {
+      FactoryCheck(argi, argc, argv);
+      switch (argv[argi][1]) {
+        case 'a':
+        case 'c':
+        case 'e':
+        case 'i':
+        case 'p':
+        case 's':
+        case 't':
+        case 'F':
+        case 'L':
+        case 'P':
+        case 'R':
+          throw common::exception::TitledException("Unexpected feature that is not convertible to size_t at position #" + std::to_string(argi) + ": '" + argv[argi] + "'");
+          break;
+        case 'B':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Binning feature switch miss a definition of intervals");
+          }
+          {
+            std::string intervals = std::string(argv[argi]).substr(2);
+            inspire::backend::Feature<float>* subfeature = FloatFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::BinFeature(subfeature, intervals);
+          }
+          break;
+        case 'N':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+          }
+          {
+            std::string name = std::string(argv[argi]).substr(2);
+            inspire::backend::Feature<size_t>* subfeature = IntFactory(argv, argc, ++argi, inner_features, it);
+            inner_features.push_back(subfeature);
+            return new inspire::backend::RenameFeature<size_t>(name, subfeature);
+          }
+          break;
+        default:
+          throw common::exception::TitledException("Unknown feature specifier: '" + std::string(argv[argi]) + "'");
+      }
+    }
   }
 }
 
@@ -99,18 +313,15 @@ static void help() {
 
   std::cout << "Extracts required features from proteins indexed in a given index file.\n\n";
 
-  std::cout << "Usage:\t[-b|-c|-bc|-w] <INDEX-FILE> <OUTPUT-PATH> [-] (-a<TRANSFORMATION-FILE>|-c|-e|-i<RADII-FILE>[<DISTANCE>]";
-#ifdef FREESASA
-  std::cout << "|-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>|-s<RADII-FILE>;<COMPOSITION-FILE>";
-#endif // FREESASA
-  std::cout << "|-t)+ (<PROTEINS-PATH>)+\n";
+  std::cout << "Usage:\t[-b|-c|-bc|-w] <INDEX-FILE> <OUTPUT-PATH> [-] <FEATURE>+ (<PROTEINS-PATH>)+\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t<INDEX-FILE>     \tPath to a index file\n";
-  std::cout << "        \t-               \tSave each feature in a separate file (otherwise all features are stored together in one file)\n";
+  std::cout << "        \t-                \tSave each feature in a separate file (otherwise all features are stored together in one file)\n";
   std::cout << "        \t<OUTPUT-PATH>    \tWhere to store output file.\n";
-  std::cout << "        \t                 \tIf '-s' is typed, <OUTPUT-PATH> must be a directory; and each feature is stored in a separated file named according to the corresponding feature with '.tur' as an extension.\n";
-  std::cout << "        \t                 \tOtherwise(if '-s' is not typed), all features are stored in the same file.\n";
+  std::cout << "        \t                 \tIf '-' is typed, <OUTPUT-PATH> must be a directory;\n";
+  std::cout << "        \t                 \tand each feature is stored in a separated file named according to the corresponding feature with '.tur' as an extension.\n";
+  std::cout << "        \t                 \tOtherwise(if '-' is not typed), all features are stored in the same file.\n";
   std::cout << "        \t                 \t  If <OUTPUT-PATH> is a directory or ends with a directory separator, 'features.tur' is used as the file name.\n";
   std::cout << "        \t                 \t  If <OUTPUT-PATH> does not end with '.tur' extension, the extension is appended.\n";
   std::cout << "        \t<PROTEINS-PATH>  \tPath to a protein or a directory with proteins\n";
@@ -121,22 +332,37 @@ static void help() {
   std::cout << "        \t-bc  \tAll biomolecules, models and crystallographic transformations are used\n";
   std::cout << "        \t-w   \tIgnore both biomolecules and crystallographic transformation, use all chains as they are\n";
   std::cout << "    Features:\n";
-  std::cout << "        \t-a<TRANSFORMATION-FILE>\n";
-  std::cout << "        \t    \tAminoacid type three-letter code is transformed with transformation defined in <TRANSFORMATION-FILE>, that should be in format 'key\\tvalue'\n";
-  std::cout << "        \t-c  \tCoordinates of carbon_alpha of an aminoacid\n";
-  std::cout << "        \t-e  \tAtomic composition of a residue (helium and deuterium are skipped)\n";
-  std::cout << "        \t-i<RADII-FILE>[<DISTANCE>]\n";
+  std::cout << "        \t<FEATURE> can be following (lowercase switcher means the feature is loaded directly from proteins,\n";
+  std::cout << "        \t                            while uppercase switcher means the feature transforms informations from other features/ files):\n";
+  std::cout << "        \t-a  \tAmino acid type three letter codes\n";
+  std::cout << "        \t-c  \tCoordinates of Carbon alpha of a residue separated by space\n";
+  std::cout << "        \t-e  \tSorted atom names of all atoms in a residue except helium and deuterium separated by space\n";
+  std::cout << "        \t-i<RADII-FILE>[;<DISTANCE>]\n";
   std::cout << "        \t    \tWhether a residue is an interfacial residue with <RADII-FILE> defining radiuses of chemical elements and\n";
   std::cout << "        \t    \t<DISTANCE> sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value).\n";
-  std::cout << "        \t    \t<DISTANCE> must be separated by a space from <RADII-FILE>\n";
 #ifdef FREESASA
-  std::cout << "        \t-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>\n";
-  std::cout << "        \t    \tRelative solvent accessible surface area with residues' composition defined in <COMPOSITION-FILE>, atomic radiuses defined in <RADII-FILE> and\n";
-  std::cout << "        \t    \treference solvent accessible surface areas defined in <MAX-SASA-FILE>.\n";
   std::cout << "        \t-s<RADII-FILE>;<COMPOSITION-FILE>\n";
   std::cout << "        \t    \tRelative solvent accessible surface area with residues' composition defined in <COMPOSITION-FILE>, atomic radiuses defined in <RADII-FILE>.\n";
 #endif // FREESASA
-  std::cout << "        \t-t  \tTemperature factor of an aminoacid\n\n";
+  std::cout << "        \t-p  \tProtein's identifier (usefull e.g. to make temperature factor comparable between proteins)\n";
+  std::cout << "        \t-t  \tTemperature factor of a residuen\n";
+  std::cout << "        \t-B<BOUNDARIES-FILE> <FLOAT-FEATURE>\n";
+  std::cout << "        \t    \tBinned values of <FLOAT-FEATURE> based on splitting points in <BOUDARIES-FILE>.\n";
+  std::cout << "        \t    \tI.e. in the case of sorted <BOUDARIES-FILE> it returns <i> if the value is greater than ith splitting point but lower than or equal to (<i>+1)th splitting point.\n";
+  std::cout << "        \t    \t(And 0 if it is lower than to equal to the first splitting point and (count of splitting points)+1 if it is greater than the last splitting point.).\n";
+  std::cout << "        \t-F<FEATURE-FILE>;<HEADER>\n";
+  std::cout << "        \t    \tLoad a float feature <HEADER> from a file <FEATURE-FILE>\n";
+  std::cout << "        \t-L<FEATURE-FILE>;<HEADER>\n";
+  std::cout << "        \t    \tLoad a string feature <HEADER> from a file <FEATURE-FILE>\n";
+  std::cout << "        \t-N<NEW-TITLE> <FEATURE>\n";
+  std::cout << "        \t    \tChange title of the inner feature (does not change values of the feature)\n";
+  std::cout << "        \t-P<PROJECTION-FILE> <FLOAT-FEATURE>\n";
+  std::cout << "        \t    \tTransforms feature <FEATURE> based on a dictionary defined in a <PROJECTION-FILE> (missing keys are skipped).\n";
+  std::cout << "        \t    \tE.g. to transform amino acids' three-letter codes to one-letter codes.\n";
+  std::cout << "        \t    \tDictionary in the <PROJECTION-FILE> should be in format 'key<TAB>value'.\n";
+  std::cout << "        \t-R<REFERENCE-VALUES> <FLOAT-FEATURE> <STRING-FEATURE>\n";
+  std::cout << "        \t    \tFor each residue relativizes a value of <FLOAT-FEATURE> based on reference value in file <REFERENCE-VALUES> for corresponding value of <STRING-FEATURE>.\n";
+  std::cout << "        \t    \tE.g. to transform solvent accessible surface area to relative solvent accessible surface area.\n\n";
 
   std::cout << "Feature Files Format:\n";
   std::cout << "\tHeader line:\tThe first line of each feature file; names of columns (features) are separated by a tabulator.\n";
@@ -147,8 +373,8 @@ static void help() {
 
 int main(int argc, const char** argv) {
 #ifdef TESTING
-  argc = 7;
-  const char* arg[] = {argv[0], "-b", "C:\\Inspire\\test\\2760\\example\\construction\\residues.ind", "C:\\Inspire\\test\\2760\\example\\", "-s", "-rC:\\Inspire\\test\\2760\\example\\radiuses.rus;C:\\Inspire\\test\\2760\\example\\composition.cop", "C:\\Inspire\\pdb\\5j7v.pdb"};
+  argc = 8;
+  const char* arg[] = {argv[0], "-b", "C:\\Inspire\\test\\query\\residues.ind", "C:\\Inspire\\test\\query\\", "-", "-PC:\\Inspire\\test\\query\\aminoacid.moc", "-LC:\\Inspire\\test\\query\\aminoacid.tur;aminoacid", "C:\\Inspire\\pdb\\query\\"};
   argv = arg;
 #endif // TESTING
 
@@ -228,121 +454,26 @@ int main(int argc, const char** argv) {
 
   std::vector<inspire::backend::Feature<std::string>*> features;
   std::vector<inspire::backend::IFeature*> inner_features;
-  for (size_t i = start; i < stop; i++) {
-    if (strlen(argv[i]) == 0) {
-      std::cerr << "Argument #" << i << " is empty." << std::endl;
-      continue;
-    }
-    if (argv[i][0] != '-') {
-      std::cerr << "Argument expected at position #" << i << " instead of '" << argv[i] << "'." << std::endl;
-      continue;
-    }
-    if (strlen(argv[i]) == 1) {
-      std::cerr << "Feature specifier missing at position #" << i << ": '" << argv[i] << "'" << std::endl;
-      continue;
-    }
-    switch (argv[i][1]) {
-      case 'a':
-        if (strlen(argv[i]) == 2) {
-          std::cerr << "Aminoacid type switch miss a definition of translation table" << std::endl;
-          continue;
+  try {
+    for (size_t i = start; i < stop; i++) {
+      features.push_back(inspire::frontend::StringFactory(argv, stop, i, inner_features, it));
+      // TODO: Consider an opposite approach extracting features parallel into multiple files as it saves reading of files
+      if (separate) {
+        try {
+          std::string file = path + features[0]->title() + ".tur";
+          extractor.extract(file, features);
+          delete features[0];
+          features.clear();
+        } catch (common::exception::TitledException e) {
+          std::cerr << e.what() << std::endl;
         }
-        {
-          inspire::backend::Feature<std::string>* feature = new inspire::backend::SingleAminoacidFeature(it, std::string(argv[i]).substr(2));
-          features.push_back(feature);
-        }
-        break;
-      case 'c':
-      {
-        inspire::backend::Feature<std::string>* feature = new inspire::backend::CoordinateFeature(it);
-        features.push_back(feature);
       }
-      break;
-      case 'e':
-      {
-        inspire::backend::Feature<std::string>* feature = new inspire::backend::CompositionFeature(it);
-        features.push_back(feature);
-      }
-      break;
-      case 'i':
-        if (strlen(argv[i]) == 2) {
-          std::cerr << "Aminoacid type switch miss a definition of translation table" << std::endl;
-          continue;
-        }
-        {
-          std::string arg(argv[i]);
-          size_t space = arg.find_last_of(' ');
-          inspire::backend::Feature<std::string>* feature;
-          if (space != arg.npos && space != arg.size()-1 && arg[arg.size()-1] != '"' && arg[arg.size()-1] != '\'') {
-            feature = new inspire::backend::InterfaceLargeFeature(it, arg.substr(2, space-2), std::stod(arg.substr(space+1)));
-          } else {
-            feature = new inspire::backend::InterfaceLargeFeature(it, arg.substr(2), 0.5);
-          }
-          features.push_back(feature);
-        }
-        break;
-#ifdef FREESASA
-      case 'r':
-      {
-        std::string arg(argv[i]);
-        size_t first = arg.find(';');
-        size_t second = arg.rfind(';');
-        if (first == arg.npos) {
-          std::cerr << "Solvent Accessible Surface Area switch miss a definition of aminoacids composition" << std::endl;
-          continue;
-        }
-        if (second == first) {
-          std::cerr << "Solvent Accessible Surface Area switch miss a definition of maximal sasas" << std::endl;
-          continue;
-        }
-        inspire::backend::Feature<float>* subfeature;
-        subfeature = new common::sasa::SasaFeature(it, arg.substr(2, first-2), arg.substr(first+1, second-first-1));
-        inner_features.push_back(subfeature);
-        subfeature = new inspire::backend::RelativeAminoacidFeature(it, subfeature, arg.substr(second+1));
-        inner_features.push_back(subfeature);
-        inspire::backend::Feature<std::string>* feature;
-        feature = new inspire::backend::ToStringFeature<float>(it, subfeature);
-        features.push_back(feature);
-      }
-      break;
-      case 's':
-      {
-        std::string arg(argv[i]);
-        size_t first = arg.find(';');
-        if (first == arg.npos) {
-          std::cerr << "Solvent Accessible Surface Area switch miss a definition of aminoacids composition" << std::endl;
-          continue;
-        }
-        inspire::backend::Feature<float>* subfeature;
-        subfeature = new common::sasa::SasaFeature(it, arg.substr(2, first-2), arg.substr(first+1));
-        inner_features.push_back(subfeature);
-        inspire::backend::Feature<std::string>* feature;
-        feature = new inspire::backend::ToStringFeature<float>(it, subfeature);
-        features.push_back(feature);
-      }
-      break;
-#endif // FREESASA
-      case 't':
-        {
-          inspire::backend::Feature<std::string>* feature = new inspire::backend::TemperatureFeature(it);
-          features.push_back(feature);
-        }
-        break;
-      default:
-        std::cerr << "Unknown feature specifier: '" << argv[i] << "'" << std::endl;
-        continue;
-        break;
     }
-    // TODO: Consider an opposite approach extracting features parallel into multiple files as it saves reading of files
-    if (separate) {
-      std::string file = path + features[0]->title() + ".tur";
-      extractor.extract(file, features);
-      delete features[0];
-      features.clear();
+    if (!separate) {
+      extractor.extract(path, features);
     }
-  }
-  if (!separate) {
-    extractor.extract(path, features);
+  } catch (common::exception::TitledException e) {
+    std::cerr << e.what() << std::endl;
   }
   for (auto features_it = features.begin(); features_it != features.end(); ++features_it) {
     delete *features_it;

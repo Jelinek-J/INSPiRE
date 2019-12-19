@@ -48,19 +48,19 @@ int main(int argc, const char** argv) {
   // Errors log for testing reasons
   std::ofstream log("C:\\Inspire\\test\\error-fingerprints.log");
   argc = 10;
-  const char* arg[] = { argv[0], "k", "C:\\Inspire\\test\\fingerprints\\expand",
-    "C:\\Inspire\\test\\fingerprints\\mass\\settings.json",
-    "C:\\Inspire\\test\\construction\\residues.ind",
-  	/**/ "C:\\Inspire\\test\\construction\\nodes.sup" /*/ "D:\\fingerprints\\old\\benchmark\\gvin-c_12.sup" /**/,
-    "C:\\Inspire\\test\\construction\\edges.sup",
+  const char* arg[] = { argv[0], "q", "C:\\Inspire\\metacentrum\\fingerprints",
+    "C:\\Inspire\\metacentrum\\configurations\\fasta.json",
+    "C:\\Inspire\\metacentrum\\residue.ind",
+  	/**/ "C:\\Inspire\\metacentrum\\c6.sup" /*/ "D:\\fingerprints\\old\\benchmark\\gvin-c_12.sup" /**/,
+    "C:\\Inspire\\metacentrum\\d6.sup",
   	//"C:\\Inspire\\repair\\affinity.tur",
-    //"C:\\Inspire\\repair\\interface.tur",
+    //"C:\\Inspire\\repair\\interfac e.tur",
     //"C:\\Inspire\\repair\\aminoacid.tur",
     //"C:\\Inspire\\repair\\rasa10e.tur",
   	//"C:\\Inspire\\repair\\temperature10.tur",
-    "C:\\Inspire\\test\\construction\\integer.tur",
-    "C:\\Inspire\\test\\construction\\double.tur",
-    "C:\\Inspire\\test\\construction\\word.tur"
+    "C:\\Inspire\\metacentrum\\fasta.tur",
+    "C:\\Inspire\\metacentrum\\pure.tur",
+    "C:\\Inspire\\metacentrum\\sasa8.tur"
   };
   argv = arg;
 #endif // TESTING
