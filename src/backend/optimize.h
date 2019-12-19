@@ -139,7 +139,7 @@ namespace inspire {
 
         double best = -1;
         std::ofstream writer(output);
-        writer << "threshold\tTP\tFP\tFN\tTN\tMCC\n";
+        writer << "threshold\tTP\tFN\tFP\tTN\tMCC\n";
         for (size_t i = 0; i < PRECISSION; i++) {
           writer << (0.5+i) / PRECISSION;
           for (size_t j = 0; j < 4; j++) {

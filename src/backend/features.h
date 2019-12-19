@@ -12,6 +12,182 @@
 
 namespace inspire {
   namespace backend {
+    class FeatureReader {
+      private:
+      std::string NAME;
+      std::ifstream INPUT;
+
+      std::string HEADER;
+      int COLUMN;
+      int COLUMNS;
+
+      size_t INDEX;
+      std::string VALUE;
+
+      public:
+      FeatureReader(std::string file, std::string column) : HEADER(column), NAME(file), INPUT(file), COLUMN(0), COLUMNS(0), INDEX(0), VALUE("") {
+        std::string line;
+        if (!std::getline(INPUT, line)) {
+          throw common::exception::TitledException("The feature file '" + file + "' is empty");
+        }
+        std::stringstream parts(line);
+        std::string part;
+        while (std::getline(parts, part, '\t')) {
+          if (part == column) {
+            if (COLUMN < COLUMNS) {
+              throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
+            }
+          } else if (COLUMN == COLUMNS) {
+            ++COLUMN;
+          }
+          ++COLUMNS;
+        }
+        if (COLUMN == COLUMNS) {
+          throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
+        }
+      }
+
+      bool next(size_t index) {
+        if (index < INDEX) {
+          return false;
+        }
+        while (index > INDEX) {
+          std::string line;
+          if (INPUT.eof() || !std::getline(INPUT, line)) {
+            INDEX = std::numeric_limits<int>::max();
+            return false;
+          }
+          std::stringstream parts(line);
+          std::string part;
+          for (size_t i = 0; i <= COLUMN; i++) {
+            if (!std::getline(parts, part, '\t')) {
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+            }
+          }
+          VALUE = part;
+          for (size_t i = COLUMN+1; i < COLUMNS; i++) {
+            if (!std::getline(parts, part, '\t')) {
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+            }
+          }
+          if (std::getline(parts, part, '\t')) {
+            INDEX = std::stoi(part);
+          } else {
+            ++INDEX;
+          }
+          if (std::getline(parts, part, '\t')) {
+            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
+          }
+        }
+        return index == INDEX && VALUE.size() > 0;
+      }
+
+      std::string header() {
+        return HEADER;
+      }
+
+      std::string value() {
+        return VALUE;
+      }
+    };
+
+    class FeaturesReader {
+      private:
+      std::string NAME;
+      std::ifstream* INPUT;
+
+      // NOTE: This is not optimal, however, header should occupy only a negligible piece of memory and thus this approach is prefered because of clarity
+      std::vector<std::string> HEADERS;
+
+      size_t INDEX;
+      std::vector<std::string> LINE;
+
+      public:
+      FeaturesReader(std::string file) : NAME(file), INPUT(new std::ifstream(file)), INDEX(0) {
+        std::string line;
+        if (!std::getline(*INPUT, line)) {
+          throw common::exception::TitledException("The feature file '" + file + "' is empty");
+        }
+        std::stringstream parts(line);
+        std::string part;
+        while (std::getline(parts, part, '\t')) {
+          HEADERS.push_back(part);
+        }
+      }
+      FeaturesReader(FeaturesReader&& original) : NAME(original.NAME), INPUT(original.INPUT), HEADERS(original.HEADERS), INDEX(original.INDEX), LINE(original.LINE) {
+        original.INPUT = NULL;
+      }
+      FeaturesReader& operator=(FeaturesReader&& original) {
+        NAME = original.NAME;
+        std::swap(INPUT, original.INPUT);
+        delete original.INPUT;
+        original.INPUT = nullptr;
+        HEADERS = original.HEADERS;
+        INDEX = original.INDEX;
+        LINE = original.LINE;
+        return *this;
+      }
+      ~FeaturesReader() {
+        delete INPUT;
+      }
+
+      bool next_line(size_t index) {
+        if (index < INDEX) {
+          return false;
+        }
+        while (index > INDEX) {
+          LINE.clear();
+          std::string line;
+          if (INPUT->eof() || !std::getline(*INPUT, line)) {
+            INDEX = std::numeric_limits<int>::max();
+            return false;
+          }
+          std::stringstream parts(line);
+          std::string part;
+          for (size_t i = 0; i < HEADERS.size(); i++) {
+            if (!std::getline(parts, part, '\t')) {
+              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
+            }
+            LINE.push_back(part);
+          }
+          if (std::getline(parts, part, '\t')) {
+            INDEX = std::stoi(part);
+          } else {
+            ++INDEX;
+          }
+          if (std::getline(parts, part, '\t')) {
+            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
+          }
+        }
+        return index == INDEX;
+      }
+
+      bool next_line() {
+        while (INDEX != std::numeric_limits<int>::max()) {
+          if (next_line(INDEX+1)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      size_t index() {
+        return INDEX;
+      }
+
+      size_t size() {
+        return HEADERS.size();
+      }
+
+      std::string header(size_t i) {
+        return HEADERS[i];
+      }
+
+      std::string value(size_t i) {
+        return LINE[i];
+      }
+    };
+
+
     // Extract features from protein
     class IFeature {
       public:
@@ -21,32 +197,44 @@ namespace inspire {
       // Inform about the current protein for the case that something joint needs to be precomputed
       virtual void init(Protein* protein) { }
     };
-
     template <class T> class Feature : public IFeature {
+      public:
+      static const T UNDEFINED;
+
+      // Returns the feature of the given aminoacid within the given chain within the given model from the given protein
+      virtual T feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) = 0;
+    };
+    template <class T> class ProteinFeature : public Feature<T> {
       protected:
       // How to select required aminoacids from proteins
       ProteinIterator* ITERATOR;
 
       public:
-      static const T UNDEFINED;
-
       // Initializes Feature extractor with how to select required aminoacids and their features from proteins
-      Feature(ProteinIterator* iterator) : ITERATOR(iterator) { }
+      ProteinFeature(ProteinIterator* iterator) : ITERATOR(iterator) { }
+      
+      void init(Protein* protein) override {
+        ITERATOR->init(protein);
+        ITERATOR->resetModel();
+        ITERATOR->resetChain();
+        ITERATOR->resetAminoacid();
+      }
 
       // Returns the feature of the given aminoacid within the given chain within the given model from the given protein
-      virtual T feature(const std::string &model, const std::string &chain, const std::string &aminoacid) = 0;
+      virtual T feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) = 0;
     };
     template <> const size_t Feature<size_t>::UNDEFINED = -1;
     template <> const float Feature<float>::UNDEFINED = std::numeric_limits<float>::infinity();
     template <> const std::string Feature<std::string>::UNDEFINED = "";
 
+    // Cast feature type to string
     template <class T> class ToStringFeature : public Feature<std::string> {
       private:
       Feature<T>* FEATURE;
 
       public:
       // *.bod
-      ToStringFeature(ProteinIterator* iterator, Feature<T>* feature) : Feature(iterator), FEATURE(feature) { }
+      ToStringFeature(Feature<T>* feature) : FEATURE(feature) { }
 
       std::string title() override { return FEATURE->title(); }
 
@@ -54,24 +242,74 @@ namespace inspire {
         FEATURE->init(protein);
       }
 
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
-        T ret = FEATURE->feature(model, chain, aminoacid);
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        T ret = FEATURE->feature(model, chain, aminoacid, id);
         return ret == FEATURE->UNDEFINED ? UNDEFINED : std::to_string(ret);
       }
     };
+    // Change title of the inner feature
+    template <class T> class RenameFeature : public Feature<T> {
+      private:
+      Feature<T>* FEATURE;
+      std::string NAME;
 
-    class BinFeature : Feature<size_t> {
+      public:
+      RenameFeature(std::string name,  Feature<T>* feature) : FEATURE(feature), NAME(name) { }
+
+      std::string title() override { return NAME; }
+
+      void init(Protein* protein) override {
+        FEATURE->init(protein);
+      }
+
+      // TODO: This will not work in the case of UNDEFINED constant redefined in the inner feature
+      T feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        return FEATURE->feature(model, chain, aminoacid, id);
+      }
+    };
+    // String feature is read from a file
+    class StringLoaderFeature : public Feature<std::string> {
+      private:
+      FeatureReader FEATURE;
+
+      public:
+      StringLoaderFeature(std::string file, std::string header) : FEATURE(file, header) { }
+
+      std::string title() override { return FEATURE.header(); }
+
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        return FEATURE.next(id) ? FEATURE.value() : UNDEFINED;
+      }
+    };
+    // String to float feature where string value is interpreted as a float
+    class FloatLoaderFeature : public Feature<float> {
+      private:
+      StringLoaderFeature FEATURE;
+
+      public:
+      FloatLoaderFeature(std::string file, std::string header) : FEATURE(file, header) { }
+
+      std::string title() override { return FEATURE.title(); }
+
+      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        std::string value = FEATURE.feature(model, chain, aminoacid, id);
+        return value == FEATURE.UNDEFINED ? UNDEFINED : std::stof(value);
+      }
+    };
+    // Float to size_t feature that split interval into k bins and for each float return index of the corresponding bin
+    class BinFeature : public Feature<size_t> {
       private:
       Feature<float>* FEATURE;
       std::map<float, size_t> BINS;
 
       public:
       // *.bod
-      BinFeature(ProteinIterator* iterator, Feature<float>* feature, std::string boundaries) : Feature(iterator), FEATURE(feature) {
+      BinFeature(Feature<float>* feature, std::string boundaries) : FEATURE(feature) {
         std::ifstream input(boundaries);
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
-          BINS[std::stof(line)] = BINS.size();
+          size_t size = BINS.size()+1;
+          BINS[std::stof(line)] = size;
         }
         input.close();
       }
@@ -82,24 +320,26 @@ namespace inspire {
         FEATURE->init(protein);
       }
 
-      size_t feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
-        float ret = FEATURE->feature(model, chain, aminoacid);
+      size_t feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        float ret = FEATURE->feature(model, chain, aminoacid, id);
         if (ret == FEATURE->UNDEFINED) {
           return UNDEFINED;
         } else {
           auto it = BINS.upper_bound(ret);
-          return it == BINS.end() ? BINS.size() : it->second;
+          return it == BINS.end() ? BINS.size()+1 : it->second;
         }
       }
     };
-
+    // Float & string to float transformation that normalize float values based of corresponding string features
     class RelativeAminoacidFeature : public Feature<float> {
       private:
-      Feature<float>* FEATURE;
+      Feature<float>* FEATURES;
+      Feature<std::string>* CLASSES;
       std::map<std::string, float> MAXIMAL;
+      std::string PROTEIN;
 
       public:
-      RelativeAminoacidFeature(ProteinIterator* iterator, Feature<float>* feature, std::string maximals) : Feature(iterator), FEATURE(feature) {
+      RelativeAminoacidFeature(Feature<float>* features, Feature<std::string>* classes, std::string maximals) : FEATURES(features), CLASSES(classes) {
         std::ifstream input(maximals);
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
@@ -123,144 +363,94 @@ namespace inspire {
       //  }
       //}
 
-      std::string title() override { return "r" + FEATURE->title(); }
+      std::string title() override { return FEATURES->title() + "-" + CLASSES->title(); }
 
       void init(Protein* protein) override {
-        FEATURE->init(protein);
+        FEATURES->init(protein);
+        CLASSES->init(protein);
+        PROTEIN = protein->ID_CODE;
       }
 
-      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
-        // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
-        if (ITERATOR->getModelName() != model) {
-          if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetChain()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid chain for model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetAminoacid()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid aminoacid for chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-        }
-        if (ITERATOR->getChainName() != chain) {
-          if (!((ITERATOR->nextChain() && ITERATOR->getChainName() == chain) || ITERATOR->setChain(chain))) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetAminoacid()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid aminoacid for chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-        }
-        // NOTE: In this stage, it is expected that each query is on different aminoacid
-        // TODO: Consider the first aminoacid
-        // TODO: That it is useless to set it in this and inner feature too
-        if (!((ITERATOR->nextAminoacid() && ITERATOR->getAminoacidName() == aminoacid) || ITERATOR->setAminoacid(aminoacid))) {
-          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a aminoacid '" << aminoacid << "' in chain '" << chain << "' in model '" << model << "'" << std::endl;
+      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        float feature = FEATURES->feature(model, chain, aminoacid, id);
+        if (feature == FEATURES->UNDEFINED) {
           return UNDEFINED;
         }
-        auto it = MAXIMAL.find(ITERATOR->residue_name());
+        std::string key = CLASSES->feature(model, chain, aminoacid, id);
+        if (key == CLASSES->UNDEFINED) {
+          return UNDEFINED;
+        }
+        auto it = MAXIMAL.find(key);
         if (it == MAXIMAL.end()) {
-          std::cerr << ITERATOR->getProteinName() << ": Residue type '" << ITERATOR->residue_name() << "' is not known" << std::endl;
+          std::cerr << PROTEIN << ": Class '" << key << "' is not defined in reference file" << std::endl;
           return UNDEFINED;
         }
-        float ret = FEATURE->feature(model, chain, aminoacid);
-        if (ret == FEATURE->UNDEFINED) {
-          return UNDEFINED;
-        } else {
-          return ret/it->second;
+         else {
+          return feature/it->second;
         }
       }
     };
-
-    class SingleAminoacidFeature : public Feature<std::string> {
+    // String to string transformation that use a dictionary to transform values
+    class StringProjectionFeature : public Feature<std::string> {
       private:
       std::map<std::string, std::string> TRANSFORMATIONS;
+      Feature<std::string>* FEATURE;
+      std::string PROTEIN;
 
       public:
-      SingleAminoacidFeature(ProteinIterator* iterator, std::string table) : Feature(iterator) {
+      StringProjectionFeature(std::string table, Feature<std::string>* feature) : FEATURE(feature) {
+        if (FEATURE == nullptr) {
+          throw common::exception::TitledException("Uninitialized feature is not allowed.");
+        }
+
         std::ifstream transformations(table);
         std::string line;
         while (!transformations.eof() && std::getline(transformations, line)) {
-          size_t tab = line.find('\t');
-          if (tab == line.npos) {
-            std::cerr << "'" << line << "' is not a valid transformation line." << std::endl;
-          } else {
-            auto ins = TRANSFORMATIONS.insert({line.substr(0, tab), line.substr(tab+1)});
-            if (!ins.second) {
-              std::cerr << "Multiple lines have a same key: '" << ins.first->first << '\t' << ins.first->second << "' vs. '" << line << "'" << std::endl;
+          if (!line.empty()) {
+            size_t tab = line.find('\t');
+            if (tab == line.npos) {
+              std::cerr << "'" << line << "' is not a valid transformation line." << std::endl;
+            } else {
+              auto ins = TRANSFORMATIONS.insert({line.substr(0, tab), line.substr(tab+1)});
+              if (!ins.second) {
+                std::cerr << "Multiple lines have a same key: '" << ins.first->first << '\t' << ins.first->second << "' vs. '" << line << "'" << std::endl;
+              }
             }
           }
         }
       }
 
-      std::string title() override { return "aminoacid"; }
+      std::string title() override { return "t"+FEATURE->title(); }
 
       void init(Protein* protein) override {
-        ITERATOR->init(protein);
-        ITERATOR->resetModel();
-        ITERATOR->resetChain();
-        ITERATOR->resetAminoacid();
+        FEATURE->init(protein);
+        PROTEIN = protein->ID_CODE;
       }
 
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
-        // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
-        if (ITERATOR->getModelName() != model) {
-          if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetChain()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid chain for model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetAminoacid()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid aminoacid for chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-        }
-        if (ITERATOR->getChainName() != chain) {
-          if (!((ITERATOR->nextChain() && ITERATOR->getChainName() == chain) || ITERATOR->setChain(chain))) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-          if (!ITERATOR->resetAminoacid()) {
-            std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a valid aminoacid for chain '" << chain << "' in model '" << model << "'" << std::endl;
-            return UNDEFINED;
-          }
-        }
-        // NOTE: In this stage, it is expected that each query is on different aminoacid
-        // TODO: Consider the first aminoacid
-        if (!((ITERATOR->nextAminoacid() && ITERATOR->getAminoacidName() == aminoacid) || ITERATOR->setAminoacid(aminoacid))) {
-          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a aminoacid '" << aminoacid << "' in chain '" << chain << "' in model '" << model << "'" << std::endl;
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        std::string value = FEATURE->feature(model, chain, aminoacid, id);
+        if (value == FEATURE->UNDEFINED) {
+          std::cerr << "Protein '" << PROTEIN << "' does not have defined '" + FEATURE->title() + "' for aminoacid '" << aminoacid << "' in chain '" << chain << "' in model '" << model << "'" << std::endl;
           return UNDEFINED;
         }
-        auto it = TRANSFORMATIONS.find(ITERATOR->residue_name());
+        auto it = TRANSFORMATIONS.find(value);
         if (it == TRANSFORMATIONS.end()) {
-          std::cerr << ITERATOR->getProteinName() << ": Residue type '" << ITERATOR->residue_name() << "' is not known" << std::endl;
+          std::cerr << PROTEIN << ": Projection of  '" << value << "' is not defined" << std::endl;
           return UNDEFINED;
         }
         return it->second;
       }
     };
 
-    class BasicAminoacidFeature : public Feature<std::string> {
+
+    // String feature that extracts residue name
+    class AminoacidFeature : public ProteinFeature<std::string> {
       public:
-      BasicAminoacidFeature(ProteinIterator* iterator) : Feature(iterator) { }
+      AminoacidFeature(ProteinIterator* iterator) : ProteinFeature(iterator) { }
 
       std::string title() override { return "aminoacid"; }
 
-      void init(Protein* protein) override {
-        ITERATOR->init(protein);
-        ITERATOR->resetModel();
-        ITERATOR->resetChain();
-        ITERATOR->resetAminoacid();
-      }
-
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
         if (ITERATOR->getModelName() != model) {
           if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
@@ -296,7 +486,8 @@ namespace inspire {
       }
     };
 
-    class CoordinateFeature : public Feature<std::string> {
+    // String feature that extracts X, Y and Z coordinates of carbon alpha separated by spaces
+    class CoordinateFeature : public ProteinFeature<std::string> {
       public:
       static Coordinate parse(std::string coordinates) {
         size_t first = coordinates.find(' ');
@@ -310,18 +501,11 @@ namespace inspire {
         return std::make_tuple(std::stod(coordinates.substr(0, first)), std::stod(coordinates.substr(first+1, last-first-1)), std::stod(coordinates.substr(last+1)));
       }
 
-      CoordinateFeature(ProteinIterator* iterator) : Feature(iterator) { }
+      CoordinateFeature(ProteinIterator* iterator) : ProteinFeature(iterator) { }
 
       std::string title() override { return "coordinate"; }
 
-      void init(Protein* protein) override {
-        ITERATOR->init(protein);
-        ITERATOR->resetModel();
-        ITERATOR->resetChain();
-        ITERATOR->resetAminoacid();
-      }
-
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
         if (ITERATOR->getModelName() != model) {
           if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
@@ -382,20 +566,14 @@ namespace inspire {
       }
     };
 
-    class CompositionFeature : public Feature<std::string> {
+    // String feature that extracts names of all atoms in a residue except for elements 'H' and 'D', sorts them and separate by spaces
+    class CompositionFeature : public ProteinFeature<std::string> {
       public:
-      CompositionFeature(ProteinIterator* iterator) : Feature(iterator) { }
+      CompositionFeature(ProteinIterator* iterator) : ProteinFeature(iterator) { }
 
       std::string title() override { return "composition"; }
 
-      void init(Protein* protein) override {
-        ITERATOR->init(protein);
-        ITERATOR->resetModel();
-        ITERATOR->resetChain();
-        ITERATOR->resetAminoacid();
-      }
-
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
         if (ITERATOR->getModelName() != model) {
           if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
@@ -455,8 +633,8 @@ namespace inspire {
       }
     };
 
-
-    class InterfaceFeature : public Feature<std::string> {
+    // String feature that identify interface residues (residues that have any atom at most constant from any other atom from different chain [considering atoms as spheres with van der Waals radiuses])
+    class InterfaceFeature : public ProteinFeature<std::string> {
       protected:
       std::map<std::string, double> ELEMENTS;
       // NOTE: The opposite approach with suming element distances during testing allows default distance for unknown elements,
@@ -466,7 +644,7 @@ namespace inspire {
       std::map<std::string, std::map<std::string, std::map<std::string, bool>>> INTERFACES;
 
       public:
-      InterfaceFeature(ProteinIterator* iterator, std::string distances, double distance) : Feature(iterator) {
+      InterfaceFeature(ProteinIterator* iterator, std::string distances, double distance) : ProteinFeature(iterator) {
         std::ifstream input(distances);
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
@@ -491,7 +669,7 @@ namespace inspire {
 
       std::string title() override { return "interface"; }
 
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         auto model_it = INTERFACES.find(model);
         if (model_it == INTERFACES.end()) {
           std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a model '" << model << "'" << std::endl;
@@ -510,7 +688,7 @@ namespace inspire {
         return aminoacid_it->second ? "I" : "N";
       }
     };
-
+    // Simple interface feature not suitable for larger proteins
     class InterfaceShortFeature : public InterfaceFeature {
       public:
       InterfaceShortFeature(ProteinIterator* iterator, std::string distances, double distance) : InterfaceFeature(iterator, distances, distance) { }
@@ -594,7 +772,7 @@ found:;
         ITERATOR->resetAminoacid();
       }
     };
-
+    // More advanced interface feature suitable for larger proteins
     class InterfaceMediumFeature : public InterfaceFeature {
       private:
       std::map<std::string, double> DISTANCES_MAX;
@@ -690,7 +868,7 @@ found:;
         ITERATOR->resetAminoacid();
       }
     };
-
+    // Complex interface feature suitable even for very large proteins
     class InterfaceLargeFeature : public InterfaceFeature {
       private:
       double DISTANCE;
@@ -779,21 +957,32 @@ found:;
       }
     };
 
+    // Protein identifier (e.g. to allow normalization of temperature factor based on the situation in the current protein)
+    // TODO: Consider whether it should not be based on individual models instead of whole proteins
+    class ProteinIdFeature : public Feature<std::string> {
+      private:
+      std::string PROTEIN;
 
-    class TemperatureFeature : public Feature<std::string> {
       public:
-      TemperatureFeature(ProteinIterator* iterator) : Feature(iterator) { }
+      std::string title() override { return "protein"; }
+
+      void init(Protein* protein) override {
+        PROTEIN = protein->ID_CODE;
+      }
+
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        return PROTEIN;
+      }
+    };
+    
+    // Float feature that extracts average temperature factor for each residue
+    class TemperatureFeature : public ProteinFeature<float> {
+      public:
+      TemperatureFeature(ProteinIterator* iterator) : ProteinFeature(iterator) { }
 
       std::string title() override { return "temperature"; }
 
-      void init(Protein* protein) override {
-        ITERATOR->init(protein);
-        ITERATOR->resetModel();
-        ITERATOR->resetChain();
-        ITERATOR->resetAminoacid();
-      }
-
-      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         // TODO: Compare effectivity of this heuristics; also consider a cacheing of names
         if (ITERATOR->getModelName() != model) {
           if (!((ITERATOR->nextModel() && ITERATOR->getModelName() == model) || ITERATOR->setModel(model))) {
@@ -849,9 +1038,10 @@ found:;
                       << ITERATOR->getAminoacidName() << "' in chain '" << ITERATOR->getChainName() << "' in model '" << ITERATOR->getModelName() << "'" << std::endl;
           }
         } while (ITERATOR->nextAtom());
-        return std::to_string(sum/count);
+        return sum/count;
       }
     };
+
 
     class Features {
       private:
@@ -911,33 +1101,49 @@ found:;
         // TODO: Is this necessary to prevent destruction until it is not problem?
         // NOTE: Expects that no protein has empty id_code and that the index file is valid (id_code in the first line)
         Protein protein;
+        std::string skip;
         do {
-          if (protein.ID_CODE != INDEX.protein()) {
-            protein = ProteinParser::parse_protein(FILES[INDEX.protein()], FILTER);
+          if (skip != INDEX.protein()) {
+            skip.clear();
+            if (protein.ID_CODE != INDEX.protein()) {
+              auto file_it = FILES.find(INDEX.protein());
+              if (file_it == FILES.end()) {
+                skip = INDEX.protein();
+              } else {
+                try {
+                  protein = ProteinParser::parse_protein(file_it->second, FILTER);
+                  for (size_t i = 0; i < features.size(); i++) {
+                    features[i]->init(&protein);
+                  }
+                } catch (common::exception::TitledException e) {
+                  std::cerr << e.what() << std::endl;
+                  skip = INDEX.protein();
+                }
+              }
+            }
+          }
+          if (skip.empty()) {
+            std::stringstream buffer;
+            bool write = false;
             for (size_t i = 0; i < features.size(); i++) {
-              features[i]->init(&protein);
+              if (i == 0) {
+              } else {
+                buffer << '\t';
+              }
+              std::string feature = features[i]->feature(INDEX.model(), INDEX.chain(), INDEX.aminoacid(), INDEX.index());
+              if (feature != features[i]->UNDEFINED) {
+                write = true;
+                buffer << feature;
+              }
             }
-          }
-          std::stringstream buffer;
-          bool write = false;
-          for (size_t i = 0; i < features.size(); i++) {
-            if (i == 0) {
-            } else {
-              buffer << '\t';
+            if (write) {
+              output << buffer.str();
+              if (++last != INDEX.index()) {
+                last = INDEX.index();
+                output << '\t' << INDEX.index();
+              }
+              output << '\n';
             }
-            std::string feature = features[i]->feature(INDEX.model(), INDEX.chain(), INDEX.aminoacid());
-            if (feature != features[i]->UNDEFINED) {
-              write = true;
-              buffer << feature;
-            }
-          }
-          if (write) {
-            output << buffer.str();
-            if (++last != INDEX.index()) {
-              last = INDEX.index();
-              output << '\t' << INDEX.index();
-            }
-            output << '\n';
           }
         } while (INDEX.next());
 
@@ -946,160 +1152,5 @@ found:;
       }
     };
 
-    class FeatureReader {
-      private:
-      std::string NAME;
-      std::ifstream INPUT;
-
-      int COLUMN;
-      int COLUMNS;
-
-      size_t INDEX;
-      std::string VALUE;
-
-      public:
-      FeatureReader(std::string file, std::string column) : NAME(file), INPUT(file), COLUMN(0), COLUMNS(0), INDEX(0), VALUE("") {
-        std::string line;
-        if (!std::getline(INPUT, line)) {
-          throw common::exception::TitledException("The feature file '" + file + "' is empty");
-        }
-        std::stringstream parts(line);
-        std::string part;
-        while (std::getline(parts, part, '\t')) {
-          if (part == column) {
-            if (COLUMN < COLUMNS) {
-              throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
-            }
-          } else if (COLUMN == COLUMNS) {
-            ++COLUMN;
-          }
-          ++COLUMNS;
-        }
-        if (COLUMN == COLUMNS) {
-          throw common::exception::TitledException("Features file '" + file + "' contains multiple columns with header '" + column + "'");
-        }
-      }
-
-      bool next(size_t index) {
-        if (index < INDEX) {
-          return false;
-        }
-        while (index > INDEX) {
-          std::string line;
-          if (INPUT.eof() || !std::getline(INPUT, line)) {
-            INDEX = std::numeric_limits<int>::max();
-            return false;
-          }
-          std::stringstream parts(line);
-          std::string part;
-          for (size_t i = 0; i <= COLUMN; i++) {
-            if (!std::getline(parts, part, '\t')) {
-              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
-            }
-          }
-          VALUE = part;
-          for (size_t i = COLUMN+1; i < COLUMNS; i++) {
-            if (!std::getline(parts, part, '\t')) {
-              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
-            }
-          }
-          if (std::getline(parts, part, '\t')) {
-            INDEX = std::stoi(part);
-          } else {
-            ++INDEX;
-          }
-          if (std::getline(parts, part, '\t')) {
-            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
-          }
-        }
-        return index == INDEX && VALUE.size() > 0;
-      }
-
-      std::string value() {
-        return VALUE;
-      }
-    };
-    class FeaturesReader {
-      private:
-      std::string NAME;
-      std::ifstream* INPUT;
-
-      // NOTE: This is not optimal, however, header should occupy only a negligible piece of memory and thus this approach is prefered because of clarity
-      std::vector<std::string> HEADERS;
-
-      size_t INDEX;
-      std::vector<std::string> LINE;
-
-      public:
-      FeaturesReader(std::string file) : NAME(file), INPUT(new std::ifstream(file)), INDEX(0) {
-        std::string line;
-        if (!std::getline(*INPUT, line)) {
-          throw common::exception::TitledException("The feature file '" + file + "' is empty");
-        }
-        std::stringstream parts(line);
-        std::string part;
-        while (std::getline(parts, part, '\t')) {
-          HEADERS.push_back(part);
-        }
-      }
-			~FeaturesReader() {
-				delete INPUT;
-			}
-
-      bool next_line(size_t index) {
-        if (index < INDEX) {
-          return false;
-        }
-        while (index > INDEX) {
-          LINE.clear();
-          std::string line;
-          if (INPUT->eof() || !std::getline(*INPUT, line)) {
-            INDEX = std::numeric_limits<int>::max();
-            return false;
-          }
-          std::stringstream parts(line);
-          std::string part;
-          for (size_t i = 0; i < HEADERS.size(); i++) {
-            if (!std::getline(parts, part, '\t')) {
-              throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': not enough elements in line '" + line + "'");
-            }
-            LINE.push_back(part);
-          }
-          if (std::getline(parts, part, '\t')) {
-            INDEX = std::stoi(part);
-          } else {
-            ++INDEX;
-          }
-          if (std::getline(parts, part, '\t')) {
-            throw common::exception::TitledException("Unexpected format of features file '" + NAME + "': too many elements in line '" + line + "'");
-          }
-        }
-        return index == INDEX;
-      }
-
-      bool next_line() {
-        while (INDEX != std::numeric_limits<int>::max()) {
-          if (next_line(INDEX+1)) {
-            return true;
-          }
-        }
-        return false;
-      }
-      size_t index() {
-        return INDEX;
-      }
-
-      size_t size() {
-        return HEADERS.size();
-      }
-
-      std::string header(size_t i) {
-        return HEADERS[i];
-      }
-
-      std::string value(size_t i) {
-        return LINE[i];
-      }
-    };
   }
 }

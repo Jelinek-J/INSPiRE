@@ -212,6 +212,12 @@ namespace inspire {
         Protein protein;
         // List of protein chains (to ignore other chains
         std::set<std::string> chains;
+        // Alternative names of protein chains
+        std::map<std::string, std::string> alternatives;
+        // List of residues to make validation of defined atoms
+        std::map<std::string, std::vector<std::string>> entities;
+        // List of assemblies
+        std::set<size_t> assemblies;
         // Crystallographic symmetry group to generate crystallographic transformations
         std::string space_group;
         // Assignation of biomolecule transformations to chains <biomolecule_id, <transformation, chains>>
@@ -224,7 +230,7 @@ namespace inspire {
           throw common::exception::TitledException("The file does not contain any identifier");
         }
 
-        // Chains that should be parsed
+        // Identifiers of chains that should be parsed
         std::vector<common::xml::Xml> nodes;
         if (xml.get_nodes("PDBx:datablock.PDBx:entity_polyCategory", "PDBx:entity_poly", nodes)) {
           for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
@@ -245,6 +251,45 @@ namespace inspire {
           throw common::exception::TitledException("Block 'entity_poly' is missing");
         }
 
+        // Alternative identifiers of chains that should be parsed
+        if (xml.get_nodes("PDBx:datablock.PDBx:struct_asymCategory", "PDBx:struct_asym", nodes)) {
+          for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
+            std::string id;
+            std::string value;
+            if (!(nodes_it->get_attribute("id", id) && nodes_it->get_value("PDBx:entity_id", value))) {
+              throw common::exception::TitledException("Incomplete definition of '_struct_asym'");
+            }
+            alternatives[id] = value;
+          }
+          if (chains.size() == 0) {
+            throw common::exception::TitledException("Block 'struct_asym' does not contain any valid chain identifier");
+          }
+        } else {
+          throw common::exception::TitledException("Block 'struct_asym' is missing");
+        }
+
+        // Composition of parsed entities
+        if (xml.get_nodes("PDBx:datablock.PDBx:entity_poly_seqCategory", "PDBx:entity_poly_seq", nodes)) {
+          for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
+            std::string id;
+            std::string monomer;
+            std::string number;
+            if (!(nodes_it->get_attribute("entity_id", id) && nodes_it->get_attribute("mon_id", monomer) && nodes_it->get_attribute("num", number))) {
+              throw common::exception::TitledException("Incomplete definition of '_entity_poly_seq'");
+            }
+            auto &chain = entities[id];
+            chain.push_back(monomer);
+            if (chain.size() != std::stol(number)) {
+              throw common::exception::TitledException("Entity polymer numbers '_entity_poly_seq.num' are not sequential");
+            }
+          }
+          if (chains.size() == 0) {
+            throw common::exception::TitledException("Block 'entity_poly_seq' does not contain any valid chain identifier");
+          }
+        } else {
+          throw common::exception::TitledException("Block 'entity_poly_seq' is missing");
+        }
+
         // Crystallographic symmetry
         if (!xml.get_value("PDBx:datablock.PDBx:symmetryCategory.PDBx:symmetry.PDBx:space_group_name_H-M", space_group)) {
           protein.CRYSTALLOGRAPHIC_SYMMETRIES[1] = TransformationMatrix();
@@ -252,7 +297,22 @@ namespace inspire {
         // TODO: Dictionary of space groups and generate transformations;
 
         // Biomolecules composition
+        if (xml.get_nodes("PDBx:datablock.PDBx:pdbx_struct_assemblyCategory", "PDBx:pdbx_struct_assembly", nodes)) {
+          for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
+            std::string id;
+            std::string details;
+            if (!(nodes_it->get_attribute("id", id) && nodes_it->get_value("PDBx:details", details))) {
+              throw common::exception::TitledException("Incomplete definition of 'pdbx_struct_assembly_gen'");
+            }
+            if (common::string::ends_with(common::string::to_upper(details), "ASSEMBLY")) {
+              assemblies.emplace(std::stol(id));
+            }
+          }
+        }
         if (xml.get_nodes("PDBx:datablock.PDBx:pdbx_struct_assembly_genCategory", "PDBx:pdbx_struct_assembly_gen", nodes)) {
+          if (assemblies.empty()) {
+            throw common::exception::TitledException("Data category '_pdbx_struct_assembly' is missing, or it occurs after '_pdbx_struct_assembly_gen', or no valid assembly is defined (~ missing 'REMARKS 350')");
+          }
           for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
             std::string id;
             std::string affected;
@@ -260,7 +320,17 @@ namespace inspire {
             if (!(nodes_it->get_attribute("assembly_id", id) && nodes_it->get_attribute("asym_id_list", affected) && nodes_it->get_attribute("oper_expression", transformations))) {
               throw common::exception::TitledException("Incomplete definition of 'pdbx_struct_assembly_gen'");
             }
-            generation[std::stoi(id)][transformations] = parseChains(affected);
+            size_t assembly = std::stoi(id);
+            if (assemblies.find(assembly) != assemblies.end()) {
+              auto &subgeneration = generation[assembly];
+              auto subgeneration_it = subgeneration.find(transformations);
+              if (subgeneration_it == subgeneration.end()) {
+                subgeneration[transformations] = parseChains(affected);
+              } else {
+                auto parsed = parseChains(affected);
+                subgeneration_it->second.insert(parsed.begin(), parsed.end());
+              }
+            }
           }
         }
 
@@ -557,7 +627,62 @@ namespace inspire {
           std::get<2>(std::get<2>(transformation)) = 1;
         }
 
+        for (auto models_it = protein.MODELS.begin(); models_it != protein.MODELS.end(); ++models_it) {
+          for (auto chains_it = models_it->second.CHAINS.begin(); chains_it != models_it->second.CHAINS.end(); ++chains_it) {
+            auto alternatives_it = alternatives.find(chains_it->first);
+            if (alternatives_it == alternatives.end()) {
+              std::cerr << "WARNING [" << protein.ID_CODE << "]:    Protein does not contain chain '" << chains_it->first << "' in model '" << models_it->first << "'" << std::endl;
+            } else {
+              auto entity = entities.find(alternatives_it->second);
+              if (entity == entities.end()) {
+                throw common::exception::TitledException("Entity '" + alternatives_it->second + "' is declared in '_entity_poly' section but not defined in '_entity_poly_seq' section'");
+              }
+              if (chains_it->second.AMINOACIDS.size() != entity->second.size()) {
+                if (chains_it->second.AMINOACIDS.size() < entity->second.size()) {
+                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << chains_it->first << "' in model '" << models_it->first << "' does not contain information about " << entity->second.size() - chains_it->second.AMINOACIDS.size() << " residues" << std::endl;
+                } else {
+                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << chains_it->first << "' in model '" << models_it->first << "' has defined more residues in ATOM/HETATM section than in SEQRES section" << std::endl;
+                }
+              }
+            }
+          }
+        }
+
         return protein;
+      }
+
+      static bool contains_hetatoms(std::istream& input) {
+        // Load xml
+        common::xml::Xml xml(input);
+        std::vector<common::xml::Xml> nodes;
+        if (xml.get_nodes("PDBx:datablock.PDBx:atom_siteCategory", "PDBx:atom_site", nodes)) {
+          for (auto nodes_it = nodes.begin(); nodes_it != nodes.end(); ++nodes_it) {
+            std::string residue_group;
+            if (nodes_it->get_value("PDBx:group_PDB", residue_group) && residue_group == "HETATM") {
+              std::string residues[2];
+              if (nodes_it->get_value("PDBx:label_comp_id", residues[0]) && nodes_it->get_value("PDBx:auth_comp_id", residues[1])) {
+                char situation = 0;
+                for (size_t i = 0; i < 2; i++) {
+                  if (residues[i] == "HOH" || residues[i] == "DOD" || residues[i] == "DIS" || residues[i] == "MTO") {
+                    ++situation;
+                  }
+                }
+                switch (situation) {
+                  case 0: // Contains non-water heteroatom
+                    return true;
+                    break;
+                  case 1: // One label claims it is a water, the other one claims it is not a water
+                    throw common::exception::TitledException("Ambiguity between heteroatom labels: '" + residues[0] + "' vs. '" + residues[1]);
+                  case 2:
+                    break;
+                  default:
+                    throw common::exception::TitledException("This should not happen: ++(++(0)) <= 2");
+                }
+              }
+            }
+          }
+        }
+        return false;
       }
     };
   }

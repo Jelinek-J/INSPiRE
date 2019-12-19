@@ -66,7 +66,7 @@ namespace inspire {
       // lines: a list of lines to parse
       // protein: a protein where to insert parsed biomolecule
       // allowed_chains: a set of identifiers that are defined in a CHAIN line of COMPND section
-      static void parseBiologicalTransformation(const std::vector<std::string> &lines, Protein &protein, std::set<char> &allowed_chains) {
+      static void parseBiologicalTransformation(const std::vector<std::string> &lines, Protein &protein, std::map<char, std::pair<size_t, std::vector<std::string>>> &allowed_chains) {
         if (lines.size() == 0) {
           return;
         }
@@ -143,7 +143,7 @@ namespace inspire {
           if (protein.MODELS.empty()) {
             model = &*protein.MODELS.insert({1, Model()}).first;
           } else {
-            throw common::exception::TitledException("'MODEL' line excepted instead of '" + line + "'");
+            throw common::exception::TitledException("'MODEL' line expected instead of '" + line + "'");
           }
           chain = nullptr;
           aminoacid = nullptr;
@@ -246,7 +246,7 @@ namespace inspire {
         std::pair<const int, Model>* model = nullptr;
         std::pair<const std::string, Chain>* chain = nullptr;
         std::pair<const std::pair<int, char>, Aminoacid>* aminoacid = nullptr;
-        std::set<char> chains;
+        std::map<char, std::pair<size_t, std::vector<std::string>>> chains;
         bool parse_chains = false;
         std::string line;
         std::vector<std::string> crystallographic;
@@ -259,48 +259,117 @@ namespace inspire {
             if (common::string::starts_with(line, "HEADER")) {
               protein.ID_CODE = parse_id(line);
             } else if (common::string::starts_with(line, "COMPND")) {
-              if (common::string::contains_at(line, "CHAIN: ", 11)) {
-                size_t i = 18;
-                for (; i < line.size() && line[i] != ' '; i += 3) {
-                  chains.insert(line[i]);
-                }
-                i -= 2;
-                if (i < line.size()) {
-                  if (line[i] == ',') {
-                    if (++i < line.size() && line[i] == ';') {
-                      std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line contains an extra comma in front of the semicolon: '" << line << "'" << std::endl;
-                    } else {
-                      parse_chains = true;
-                    }
-                  } else if (line[i] != ';') {
-                    if (line[i] == ' ') {
-                      std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line ends with a space instead of semicolon: '" << line << "'" << std::endl;
-                    } else {
-                      throw common::exception::TitledException("Unexpected end of COMPOUND's CHAIN line: '" + line + "'");
-                    }
+              if (parse_chains || common::string::contains_at(line, "CHAIN: ", 11)) {
+                size_t start = parse_chains ? 10 : 17;
+                size_t i = start-1;
+                size_t state = 0; // 0=space; 1=chain; 2=separator;3=end;
+                while (state < 3 && ++i < line.size()) {
+                  switch (line[i]) {
+                    case ' ':
+                      switch (state) {
+                        case 0:
+                          ++state;
+                          break;
+                        case 1:
+                          while (i+1 < line.size() && line[i+1] == ' ') {
+                            ++i;
+                          }
+                          if (i == line.size()) {
+                            parse_chains = true;
+                            state = 3;
+                          } else {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN contains multiple consecutive spaces: '" << line << "'" << std::endl;
+                          }
+                          break;
+                        case 2:
+                          while (i+1 < line.size() && line[i+1] == ' ') {
+                            ++i;
+                          }
+                          if (i == line.size()) {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line does not ends with a semicolon: '" << line << "'" << std::endl;
+                            parse_chains = false;
+                            state = 3;
+                          } else {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN contains a space between a chain identifier and a separator: '" << line << "'" << std::endl;
+                          }
+                          break;
+                        default:
+                          throw common::exception::TitledException("Unexpected state occured within line: '" + line + "'");
+                      }
+                      break;
+                    case ',':
+                      switch (state) {
+                        case 0:
+                          std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN contains multiple consecutive separators: '" << line << "'" << std::endl;
+                          break;
+                        case 1:
+                          std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN miss a chain identifier between two consecutive separators: '" << line << "'" << std::endl;
+                          break;
+                        case 2:
+                          state=0;
+                          break;
+                        default:
+                          throw common::exception::TitledException("Unexpected state occured within line: '" + line + "'");
+                      }
+                      break;
+                    case ';':
+                      switch (state) {
+                        case 0:
+                          if (i <= start) {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line contains no chain identifier: '" << line << "'" << std::endl;
+                          } else {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line contains an extra comma in front of the semicolon: '" << line << "'" << std::endl;
+                          }
+                          break;
+                        case 1:
+                          if (i <= start+1) {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line contains no chain identifier: '" << line << "'" << std::endl;
+                          } else {
+                            std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN miss a chain identifier in front of the semicolon: '" << line << "'" << std::endl;
+                          }
+                          break;
+                        case 2:
+                          break;
+                        default:
+                          throw common::exception::TitledException("Unexpected state occured within line: '" + line + "'");
+                      }
+                      while (++i < line.size()) {
+                        if (line[i] != ' ') {
+                          std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line contains a non-space character after the semicolon: '" << line << "'" << std::endl;
+                          break;
+                        }
+                      }
+                      parse_chains = false;
+                      state = 3;
+                      break;
+                    default:
+                      switch (state) {
+                        case 0:
+                          std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line does not contain a space in front of a chain identifier: '" << line << "'" << std::endl;
+                          break;
+                        case 1:
+                          break;
+                        default:
+                          throw common::exception::TitledException("Unexpected state occured within COMPOUND's CHAIN line: '" + line + "'");
+                      }
+                      chains[line[i]];
+                      state = 2;
+                      break;
                   }
-                } else {
-                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line does not end with a separator (comma or semicolon): '" << line << "'" << std::endl;
                 }
-              } else if (parse_chains) {
-                size_t i = (line.size() > 11 && line[11] == ' ') ? 12 : 11;
-                for (; i < line.size() && line[i] != ' '; i += 3) {
-                  chains.insert(line[i]);
-                }
-                i -= 2;
-                if (i < line.size()) {
-                  if (line[i] == ';') {
+                switch (state) {
+                  case 0:
+                  case 1:
+                    parse_chains = true;
+                    break;
+                  case 2:
                     parse_chains = false;
-                  } else if (line[i] == ' ') {
-                    parse_chains = false;
-                    std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN section ends with a space instead of semicolon: '" << line << "'" << std::endl;
-                  } else if (line[i] != ',') {
-                    throw common::exception::TitledException("Unexpected end of COMPOUND's CHAIN section: '" + line + "'");
-                  } else if (++i < line.size() && line[i] == ';') {
-                    std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN section contains an extra comma in front of the semicolon: '" << line << "'" << std::endl;
-                  }
-                } else {
-                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN section does not end with a separator (comma or semicolon): '" << line << "'" << std::endl;
+                    std::cerr << "WARNING [" << protein.ID_CODE << "]:    COMPOUND's CHAIN line does not ends with a semicolon: '" << line << "'" << std::endl;
+                    break;
+                  case 3:
+                    break;
+                  default:
+                    throw common::exception::TitledException("Unexpected state occured within line: '" + line + "'");
                 }
               }
             } else if (common::string::starts_with(line, "REMARK 290")) {
@@ -335,6 +404,42 @@ namespace inspire {
               } else if (biomolecule.size() > 0) {
                 biomolecule.push_back(line);
               }
+            } else if (common::string::starts_with(line, "SEQRES ")) {
+              size_t count = std::stol(common::string::trim(line.substr(13, 4)));
+              auto chains_it = chains.find(line[11]);
+              if (chains_it == chains.end()) {
+                if (line[11] == ' ') {
+                  switch (chains.size()) {
+                    case 0:
+                      throw common::exception::TitledException("Allowed chains are not definned prior SEQRES section: '" + line + "'");
+                      break;
+                    case 1:
+                      chains_it = chains.begin();
+                      break;
+                    default:
+                      throw common::exception::TitledException("Blank chain identifier, but multiple chains: '" + line + "'");
+                  }
+                } else {
+                  throw common::exception::TitledException("Unknown chain identifier: '" + line + "'");
+                }
+              }
+              if (std::stol(common::string::trim(line.substr(7, 3))) == 1) {
+                if (chains_it->second.first != 0) {
+                  throw common::exception::TitledException("Multiple lines with the same serial numbers corresponding to the same chain: '" + line + "'");
+                }
+                chains_it->second.first = count;
+              } else {
+                if (chains_it->second.first != count) {
+                  throw common::exception::TitledException("Ambiguity in number of residues : '" + std::string(1, chains_it->second.first) + "' vs. '" + line + "'");
+                }
+              }
+              for (size_t i = 19; i < line.size(); i+=4) {
+                std::string residue = common::string::trim(line.substr(i, 3));
+                if (residue.empty()) {
+                  break;
+                }
+                chains_it->second.second.push_back(residue);
+              }
             } else if (common::string::starts_with(line, "MODEL")) {
               int serial = std::stoi(line.substr(10, 4));
               auto ins = protein.MODELS.insert({serial, Model()});
@@ -361,7 +466,7 @@ namespace inspire {
               }
               // NOTE: if chain is not nullptr, than it is should be the same chain, else it is corrupted and throw an exception
               // If a model is nullptr, than it is corrupted and should throw an exception
-              if (chain == nullptr && (!chains.count(line[21]) || (model != nullptr && model->second.CHAINS.count(std::string(1, line[21]))))) {
+              if (chain == nullptr && (chains.find(line[21]) == chains.end() || (model != nullptr && model->second.CHAINS.count(std::string(1, line[21]))))) {
                 // TODO: If additional heteroatoms will be required too
               } else {
                 parse_atom_line(line, protein, model, chain, aminoacid);
@@ -385,7 +490,7 @@ namespace inspire {
           std::get<1>(std::get<1>(transformation.first)) = 1;
           std::get<2>(std::get<2>(transformation.first)) = 1;
           for (auto it = chains.begin(); it != chains.end(); ++it) {
-            transformation.second.emplace(std::string(1, *it));
+            transformation.second.emplace(std::string(1, it->first));
           }
         }
 
@@ -397,7 +502,35 @@ namespace inspire {
           std::get<2>(std::get<2>(transformation)) = 1;
         }
 
+        for (auto validation_it = chains.begin(); validation_it != chains.end(); ++validation_it) {
+          if (validation_it->second.first != validation_it->second.second.size()) {
+            throw common::exception::TitledException("Ambiguity between declared and real number of residues in the SEQRES record for chain '" + std::string(1, validation_it->first) + "'");
+          }
+          for (auto models_it = protein.MODELS.begin(); models_it != protein.MODELS.end(); ++models_it) {
+            auto chains_it = models_it->second.CHAINS.find(std::string(1, validation_it->first));
+            if (chains_it == models_it->second.CHAINS.end()) {
+              std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << validation_it->first << "' in model '" << models_it->first << "' does not contain information about " << validation_it->second.first << " residues" << std::endl;
+            } else if (chains_it->second.AMINOACIDS.size() != validation_it->second.first) {
+              if (chains_it->second.AMINOACIDS.size() < validation_it->second.first) {
+                std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << validation_it->first << "' in model '" << models_it->first << "' does not contain information about " << validation_it->second.first - chains_it->second.AMINOACIDS.size() << " residues" << std::endl;
+              } else {
+                std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << validation_it->first << "' in model '" << models_it->first << "' has defined more residues in ATOM/HETATM section than in SEQRES section" << std::endl;
+              }
+            }
+          }
+        }
+
         return protein;
+      }
+
+      static bool contains_hetatoms(std::istream& input) {
+        std::string line;
+        while (std::getline(input, line)) {
+          if (common::string::starts_with(line, "HETATM") && line.substr(17, 3) != "HOH" && line.substr(17, 3) != "DOD" && line.substr(17, 3) != "DIS" && line.substr(17, 3) != "MTO") {
+            return true;
+          }
+        }
+        return false;
       }
     };
   }

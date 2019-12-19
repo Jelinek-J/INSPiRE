@@ -28,7 +28,7 @@ namespace inspire {
             throw common::exception::TitledException("Unexpected end of file, missing value for " + line);
           }
           if (line.size() < 1 || line[0] != ';') {
-            return line;
+            return common::string::trim(line);
           }
           std::stringstream buffer(line.substr(1));
           while (std::getline(input, line)) {
@@ -189,11 +189,15 @@ namespace inspire {
         throw common::exception::TitledException("Operation expression expression '_pdbx_struct_assembly_gen.oper_expression' or the used format is not currently supported: " + ids);
       }
 
+      static bool is_item(const std::string &line, const std::string &item) {
+        return common::string::starts_with(line, item) && (line.size() == item.size() || line[item.size()] == ' ');
+      }
+
       public:
       static std::string parse_id(std::istream& input) {
         std::string line;
         while (!input.eof() && std::getline(input, line)) {
-          if (line.size() > 10 && common::string::starts_with(line, "_entry.id ")) {
+          if (line.size() > 10 && is_item(line, "_entry.id")) {
             return parse_item(line, input, "_entry.id");
           }
         }
@@ -207,8 +211,14 @@ namespace inspire {
       static Protein parse_protein(std::istream& input, BasicFilter* filter) {
         // Parsed protein to be returned
         Protein protein;
-        // List of protein chains (to ignore other chains
+        // List of protein chains (to ignore other chains)
         std::set<std::string> chains;
+        // Alternative names of protein chains
+        std::map<std::string, std::string> alternatives;
+        // List of residues to make validation of defined atoms
+        std::map<std::string, std::vector<std::string>> entities;
+        // List of assemblies
+        std::set<size_t> assemblies;
         // Crystallographic symmetry group to generate crystallographic transformations
         std::string space_group;
         // Assignation of biomolecule transformations to chains <biomolecule_id, <transformation, chains>>
@@ -228,13 +238,13 @@ namespace inspire {
               loop = true;
               index = 0;
             // Protein identifier
-            } else if (common::string::starts_with(line, "_entry.id ")) {
+            } else if (is_item(line, "_entry.id")) {
               if (loop) {
                 throw common::exception::TitledException("Unexpected protein ID within a loop");
               }
               protein.ID_CODE = parse_item(line, input, "_entry.id ");
-            // Identifiers of chains that should be parsed
-            } else if (common::string::starts_with(line, "_entity_poly.pdbx_strand_id")) {
+              // Identifiers of chains that should be parsed
+            } else if (is_item(line, "_entity_poly.pdbx_strand_id")) {
               if (loop) {
                 size_t i = index;
                 do {
@@ -257,38 +267,172 @@ namespace inspire {
                   chains.emplace(value);
                 }
               }
+              // Alternative identifiers of chains that should be parsed
+            } else if (common::string::starts_with(line, "_struct_asym.")) {
+              if (loop) {
+                size_t id;
+                size_t entity;
+                do {
+                  if (is_item(line, "_struct_asym.id")) {
+                    id = index;
+                  } else if (is_item(line, "_struct_asym.entity_id")) {
+                    entity = index;
+                  }
+                  ++index;
+                } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
+                while (!common::string::starts_with(line, "#")) {
+                  auto values = extract_item(line, input, index, {id, entity});
+                  alternatives[values[id]] = values[entity];
+                  if (!std::getline(input, line)) {
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
+                  }
+                }
+              } else {
+                std::string id;
+                std::string entity;
+                do {
+                  if (is_item(line, "_struct_asym.id")) {
+                    id = parse_item(line, input, "_struct_asym.id");
+                  } else if (is_item(line, "_struct_asym.entity_id")) {
+                    entity = parse_item(line, input, "_struct_asym.entity_id");
+                  }
+                } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
+                if (id.empty()) {
+                  throw common::exception::TitledException("Chain identifier '_struct_asym.id' is not defined");
+                }
+                if (entity.empty()) {
+                  throw common::exception::TitledException("Entity identifier '_struct_asym.entity_id' is not defined");
+                }
+                alternatives[id] = entity;
+              }
+              // Composition of parsed entities
+            } else if (common::string::starts_with(line, "_entity_poly_seq.")) {
+              if (loop) {
+                size_t id;
+                size_t monomer;
+                size_t count;
+                do {
+                  if (is_item(line, "_entity_poly_seq.entity_id")) {
+                    id = index;
+                  } else if (is_item(line, "_entity_poly_seq.mon_id")) {
+                    monomer = index;
+                  } else if (is_item(line, "_entity_poly_seq.num")) {
+                    count = index;
+                  }
+                  ++index;
+                } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
+                while (!common::string::starts_with(line, "#")) {
+                  auto values = extract_item(line, input, index, {id, monomer, count});
+                  auto &chain = entities[values[id]];
+                  chain.push_back(values[monomer]);
+                  if (chain.size() != std::stol(values[count])) {
+                    throw common::exception::TitledException("Entity polymer numbers '_entity_poly_seq.num' are not sequential");
+                  }
+                  if (!std::getline(input, line)) {
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
+                  }
+                }
+              } else {
+                std::string id;
+                std::string monomer;
+                size_t number;
+                do {
+                  if (is_item(line, "_entity_poly_seq.entity_id")) {
+                    id = parse_item(line, input, "_entity_poly_seq.entity_id");
+                  } else if (is_item(line, "_entity_poly_seq.mon_id")) {
+                    monomer = parse_item(line, input, "_entity_poly_seq.mon_id");
+                  } else if (is_item(line, "_entity_poly_seq.num")) {
+                    number = std::stol(parse_item(line, input, "_entity_poly_seq.num"));
+                  }
+                } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
+                if (id.empty()) {
+                  throw common::exception::TitledException("Entity identifier '_entity_poly_seq.entity_id' is not defined");
+                }
+                if (monomer.empty()) {
+                  throw common::exception::TitledException("Monomer type '_entity_poly_seq.mon_id' is not defined");
+                }
+                if (number != 1) {
+                  throw common::exception::TitledException("Entity polymer numbers '_entity_poly_seq.num' is not defined or it have unexpected value");
+                }
+                entities[id].push_back(monomer);
+              }
             // Crystallographic symmetry
-            } else if (common::string::starts_with(line, "_symmetry.space_group_name_H-M")) {
+            } else if (is_item(line, "_symmetry.space_group_name_H-M")) {
               if (loop) {
                 throw common::exception::TitledException("Unexpected crystallographic space group within a loop");
               }
               space_group = parse_item(line, input, "_symmetry.space_group_name_H-M");
               // TODO: Dictionary of space groups and generate transformations
             // Biomolecules composition
+            } else if (common::string::starts_with(line, "_pdbx_struct_assembly.")) {
+              if (loop) {
+                size_t id;
+                size_t details;
+                do {
+                  if (is_item(line, "_pdbx_struct_assembly.id")) {
+                    id = index;
+                  } else if (is_item(line, "_pdbx_struct_assembly.details")) {
+                    details = index;
+                  }
+                  ++index;
+                } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
+                while (!common::string::starts_with(line, "#")) {
+                  auto values = extract_item(line, input, index, {id, details});
+                  if (common::string::ends_with(common::string::to_upper(values[details]), "ASSEMBLY")) {
+                    assemblies.emplace(std::stol(values[id]));
+                  }
+                  if (!std::getline(input, line)) {
+                    throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
+                  }
+                }
+              } else {
+                size_t id = -1;
+                bool add = false;
+                do {
+                  if (is_item(line, "_pdbx_struct_assembly.id")) {
+                    id = std::stol(parse_item(line, input, "_pdbx_struct_assembly.id"));
+                  } else if (is_item(line, "_pdbx_struct_assembly.details")) {
+                    std::string tmp = parse_item(line, input, "_pdbx_struct_assembly.details");
+                    add = common::string::ends_with(common::string::to_upper(tmp), "ASSEMBLY");
+                  }
+                } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
+                if (id == -1) {
+                  throw common::exception::TitledException("Assembly identifier '_pdbx_struct_assembly.id' is not defined");
+                }
+                if (add) {
+                  assemblies.emplace(id);
+                }
+              }
             } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.")) {
+              if (assemblies.empty()) {
+                throw common::exception::TitledException("Data category '_pdbx_struct_assembly' is missing, or it occurs after '_pdbx_struct_assembly_gen', or no valid assembly is defined (~ missing 'REMARKS 350')");
+              }
               if (loop) {
                 size_t id;
                 size_t transformations;
                 size_t affected;
                 do {
-                  if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
+                  if (is_item(line, "_pdbx_struct_assembly_gen.assembly_id")) {
                     id = index;
-                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
+                  } else if (is_item(line, "_pdbx_struct_assembly_gen.oper_expression")) {
                     transformations = index;
-                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
+                  } else if (is_item(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
                     affected = index;
                   }
                   ++index;
                 } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
                 while (!common::string::starts_with(line, "#")) {
                   auto values = extract_item(line, input, index, {id, transformations, affected});
-                  auto &subgeneration = generation[std::stoi(values[id])];
-                  auto subgeneration_it = subgeneration.find(values[transformations]);
-                  if (subgeneration_it == subgeneration.end()) {
-                    subgeneration[values[transformations]] = parseChains(values[affected]);
-                  } else {
-                    auto parsed = parseChains(values[affected]);
-                    subgeneration_it->second.insert(parsed.begin(), parsed.end());
+                  size_t assembly = std::stoi(values[id]);
+                  if (assemblies.find(assembly) != assemblies.end()) {
+                    auto &subgeneration = generation[assembly];
+                    auto subgeneration_it = subgeneration.find(values[transformations]);
+                    if (subgeneration_it == subgeneration.end()) {
+                      subgeneration[values[transformations]] = parseChains(values[affected]);
+                    } else {
+                      auto parsed = parseChains(values[affected]);
+                      subgeneration_it->second.insert(parsed.begin(), parsed.end());
+                    }
                   }
                   if (!std::getline(input, line)) {
                     throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
@@ -299,18 +443,20 @@ namespace inspire {
                 std::string transformations;
                 std::string affected;
                 do {
-                  if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.assembly_id")) {
+                  if (is_item(line, "_pdbx_struct_assembly_gen.assembly_id")) {
                     id = std::stoi(parse_item(line, input, "_pdbx_struct_assembly_gen.assembly_id"));
-                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.oper_expression")) {
+                  } else if (is_item(line, "_pdbx_struct_assembly_gen.oper_expression")) {
                     transformations = parse_item(line, input, "_pdbx_struct_assembly_gen.oper_expression");
-                  } else if (common::string::starts_with(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
+                  } else if (is_item(line, "_pdbx_struct_assembly_gen.asym_id_list")) {
                     affected = parse_item(line, input, "_pdbx_struct_assembly_gen.asym_id_list");
                   }
                 } while (std::getline(input, line) && line.size() > 0 && line[0] != '#');
                 if (id <= 0) {
                   throw common::exception::TitledException("Missing ID of biomolecule transformations (_pdbx_struct_assembly_gen.assembly_id)");
                 }
-                generation[id][transformations] = parseChains(affected);
+                if (assemblies.find(id) != assemblies.end()) {
+                  generation[id][transformations] = parseChains(affected);
+                }
               }
             // Biomolecules transformations
             } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.")) {
@@ -320,7 +466,7 @@ namespace inspire {
                 size_t matrix_indices[3][4];
                 std::set<size_t> indices;
                 do {
-                  if (common::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
+                  if (is_item(line, "_pdbx_struct_oper_list.id")) {
                     id_index = index;
                     indices.emplace(index);
                   } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.matrix[") && line[31] == ']' && line[32] == '[' && line[34] == ']') {
@@ -349,7 +495,7 @@ namespace inspire {
                 std::string id;
                 TransformationMatrix matrix;
                 do {
-                  if (common::string::starts_with(line, "_pdbx_struct_oper_list.id")) {
+                  if (is_item(line, "_pdbx_struct_oper_list.id")) {
                     id = parse_item(line, input, "_pdbx_struct_oper_list.id");
                   } else if (common::string::starts_with(line, "_pdbx_struct_oper_list.matrix[")) { // It is not possible to use variable in std::get<i>(tuple)
                     switch (line[30]) {
@@ -547,64 +693,64 @@ namespace inspire {
               size_t charge_index = -1;
               std::set<size_t> indices;
               do {
-                if (common::string::starts_with(line, "_atom_site.id")) {
+                if (is_item(line, "_atom_site.id")) {
                   atom_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.auth_asym_id")) {
+                } else if (is_item(line, "_atom_site.auth_asym_id")) {
                   chain_index2 = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.auth_atom_id")) {
+                } else if (is_item(line, "_atom_site.auth_atom_id")) {
                   atom_name_index2 = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.auth_comp_id")) {
+                } else if (is_item(line, "_atom_site.auth_comp_id")) {
                   residue_type_index2 = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.auth_seq_id")) {
+                } else if (is_item(line, "_atom_site.auth_seq_id")) {
                   residue_index2 = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.B_iso_or_equiv")) {
+                } else if (is_item(line, "_atom_site.B_iso_or_equiv")) {
                   temperature_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.Cartn_x")) {
+                } else if (is_item(line, "_atom_site.Cartn_x")) {
                   x_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.Cartn_y")) {
+                } else if (is_item(line, "_atom_site.Cartn_y")) {
                   y_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.Cartn_z")) {
+                } else if (is_item(line, "_atom_site.Cartn_z")) {
                   z_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.group_PDB")) {
+                } else if (is_item(line, "_atom_site.group_PDB")) {
                   residue_group_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.label_alt_id")) {
+                } else if (is_item(line, "_atom_site.label_alt_id")) {
                   altloc_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.label_asym_id")) {
+                } else if (is_item(line, "_atom_site.label_asym_id")) {
                   chain_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.label_atom_id")) {
+                } else if (is_item(line, "_atom_site.label_atom_id")) {
                   atom_name_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.label_comp_id")) {
+                } else if (is_item(line, "_atom_site.label_comp_id")) {
                   residue_type_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.label_seq_id")) {
+                } else if (is_item(line, "_atom_site.label_seq_id")) {
                   residue_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.occupancy")) {
+                } else if (is_item(line, "_atom_site.occupancy")) {
                   occupancy_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.pdbx_formal_charge")) {
+                } else if (is_item(line, "_atom_site.pdbx_formal_charge")) {
                   charge_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.pdbx_PDB_ins_code")) {
+                } else if (is_item(line, "_atom_site.pdbx_PDB_ins_code")) {
                   insertion_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.pdbx_PDB_model_num")) {
+                } else if (is_item(line, "_atom_site.pdbx_PDB_model_num")) {
                   model_index = index;
                   indices.emplace(index);
-                } else if (common::string::starts_with(line, "_atom_site.type_symbol")) {
+                } else if (is_item(line, "_atom_site.type_symbol")) {
                   atom_type_index = index;
                   indices.emplace(index);
                 }
@@ -799,7 +945,114 @@ namespace inspire {
           std::get<2>(std::get<2>(transformation)) = 1;
         }
 
+        for (auto models_it = protein.MODELS.begin(); models_it != protein.MODELS.end(); ++models_it) {
+          for (auto chains_it = models_it->second.CHAINS.begin(); chains_it != models_it->second.CHAINS.end(); ++chains_it) {
+            auto alternatives_it = alternatives.find(chains_it->first);
+            if (alternatives_it == alternatives.end()) {
+              std::cerr << "WARNING [" << protein.ID_CODE << "]:    Protein does not contain chain '" << chains_it->first << "' in model '" << models_it->first << "'" << std::endl;
+            } else {
+              auto entity = entities.find(alternatives_it->second);
+              if (entity == entities.end()) {
+                throw common::exception::TitledException("Entity '" + alternatives_it->second + "' is declared in '_entity_poly' section but not defined in '_entity_poly_seq' section'");
+              }
+              if (chains_it->second.AMINOACIDS.size() != entity->second.size()) {
+                if (chains_it->second.AMINOACIDS.size() < entity->second.size()) {
+                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << chains_it->first << "' in model '" << models_it->first << "' does not contain information about " << entity->second.size() - chains_it->second.AMINOACIDS.size() << " residues" << std::endl;
+                } else {
+                  std::cerr << "WARNING [" << protein.ID_CODE << "]:    Chain '" << chains_it->first << "' in model '" << models_it->first << "' has defined more residues in ATOM/HETATM section than in SEQRES section" << std::endl;
+                }
+              }
+            }
+          }
+        }
+
         return protein;
+      }
+
+      static bool contains_hetatoms(std::istream& input) {
+        // Whether we are in a loop block
+        bool loop = false;
+        // Index of item within a loop block
+        size_t index = 0;
+        // Currently parsed item of the file
+        std::string line;
+        while (!input.eof() && std::getline(input, line)) {
+          // Type of block
+          if (common::string::starts_with(line, "loop_")) {
+            loop = true;
+            index = 0;
+          } else if (common::string::starts_with(line, "#")) {
+            loop = false;
+            index = 0;
+          } else if (common::string::starts_with(line, "_atom_site.")) {
+            if (loop) {
+              size_t residue_group_index = -1;
+              size_t residue_type_indices[2];
+              residue_type_indices[0] = -1;
+              residue_type_indices[1] = -1;
+              std::set<size_t> indices;
+              do {
+                if (is_item(line, "_atom_site.auth_comp_id")) {
+                  residue_type_indices[1] = index;
+                  indices.emplace(index);
+                } else if (is_item(line, "_atom_site.group_PDB")) {
+                  residue_group_index = index;
+                  indices.emplace(index);
+                } else if (is_item(line, "_atom_site.label_comp_id")) {
+                  residue_type_indices[0] = index;
+                  indices.emplace(index);
+                }
+                ++index;
+              } while (std::getline(input, line) && line.size() > 0 && line[0] == '_');
+              if (indices.size() != 3) {
+                throw common::exception::TitledException("Incorrectly deffined atom headers: _atom_sites");
+              }
+              if (residue_type_indices[0] == -1 && residue_type_indices[1] == -1) {
+                throw common::exception::TitledException("Residue type identifier identifier is not specified");
+              }
+              for (size_t i = 0; i < 2; i++) {
+                if (residue_type_indices[i] == -1) {
+                  residue_type_indices[i] = residue_type_indices[1-i];
+                }
+              }
+              while (!common::string::starts_with(line, "#")) {
+                auto values = extract_item(line, input, index, indices);
+                if (values[residue_type_indices[0]] != values[residue_type_indices[1]]) {
+                  throw common::exception::TitledException("Different values of '_atom_site.auth_comp_id' and '_atom_site.label_comp_id' are not currently supported");
+                }
+                if (values[residue_group_index] == "HETATM") {
+                  char situation = 0;
+                  for (size_t i = 0; i < 2; i++) {
+                    std::string &value = values[residue_type_indices[i]];
+                    if (value == "HOH" || value == "DOD" || value == "DIS" || value == "MTO") {
+                      ++situation;
+                    }
+                  }
+                  switch (situation) {
+                    case 0: // Contains non-water heteroatom
+                      return true;
+                      break;
+                    case 1: // One label claims it is a water, the other one claims it is not a water
+                      throw common::exception::TitledException("Ambiguity between heteroatom labels: '" + values[residue_type_indices[0]] + "' vs. '" + values[residue_type_indices[1]]);
+                    case 2:
+                      break;
+                    default:
+                      throw common::exception::TitledException("This should not happen: ++(++(0)) <= 2");
+                  }
+                }
+                if (!std::getline(input, line)) {
+                  throw common::exception::TitledException("Unexpected end of file, missing closing sharp");
+                }
+              }
+              return false; // Expectation that there are not multiple '_atom_site' blocks
+            } else {
+              throw common::exception::TitledException("Single atom definition is not supported");
+            }
+          } else if (loop && line.size() > 0 && line[0] == '_') {
+            ++index;
+          }
+        }
+        return false;
       }
     };
   }
