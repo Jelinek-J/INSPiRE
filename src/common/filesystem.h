@@ -67,7 +67,7 @@ namespace common {
 
     // Copy file from one location to another one
     inline void copy(std::string from, std::string to) {
-      boost::filesystem::copy(from, to);
+      boost::filesystem::copy_file(from, to, boost::filesystem::copy_option::overwrite_if_exists);
     }
 
     // Move file from one location to another one

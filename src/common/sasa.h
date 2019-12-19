@@ -6,7 +6,8 @@
 
 namespace common {
   namespace sasa {
-    class SasaFeature : public inspire::backend::Feature<float> {
+    // Float feature that computes solvent accessible surface area for each residue
+    class SasaFeature : public inspire::backend::ProteinFeature<float> {
       private:
       // Atom_name => [Residue_name => radius]
       std::map<std::string, std::map<std::string, float>> DISTANCES;
@@ -14,7 +15,7 @@ namespace common {
       std::map<std::string, std::map<std::string, std::map<std::string, float>>> SASAS;
 
       public:
-      SasaFeature(inspire::backend::ProteinIterator* iterator, std::string radiuses, std::string composition) : inspire::backend::Feature<float>(iterator) {
+      SasaFeature(inspire::backend::ProteinIterator* iterator, std::string radiuses, std::string composition) : inspire::backend::ProteinFeature<float>(iterator) {
         std::map<std::string, float> elements;
         {
           std::ifstream input(radiuses);
@@ -139,7 +140,7 @@ namespace common {
         ITERATOR->resetAminoacid();
       }
 
-      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid) override {
+      float feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
         auto sasas_it = SASAS.find(model);
         if (sasas_it == SASAS.end()) {
           std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a model '" << model << "'" << std::endl;
