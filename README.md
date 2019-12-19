@@ -57,7 +57,7 @@ Type `make` to install single INSPiRE tool or `make fragments` to install fragme
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you should add argument `rasa=` when calling `make`. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
 
 # Usage in examples #
-First install the tool and all prerequisities, there is prepared script for it, so all you must to do is just
+First you need to install the tool and all prerequisities, there is prepared script for it, so all you must to do is just type
 ```
 install.sh
 ```
