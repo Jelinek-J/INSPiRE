@@ -1,7 +1,7 @@
 # INSPiRE
 knowledge-based protein-protein INteraction Sites PREdictor. For details about how the algorithm works please read https://doi.org/10.1186/s12859-017-1921-4. 
 
-Documentation is under construction, stay tuned. But briefly:
+Documentation is under construction, stay tuned. But briefly (a simple way, how to use this tool in examples is underneath):
 
 # Use of the framework #
 You can use the framework in three ways:
@@ -55,3 +55,30 @@ To make the premaked knowledge-base:
 Type `make` to install single INSPiRE tool or `make fragments` to install fragmented INSPiRE tools and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
 
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you should add argument `rasa=` when calling `make`. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
+
+# Usage in examples #
+First install the tool and all prerequisities, there is prepared script for it, so all you must to do is just
+```
+install.sh
+```
+It install INSPiRE, Boost and FreeSASA and also autoconf and git, that are necessary to install to this tool.
+
+Then you can prediction proteins in directory 'queries' using a precompiled knowledge-base in directory 'fingerprints' by
+```
+inspire -s queries/ -kfingerprints/ -qresults
+```
+Results will be stored in a file called 'results.pec'
+
+If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'fingerprints', you can do it by
+```
+inspire -s queries/ -kfingerprints/ -m
+```
+
+Of course, there are a lot of parameters that you can change. Documentation can be found by
+```
+man inspire
+```
+and by
+```
+inspire -h
+```
