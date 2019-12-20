@@ -37,10 +37,10 @@ int main(int argc, const char** argv) {
   std::ofstream log("C:\\Inspire\\error-subgraphs.log");
   argc = 5;
   const char* args[] = {argv[0],
-    "-x",
-    "C:\\Inspire\\repair\\residues.ind",
-    "C:\\Inspire\\repair\\gvin-511-aa-c6.pec",
-    "C:\\Inspire\\repair\\"
+    "-l",
+    "C:\\Inspire\\assign\\residues.ind",
+    "C:\\Inspire\\assign\\prediction.pec",
+    "C:\\Inspire\\assign\\"
   };
   argv = args;
 #endif // TESTING
@@ -55,7 +55,7 @@ int main(int argc, const char** argv) {
   try {
     for (size_t i = 1; i < argc; i+=4) {
       if (strlen(argv[i]) < 2 || argv[i][0] != '-') {
-        std::cerr << "The first argument must identify the score selector (ma<x>imal or mi<n>imal).";
+        std::cerr << "The first argument must identify the file format (<x>ml, <c>sv, or tab-separated va<l>ues with ommited repeated values).";
         help();
         return 4;
       }
@@ -66,7 +66,7 @@ int main(int argc, const char** argv) {
           break;
         case 'c':
           if (strlen(argv[i]) < 3) {
-            std::cerr << "Missing delimiter";
+            std::cerr << "Missing delimiter" << std::endl;
             help();
             return 5;
           }

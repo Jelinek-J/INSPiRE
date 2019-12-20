@@ -14,6 +14,7 @@
 #include "../backend/mine.h"
 #include "../backend/classify.h"
 #include "../backend/predict.h"
+#include "../backend/assign.h"
 #include "../common/filesystem.h"
 #include "../common/string.h"
 #ifdef FREESASA
@@ -38,6 +39,7 @@ static const std::string FINGERPRINTS_FILE = "settings.json";
 static const std::string MINED_FILE = "mined.med";
 static const std::string STATISTICS_FILE = "ratios.sas";
 static const std::string PREDICTION_FILE = "prediction.pec";
+static const std::string OUTPUT_FILE = "output";
 static const double DEFAULT_DISTANCE = 0.5;
 
 // Initialize dictionary file for aminoacids
@@ -183,13 +185,13 @@ static void help() {
   std::cout << "Make a prediction of protein-protein interaction sites using INSPiRE method, resp. construct a knowledge-base for that.\n";
   std::cout << "INSPiRE is a knowledge-based method that uses fingerprints to encode local structure of individual residues.\n";
   std::cout << "Details about the method can be found in doi : 10.1186/s12859-017-1921-4.\n\n";
-
-  std::cout << "Usage:\t[-s <PROTEINS-PATH>+] (-S <PROTEIN-FILE>)* [-x<TEMP-DIR>] [-k<KNOWLEDGE-BASE>] [-p<THREADS>] [-n<COUNT>] [-o<CENTRAL-FEATURES>] [-j<EXCLUDE-FILE>] [-l<THRESHOLDS>] [-q<OUTPUT-PATH>]\n";
+  //ABCDEGHIJKLMNOPQRTUVWXYZadfrtuyz
+  std::cout << "Usage:\t[-s <PROTEINS-PATH>+] (-S <PROTEIN-FILE>)* [-x<TEMP-DIR>] [-k<KNOWLEDGE-BASE>] [-p<THREADS>] [-n<COUNT>] [-o<CENTRAL-FEATURES>] [-j<EXCLUDE-FILE>] [-l<THRESHOLDS>] [-q<OUTPUT-PATH>] [-r(x|c<delimiter>|l)]\n";
   std::cout << "      \t[-s <PROTEINS-PATH>+] (-S <PROTEIN-FILE>)* [-x<TEMP-DIR>] [-k<KNOWLEDGE-BASE>] -m [-b|-c|-bc|-w] [-i<RADII-FILE>[<DISTANCE>] [-F ( -a<TRANSFORMATION-FILE> | -e";
 #ifdef FREESASA
   std::cout << " | -r[[<RADII-FILE>;[<COMPOSITION-FILE>;]]<MAX-SASA-FILE>]";
 #endif // FREESASA
-  std::cout << " | -t )* -f] [-v[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]][-e[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]][-g<FINGERPRINTS-FORMAT>]\n";
+  std::cout << " | -t )* -f] [-v[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-e[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-g<FINGERPRINTS-FORMAT>]\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t-s <PROTEINS-PATH>          \tPath to a protein or a directory with proteins that should be used\n";
@@ -252,7 +254,12 @@ static void help() {
   std::cout << "            \tc<LIMIT>                \t<LIMIT>-nearest neighbours (if several neighbours are within the same distance as the <LIMIT>th-nearest neighbour, they all are taken).\n";
   std::cout << "            \td<DISTANCE>             \tAll residues that are at most <DISTANCE> Ångströms away.\n";
   std::cout << "            \te<DISTANCE>-<LIMIT>     \tAll residues that are at most <LIMIT> edges away, and\n";
-  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ångströms distant.\n\n";
+  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ångströms distant.\n";
+  std::cout << "    Results:\n";
+  std::cout << "        Specify a file format of results:\n";
+  std::cout << "            \t-rx                     \tResults will be in XML file format. This is the defaut option.\n";
+  std::cout << "            \t-rc<delimiter>          \tResults will be in delimiter-separated values file format.\n";
+  std::cout << "            \t-rl                     \tResults will be stored in tab-separated values file format with ommited repeated values. This is the most space-efficient file format.\n";
 }
 
 int main(int argc, const char** argv) {
@@ -838,6 +845,7 @@ int main(int argc, const char** argv) {
     }
 #pragma endregion Classify
 
+    std::string prediction_name = temp_dir + PREDICTION_FILE;
 #pragma region Predict
     if (predict) {
       inspire::backend::Predictor* predictor = nullptr;
@@ -852,29 +860,95 @@ int main(int argc, const char** argv) {
       if (predictor == nullptr) {
         predictor = new inspire::backend::FractionalPredictor("0.5175");
       }
-      if (argv_index < argc && common::string::starts_with(argv[argv_index], "-q")) {
-        std::string prediction_name = std::string(argv[argv_index++]).substr(2);
-        if (statistics_name.empty() || statistics_name.back() == common::filesystem::directory_separator) {
-          prediction_name += STATISTICS_FILE;
-        } else if (common::filesystem::is_directory(statistics_name)) {
-          prediction_name += common::filesystem::directory_separator;
-          prediction_name += STATISTICS_FILE;
-        }
-        predictor->predict(statistics_name, prediction_name);
-      } else {
-        std::string prediction_name = temp_dir + PREDICTION_FILE;
-        predictor->predict(statistics_name, prediction_name);
-        std::ifstream prediction(prediction_name);
-        std::string line;
-        while (std::getline(prediction, line)) {
-          std::cout << line << '\n';
-        }
-        prediction.close();
-      }
+      predictor->predict(statistics_name, prediction_name);
       
       delete predictor;
     }
 #pragma endregion Predict
+
+#pragma region Assign
+    if (predict) {
+      bool save = argv_index < argc && common::string::starts_with(argv[argv_index], "-q");
+      std::string output_name = temp_dir + OUTPUT_FILE;
+      if (save) {
+        output_name = std::string(argv[argv_index++]).substr(2);
+        if (output_name.empty() || output_name.back() == common::filesystem::directory_separator) {
+          prediction_name += OUTPUT_FILE;
+        } else if (common::filesystem::is_directory(statistics_name)) {
+          prediction_name += common::filesystem::directory_separator;
+          prediction_name += OUTPUT_FILE;
+        }
+      }
+
+      if (argv_index < argc && common::string::starts_with(argv[argv_index], "-r")) {
+        if (strlen(argv[argv_index]) < 3) {
+          std::cerr << "File format switcher miss a specification of an file format" << std::endl;
+          return 19;
+        }
+        switch (argv[argv_index][2]) {
+          case 'x':
+            output_name = inspire::backend::Assignator::Xml(index_name, prediction_name, output_name);
+            break;
+          case 'c':
+            if (strlen(argv[argv_index]) < 4) {
+              std::cerr << "Missing delimiter" << std::endl;
+              return 20;
+            }
+            {
+              char ch = argv[argv_index][3];
+              if (strlen(argv[argv_index]) > 4 && argv[argv_index][3] == '\\') {
+                switch (argv[argv_index][4]) {
+                  case 't':
+                    ch = '\t';
+                    break;
+                  case 'b':
+                    ch = '\b';
+                    break;
+                  case 'n':
+                    ch = '\n';
+                    break;
+                  case 'r':
+                    ch = '\r';
+                    break;
+                  case 'f':
+                    ch = '\f';
+                    break;
+                  case 'a':
+                    ch = '\a';
+                    break;
+                  case '\\':
+                    ch = '\\';
+                    break;
+                  default:
+                    std::cerr << "Unknown escape character" << std::endl;
+                    help();
+                    return 21;
+                }
+              }
+              output_name = inspire::backend::Assignator::Csv(ch, index_name, prediction_name, output_name);
+            }
+            break;
+          case 'l':
+            output_name = inspire::backend::Assignator::List(index_name, prediction_name, output_name);
+            break;
+          default:
+            break;
+        }
+        ++argv_index;
+      } else {
+        output_name = inspire::backend::Assignator::Csv('\t', index_name, prediction_name, output_name);
+      }
+
+      if (!save) {
+        std::ifstream output(output_name);
+        std::string line;
+        while (std::getline(output, line)) {
+          std::cout << line << '\n';
+        }
+        output.close();
+      }
+    }
+#pragma endregion Assign
 
 #pragma region Finalization
     if (argv_index < argc) {
@@ -890,7 +964,7 @@ int main(int argc, const char** argv) {
       return 17;
     }
     //TODO: Check whether everything works correctly prior deleting something
-    if (false && delete_tmp) {
+    if (delete_tmp) {
       common::filesystem::remove_recursively(temp_dir);
     }
 #pragma endregion Finalization
