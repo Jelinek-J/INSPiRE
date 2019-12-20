@@ -35,11 +35,13 @@ namespace inspire {
         if (!indices.reset()) {
           throw common::exception::TitledException("The index file is empty or it is not possible to read it.");
         }
+        // Residues file starts from 0;
+        RESIDUES.push_back(std::make_tuple("Protein", "Model", "Chain", "Aminoacid"));
         do {
-          RESIDUES.push_back(std::make_tuple(indices.protein(), indices.model(), indices.chain(), indices.aminoacid()));
           if (RESIDUES.size() != indices.index()) {
             throw common::exception::TitledException("Unexpected format of index file: expected continuous aritmetic sequence starting at 1 with step 1");
           }
+          RESIDUES.push_back(std::make_tuple(indices.protein(), indices.model(), indices.chain(), indices.aminoacid()));
         } while (indices.next());
       }
 
@@ -62,11 +64,12 @@ namespace inspire {
       }
 
       // Delimiter-separated value file format
-      static void Csv(char delimiter, const std::string &index, const std::string &results, const std::string &output) {
+      static std::string Csv(char delimiter, const std::string &index, const std::string &results, const std::string &output) {
         if (delimiter == '"') {
           throw common::exception::TitledException("Double quotes are not allowed as a delimiter");
         }
-        std::ofstream stream(validate_name(output, ".csv", results));
+        std::string output_path = validate_name(output, ".csv", results);
+        std::ofstream stream(output_path);
         Assignator assignator(index, results);
         std::string protein;
         std::string model;
@@ -84,11 +87,13 @@ namespace inspire {
         }
         stream.flush();
         stream.close();
+        return output_path;
       }
 
       // Aligned file format
-      static void List(const std::string &index, const std::string &results, const std::string &output) {
-        std::ofstream stream(validate_name(output, ".les", results));
+      static std::string List(const std::string &index, const std::string &results, const std::string &output) {
+        std::string output_path = validate_name(output, ".les", results);
+        std::ofstream stream(output_path);
         Assignator assignator(index, results);
         std::string protein;
         std::string last_protein;
@@ -121,11 +126,13 @@ namespace inspire {
         }
         stream.flush();
         stream.close();
+        return output_path;
       }
 
       // Xml file format
-      static void Xml(const std::string &index, const std::string &results, const std::string &output) {
-        std::ofstream stream(validate_name(output, ".xml", results));
+      static std::string Xml(const std::string &index, const std::string &results, const std::string &output) {
+        std::string output_path = validate_name(output, ".xml", results);
+        std::ofstream stream(output_path);
         Assignator assignator(index, results);
         std::string protein;
         std::string last_protein;
@@ -173,6 +180,7 @@ namespace inspire {
         }
         stream.flush();
         stream.close();
+        return output_path;
       }
     };
   }
