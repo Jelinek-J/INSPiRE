@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-//#define TESTING
+#define TESTING
 
 void help() {
   std::cout << "Help\n\n";
