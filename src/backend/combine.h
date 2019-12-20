@@ -13,7 +13,7 @@ namespace inspire {
       private:
       static const size_t HEADER = 5;
       size_t DIMENSION = -1;
-      std::vector<std::ifstream> INPUTS;
+      std::vector<std::ifstream*> INPUTS;
       std::ofstream OUTPUT;
 
       protected:
@@ -26,15 +26,16 @@ namespace inspire {
         OUTPUT.flush();
         OUTPUT.close();
         for (size_t i = 0; i < INPUTS.size(); i++) {
-          INPUTS[i].close();
+          INPUTS[i]->close();
+          delete INPUTS[i];
         }
       }
 
       void add_input(std::string header, std::string input) {
         size_t index = INPUTS.size();
-        INPUTS.push_back(std::ifstream(input));
+        INPUTS.push_back(new std::ifstream(input));
         std::string line;
-        if (!std::getline(INPUTS[index], line)) {
+        if (!std::getline(*INPUTS[index], line)) {
           throw common::exception::TitledException("File '" + input + "' is empty or it is not possible to read from it.");
         }
         std::stringstream parts(line);
@@ -67,7 +68,7 @@ namespace inspire {
         }
         OUTPUT << '\n';
         std::string line;
-        while (std::getline(INPUTS[0], line)) {
+        while (std::getline(*INPUTS[0], line)) {
           std::vector<double> values;
           // Well, tests causes slow down, but this is not time nor memory critical point, so it is not a problem
           std::vector<std::string> thresholds;
@@ -90,7 +91,7 @@ namespace inspire {
             values.push_back(std::stod(part));
           }
           for (size_t input = 1; input < INPUTS.size(); input++) {
-            if (!std::getline(INPUTS[input], line)) {
+            if (!std::getline(*INPUTS[input], line)) {
               throw common::exception::TitledException("The " + std::to_string(input) + "th file contains a line with an insufficient count of colomns");
             }
             std::stringstream parts(line);
