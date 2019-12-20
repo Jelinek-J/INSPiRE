@@ -1,0 +1,40 @@
+.\" Manpage for optimize.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2018" "1.0" "optimize man page" 
+.SH NAME
+combine \- combine multiple optimization files
+.SH SYNOPSIS
+\fBcombine\fR [\fB\-m\fR] [\fB\-o\fR] \fIOUTPUT\-FILE\fR \fB\-t\fR (\fIHEADER\fR \fIINPUT\-FILE\fR)+
+
+\fBcombine\fR [\fB\-m\fR] [\fB\-o\fR] \fIOUTPUT\-FILE\fR [\fB\-p\fIPREFIX\fR] [\fB\-s\fISUFFIX\fR] [\fB\-i\fR] (\fIINPUT\-FILE\fR)+
+
+.B optimize \-h
+.SH DESCRIPTION
+Combine multiple optimization files with the same dimension and order of thresholds into one file.
+.SH ARGUMENTS
+.TP
+\fB\-i\fR \fIINPUT\-FILE\fR
+Input file that should be added to the output file. It must be preceded by \fB\-i\fR only if the first <INPUT-FILE> starts with minus sign '\-' and implicit headers of colomns are used.
+Input file names are used as headers if explicit headers are not specified.
+.TP
+\fB\-p\fIPREFIX\fR
+Remove \fIPREFIX\fR from implicit headers.
+.TP
+\fB\-s\fISUFFIX\fR
+Remove \fISUFFIX\fR from implicit headers.
+.TP
+\fB\-o\fR \fIOUTPUT\-FILE\fR
+Output file where should be stored result of merging input files. It must be preceded by \fB\-o\fR only if the <OUTPUT-FILE> starts with minus sign '\-'.
+.TP
+\fB\-t\fR
+Explicit headers will be specified. In that mode, each input file name must be preceded with its header.
+.TP
+\fB\-m\fR
+Use median instead of mean value to combine values from input files.
+.TP 
+\fB-h\fR
+Show informations about the program and its arguments.
+.SH SEE ALSO
+optimize(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

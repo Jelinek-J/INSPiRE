@@ -11,7 +11,7 @@ inspire \- protein\-protein INteraction Sites PREdictor
 [\fB\-o\fR\fICENTRAL\-FEATURES\fR]
 [\fB\-j\fR\fIEXCLUDE\-FILE\fR]
 [\fB\-l\fR\fITHRESHOLDS\fR]
-[\fB\-q\fR\fIOUTPUT\-PATH\fR]
+[\fB\-q\fR\fIOUTPUT\-PATH\fR] [\fB\-rx\fR|\fB\-rc\fIDELIMITER\fR|\fB\-rl\fR]
 
 .B inspire
 [\fB\-s\fR \fIPROTEINS\-PATH\fR+] (\fB\-S\fR \fIPROTEIN\-FILE\fR)* [\fB\-x\fR\fITEMP\-DIR\fR] [\fB\-k\fR\fIKNOWLEDGE\-BASE\fR] \fB\-m\fR
@@ -38,31 +38,31 @@ If none path is typed (using \fB\-s\fR or \fB\-S\fR switcher), the current direc
 \fB\-S\fR \fIPROTEIN\-FILE\fR
 Path to a protein or a directory with proteins that should be used.
 .TP
-\fB\-x\fR\fITEMP\-DIR\fR
+\fB\-x\fITEMP\-DIR\fR
 Path to a directory, where to store temporary files.
 If the path is specified, temporary files are not deleted (usefull for reusing of files, debugging etc.).
 If the path is not specified, operating system's temporary directory is used and all temporary files are deleted on regular finish.
 .TP
-\fB\-k\fR\fIKNOWLEDGE\-BASE\fR
+\fB\-k\fIKNOWLEDGE\-BASE\fR
 Path to a directory, where is/ should be stored a knowledge\-base.
 If the directory does not exist, it is created.
 Without the switcher, the current directory ('.') is used defaultly.
 .TP
-\fB-p\fR \fITHREADS\fR
+\fB-p\fITHREADS\fR
 Number of threads that should be used for data mining.
 Default value is 1.
 .TP
-\fB-n\fR \fICOUNT\fR
+\fB-n\fICOUNT\fR
 Number of the most similar elements that will be used for prediction.
 If multiple fingerprints have the same similarity score, all fingerprints with the score equal to the score of the n\-th most similar element are used too.
 Default value is 1.
 .TP
-\fB-o\fR \fICENTRAL\-FEATURES\fR
+\fB-o\fICENTRAL\-FEATURES\fR
 What features of central residues will be used for prefiltering of knowledge-base.
 Multiple features must be separated by a directory separator.
 Default feature is amino acid type.
 .TP
-\fB-j\fR \fISIBLINGS\-FILE\fR
+\fB-j\fISIBLINGS\-FILE\fR
 Path to a file with defining, what knowledge-base's fingerprints should be skipped when searching for most similar fingerprints for individual query fingerprints.
 
 This is usefull for benchmarking to exclude fingerprints from the same protein/ benchmark instead of construction of new knowledge-base for each benchmark.
@@ -146,6 +146,17 @@ All residues that are at most \fIDISTANCE\fR ?ngströms away.
 \fBe\fIDISTANCE\fR\-\fILIMIT\fR
 All residues that are at most \fILIMIT\fR edges away, and
 two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngströms distant.
+.SS Output format
+Specify a file format of results:
+.TP
+.B \-rx
+Results will be in XML file format. This is the defaut option.
+.TP
+\fB\-rc\fIDELIMITER\fR
+Results will be in delimiter\-separated values file format.
+.TP
+.B \-rl
+Results will be stored in tab\-separated values file format with ommited repeated values. This is the most space\-efficient file format.
 .SH TO DO
 Does it make a sense to add interface feature in optional features too?
 

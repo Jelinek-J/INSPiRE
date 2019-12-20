@@ -39,10 +39,10 @@ chains.
 How should be combined scores of query protein/chain and template protein/chain
 .TP
 .B \-x
-the higher of query/ template scores will be taken;
+the higher of query/ template scores will be taken (for detection of substructures);
 .TP
 .B \-n
-the lower of query/ template scores will be taken.
+the lower of query/ template scores will be taken (for similarity of whole structures).
 .SH TO DO
 Allow repetitions.
 .SH SEE ALSO

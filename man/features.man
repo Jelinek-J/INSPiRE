@@ -6,8 +6,8 @@ features \- extracts features of residues
 .SH SYNOPSIS
 .B features
 [\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR]
-\fIINDEX\-FILE\fR \fIOUTPUT\-PATH\fR [\fB\-s\fR]
-(\fB\-a\fR\fITRANSFORMATION\-FILE\fR|\fB\-c\fR|\fB\-e\fR|\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]|\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE\fR|\fB\-s\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR|\fB\-t\fR)+
+\fIINDEX\-FILE\fR \fIOUTPUT\-PATH\fR [\fB\-\fR]
+\fIFEATURE\fR+
 (\fIPROTEINS\-PATH\fR)+
 
 .B features \-h
@@ -18,16 +18,16 @@ Extracts required features from proteins indexed in a given index file.
 .I INDEX\-FILE
 Path to a index file
 .TP
-\fB\-s\fR
+\fB\-\fR
 Save each feature in a separate file (otherwise all features are stored together in one file)
 .TP
 \fIOUTPUT\-PATH\fR
 Where to store output file.
 
-If '\fB\-s\fR' is typed, \fIOUTPUT\-PATH\fR must be a directory; and
+If '\fB\-\fR' is typed, \fIOUTPUT\-PATH\fR must be a directory; and
 each feature is stored in a separated file named according to the corresponding feature with '.tur' as an extension.
 
-Otherwise (if '\fB\-s\fR' is not typed), all features are stored in the same file.
+Otherwise (if '\fB\-\fR' is not typed), all features are stored in the same file.
 If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'features.tur' is used as the file name.
 If \fIOUTPUT\-PATH\fR does not end with '.tur' extension, the extension is appended.
 .TP
@@ -52,31 +52,55 @@ Ignore both biomolecules and crystallographic transformation, use all chains as 
 .TP
 If no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation is used
 .SS Features:
+\fIFEATURE\fR can be following
+(lowercase switcher means the feature is loaded directly from proteins, 
+while uppercase switcher means the feature transforms informations from other features/ files):
 .TP
-\fB\-a\fR\fITRANSFORMATION\-FILE\fR
-Aminoacid type three-letter code is transformed with transformation defined in \fITRANSFORMATION\-FILE\fR, that should be in format 'key<TAB>value'
+\fB-a\fR
+Amino acid type three letter codes
 .TP
-.B \-c
-Coordinates of carbon_alpha of an aminoacid
+\fB-c\fR
+Coordinates of Carbon alpha of a residue separated by space
 .TP
-.B \-e
-Atomic composition of a residue (helium and deuterium are skipped)
+\fB-e\fR
+Sorted atom names of all atoms in a residue except helium and deuterium separated by space
 .TP
-\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]
+\fB\-i\fR\fIRADII\-FILE\fR[;\fIDISTANCE\fR]
 Whether a residue is an interfacial residue with \fR\fIRADII\-FILE\fR defining radiuses of chemical elements and
-\fIDISTANCE\fR sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value).
-\fIDISTANCE\fR must be separated by a space from \fIRADII\-FILE\fR
-.TP
-\fB\-r\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR;\fIMAX\-SASA\-FILE
-Relative solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
-atomic radiuses defined in \fIRADII\-FILE\fR and reference solvent accessible surface areas defined in \fIMAX\-SASA\-FILE\fR.
+\fIDISTANCE\fR sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value)
 .TP
 \fB\-s\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR
-Relative solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR, 
+Solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR and 
 atomic radiuses defined in \fIRADII\-FILE\fR.
 .TP
-.B \-t
-Temperature factor of an aminoacid
+\fB\-p\fR
+Protein's identifier (usefull e.g. to make temperature factor comparable between proteins)
+.TP
+\fB\-t\fR
+Temperature factor of a residue
+.TP
+\fB-B\fIBOUDARIES\-FILE\fR \fIFLOAT\-FEATURE\fR
+Binned values of \fIFLOAT\-FEATURE\fR based on splitting points in \fIBOUDARIES\-FILE\fR.
+I.e. in the case of sorted \fIBOUDARIES\-FILE\fR it returns \fIi\fR if the value is greater than \fIi\fRth splitting point but lower than or equal to (\fIi\fR+1)th splitting point.
+(And \fB0\fR if it is lower than to equal to the first splitting point and \fB(count of splitting points)+1\fR if it is greater than the last splitting point.)
+.TP
+\fB-F\fIFEATURE\-FILE\fR;\fIHEADER\fR
+Load a float feature \fIHEADER\fR from a file \fIFEATURE\-FILE\fR
+.TP
+\fB-L\fIFEATURE\-FILE\fR;\fIHEADER\fR
+Load a string feature \fIHEADER\fR from a file \fIFEATURE\-FILE\fR
+.TP
+\fB-N\fINEW\-TITLE\fR \fIFEATURE\fR
+Change title of the inner feature (does not change values of the feature)
+.TP
+\fB-P\fIPROJECTION\-FILE\fR \fIFEATURE\fR
+Transforms feature \fIFEATURE\fR based on a dictionary defined in a \fIPROJECTION\-FILE\fR (missing keys are skipped).
+E.g. to transform amino acids' three-letter codes to one\-letter codes.
+Dictionary in the \fIPROJECTION\-FILE\fR should be in format 'key<TAB>value'
+.TP
+\fB-R\fIREFERENCE\-VALUES\fR \fIFLOAT\-FEATURE\fR \fISTRING\-FEATURE\fR
+For each residue relativizes a value of \fIFLOAT\-FEATURE\fR based on reference value in file \fIREFERENCE\-VALUES\fR for corresponding value of \fISTRING\-FEATURE\fR.
+E.g. to transform solvent accessible surface area to relative solvent accessible surface area.
 .SH FORMAT OF FEATURE FILES
 .SS Header line
 The first line of each feature file;
