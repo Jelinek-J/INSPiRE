@@ -71,7 +71,7 @@ Results will be stored in a file called 'results.pec'
 
 If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'fingerprints', you can do it by
 ```
-inspire -s queries/ -kfingerprints/ -m
+inspire -s queries/ -kknowledge-base/ -m
 ```
 
 Of course, there are a lot of parameters that you can change. Documentation can be found by
