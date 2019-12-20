@@ -14,7 +14,7 @@ include=
 
 default: inspire
 
-fragments: $(build)$(prefix)assign $(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)features $(build)$(prefix)filter $(build)$(prefix)fingerprints $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)mine $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)similarity $(build)$(prefix)subgraphs $(build)$(prefix)validate
+fragments: $(build)$(prefix)assign $(build)$(prefix)classify $(build)$(prefix)combine $(build)$(prefix)exclude $(build)$(prefix)features $(build)$(prefix)filter $(build)$(prefix)fingerprints $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)mine $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)similarity $(build)$(prefix)subgraphs $(build)$(prefix)validate
 
 all: fragments $(build)$(prefix)aminoacids $(build)inspire
 
@@ -26,8 +26,8 @@ $(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)optimize $(b
 $(build)$(prefix)fingerprints: $(build)$(prefix)%: backend/subgraphs.h common/graph.h
 $(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate: $(build)$(prefix)%: backend/index.h backend/features.h backend/octree.h
 $(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate $(build)$(prefix)index: $(build)$(prefix)%: backend/iterators.h backend/protein.h backend/parser.h backend/pdb.h backend/filters.h backend/mmcif.h backend/xml.h common/xml.h
-$(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate $(build)$(prefix)index $(build)$(prefix)merge: $(build)$(prefix)%: backend/%.h common/exception.h
-$(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)aminoacids: $(build)$(prefix)%: frontend/%.cpp common/string.h common/filesystem.h
+$(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate $(build)$(prefix)index $(build)$(prefix)combine $(build)$(prefix)merge: $(build)$(prefix)%: backend/%.h common/exception.h
+$(build)$(prefix)fingerprints $(build)$(prefix)filter $(build)$(prefix)validate $(build)$(prefix)index $(build)$(prefix)combine $(build)$(prefix)merge $(build)$(prefix)aminoacids: $(build)$(prefix)%: frontend/%.cpp common/string.h common/filesystem.h
 	$(CXX) $(CXXFLAGS) $(lib) $(include) -o $@ $< -lboost_filesystem -lboost_system
 	cp ../man/$(patsubst frontend/%.cpp,%,$<).man $(build)$@.1
 
@@ -39,7 +39,7 @@ $(build)$(prefix)features: frontend/features.cpp backend/features.h common/files
 	$(CXX) $(CXXFLAGS) $(lib) $(include) -pthread -o $@ $< -lboost_filesystem -lboost_system $(rasa)
 	cp ../man/$(patsubst frontend/%.cpp,%,$<).man $(build)$@.1
 
-$(build)inspire: frontend/inspire.cpp backend/index.h backend/iterators.h common/exception.h backend/protein.h backend/parser.h common/string.h backend/pdb.h backend/filters.h backend/mmcif.h backend/xml.h common/xml.h common/filesystem.h backend/features.h backend/octree.h backend/subgraphs.h backend/fingerprints.h common/graph.h backend/mine.h common/multithread.h backend/classify.h backend/predict.h common/sasa.h
+$(build)inspire: frontend/inspire.cpp backend/index.h backend/iterators.h common/exception.h backend/protein.h backend/parser.h common/string.h backend/pdb.h backend/filters.h backend/mmcif.h backend/xml.h common/xml.h common/filesystem.h backend/features.h backend/octree.h backend/subgraphs.h backend/fingerprints.h common/graph.h backend/mine.h common/multithread.h backend/classify.h backend/predict.h backend/assign.h common/sasa.h
 	$(CXX) $(CXXFLAGS) $(lib) $(include) -pthread -o $@ $< -lboost_filesystem -lboost_system $(rasa)
 	cp ../man/$@.man $(build)$@.1
 
@@ -54,3 +54,4 @@ uninstall:
 clean:
 	rm -f $(wildcard $(build)$(prefix)assign $(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)features $(build)$(prefix)filter $(build)$(prefix)fingerprints $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)mine $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)similarity $(build)$(prefix)subgraphs $(build)$(prefix)validate $(build)$(prefix)aminoacids $(build)inspire)
 	rm -f $(wildcard $(build)*.1)
+
