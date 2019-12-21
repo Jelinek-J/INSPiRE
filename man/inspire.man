@@ -141,19 +141,19 @@ How it will be redefined:
 \fILIMIT\fR\-nearest neighbours (if several neighbours are within the same distance as the \fILIMIT\fRth-nearest neighbour, they all are taken).
 .TP
 \fBd\fIDISTANCE\fR
-All residues that are at most \fIDISTANCE\fR ?ngströms away.
+All residues that are at most \fIDISTANCE\fR ?ngstrÃ¶ms away.
 .TP
 \fBe\fIDISTANCE\fR\-\fILIMIT\fR
 All residues that are at most \fILIMIT\fR edges away, and
-two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngströms distant.
+two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngstrÃ¶ms distant.
 .SS Output format
 Specify a file format of results:
 .TP
 .B \-rx
-Results will be in XML file format. This is the defaut option.
+Results will be in XML file format.
 .TP
 \fB\-rc\fIDELIMITER\fR
-Results will be in delimiter\-separated values file format.
+Results will be in delimiter\-separated values file format. This is the default option with TAB as a \fIDELIMITER\fR.
 .TP
 .B \-rl
 Results will be stored in tab\-separated values file format with ommited repeated values. This is the most space\-efficient file format.
@@ -166,4 +166,4 @@ Allow to predict just selected chains from a protein file?
 .SH SEE ALSO
 inspire(1), features(1)
 .SH AUTHOR
-Jan Jelínek (jelinek@ksi.mff.cuni.cz)
+Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
