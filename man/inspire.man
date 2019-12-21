@@ -153,7 +153,7 @@ Specify a file format of results:
 Results will be in XML file format.
 .TP
 \fB\-rc\fIDELIMITER\fR
-Results will be in delimiter\-separated values file format. This is the default option with TAB as a \fIDELIMITER\fR.
+Results will be in delimiter\-separated values file format. This is the default option with TAB as the \fIDELIMITER\fR.
 .TP
 .B \-rl
 Results will be stored in tab\-separated values file format with ommited repeated values. This is the most space\-efficient file format.
