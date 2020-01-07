@@ -84,7 +84,7 @@ sudo make install
 ```
 Now INSPiRE should be installed and ready to use.
 
-You can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find sample knowledge-base and query in directory 'example', so if you want to use them, change the corresponding paths, or type:
+You can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find a sample knowledge-base and a sample query in directory 'example', so if you want to use them, change the corresponding paths, or type:
 ```
 cd ../examples
 ```
