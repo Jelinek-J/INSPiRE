@@ -92,7 +92,7 @@ cd ../examples
 ```
 inspire -s query/ -kfingerprints/ -qresults
 ```
-Results will be stored in a file called 'output.csv'.
+Results will be stored in a file called 'results.csv'.
 
 If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'knowledge-base', you can do it by
 ```
