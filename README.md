@@ -57,24 +57,49 @@ Type `make` to install single INSPiRE tool or `make fragments` to install fragme
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you should add argument `rasa=` when calling `make`. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
 
 # Usage in examples #
-First you need to install the tool and all prerequisities, there is prepared script for it, so all you must to do is just type
+First I recommend to update a list of repositories (it is not necessary, but highly recommended as it installation of older versions can sometimes cause problems). You can do it by typing:
 ```
-install.sh
+sudo apt-get update
 ```
-It install INSPiRE, Boost and FreeSASA and also autoconf and git, that are necessary to install to this tool.
+Then you you should install Boost library (it is used to have OS-independent manipulation with files etc.), git (it is used to download INSPiRE and FreeSASA) and autoconf (it is used to install FreeSASA):
+```
+sudo apt-get install libboost-all-dev git autoconf
+```
+Then you can install FreeSASA by:
+```
+git clone https://github.com/mittinatten/freesasa.git
+cd freesasa
+autoreconf -i
+./configure --disable-xml --disable-json
+make
+sudo make install
+cd ..
+```
+Now you have all prerequisities to install INPiRE by typing:
+```
+git clone https://github.com/Jelinek-J/INSPiRE.git
+cd INSPiRE/src/
+make
+sudo make install
+```
+Now INSPiRE should be installed and ready to use.
 
-Then you can prediction proteins in directory 'queries' using a precompiled knowledge-base in directory 'fingerprints' by
+You can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find sample knowledge-base and query in directory 'example', so if you want to use them, change the corresponding paths, or type:
 ```
-inspire -s queries/ -kfingerprints/ -qresults
+cd examples
 ```
-Results will be stored in a file called 'results.pec'
+) simply by typing:
+```
+inspire -s query/ -kfingerprints/ -qresults
+```
+Results will be stored in a file called 'output.csv'.
 
-If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'fingerprints', you can do it by
+If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'knowledge-base', you can do it by
 ```
 inspire -s queries/ -kknowledge-base/ -m
 ```
 
-Of course, there are a lot of parameters that you can change. Documentation can be found by
+Of course, there are a lot of parameters that you can changed. Documentation can be found by typing
 ```
 man inspire
 ```
