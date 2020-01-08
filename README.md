@@ -3,17 +3,17 @@ knowledge-based protein-protein INteraction Sites PREdictor. For details about h
 
 Documentation is under construction, stay tuned. But briefly (a simple way, how to use this tool in examples is underneath):
 
-# Use of the framework #
+# 1: Use of the framework #
 You can use the framework in three ways:
 1. Header-only library;
 2. Individual programs to run individual parts of the INSPiRE algorithm
 3. Single program to run INSPiRE algorithm
 
-## Header-only library ##
+## 1.a: Header-only library ##
 This use is ideal if you want to update INSPiRE algorithm or extend it for some new usecases.
 For this use, you only need to add header files from 'src/backend' and 'src/common' directories to your project (or set corresponding paths). 'src/backend' containts the basic parts of the algorithm. 'src/common' contains some common methods and constants and also hides all usage of external libraries ([Boost](https://www.boost.org/) and [FreeSASA](https://freesasa.github.io/)), so if you have some problems with some of these libraries, you need to rewrite the corresponding files only.
 
-## Fragmented INSPiRE tools ##
+## 1.b: Fragmented INSPiRE tools ##
 This possibility is focused on the situation, when you want to optimize the INSPiRE algorithm's configuration, because some temporary files can be reused, so it is useless to compute them again and again.
 Using the files mentioned in the previous subsection, you need to compile (each separately) following files from 'src/frontend' directory:
 1. For a constraction of knowledge-base and queries:  
@@ -29,7 +29,7 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 
 You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
-## Single INSPiRE tool ##
+## 1.c: Single INSPiRE tool ##
 You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes.
 
 To use this option, you need just to type `make` to compile it and optionally `make install` to install it. To create a new knowledge-base you can type `inspire -m` to create the knowledge-base in the current directory from files in the current directory (not recommended) or `inspire -s <proteins_path> -k<knowledge-base_path> -m` to create the knowledge-base in <knowledge-base_path> directory using files in <proteins_path>. Then you can use the knowledge-base by typing `inspire -s <query_path> -k<knowledge-base_path> -q<output_path>` to make a prediction for files in <query_path> using a knowledge-base stored in <knowledge-base_path> and store results in <output_path> (again if some of arguments is ommited, the current directory is used, so in the extreme and not recommended case, you can just type `inspire` to make a prediction). For additional switchers please see the corresponding man pages.
@@ -51,12 +51,13 @@ To make the premaked knowledge-base:
     3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid typa and fingerprint, but for different interface labels.
     4. Renumber fingerprints and interfaces file to make the interfaces file smaller.
 
-# Installation #
-Move to directory `src` and type `make` to install single INSPiRE tool or `make fragments` to install fragmented INSPiRE tools and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
+# 2: Installation of INSPiRE #
+Move to directory `src` and type `make` to install single INSPiRE tool (see chapter 1.c) or `make fragments` to install fragmented INSPiRE tools (see chapter 1.b) and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
 
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you can add argument `rasa=` when calling `make` to compile a version of INSPiRE that does not use FreeSASA library. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
 
-# Usage in examples #
+## 2.a: How to step by step ##
+This subchapter describe in examples how to install all prerequisities (if you do not have installed them yet), INSPiRE and the simple way how to use it (see chapter 1.c).
 First I recommend to update a list of repositories (it is not necessary, but highly recommended as it installation of older versions can sometimes cause problems). You can do it by typing:
 ```
 sudo apt-get update
@@ -82,9 +83,9 @@ cd INSPiRE/src/
 make
 sudo make install
 ```
-Now INSPiRE should be installed and ready to use.
+At this point, INSPiRE should be installed and ready to use.
 
-You can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find a sample knowledge-base and a sample query in directory 'example', so if you want to use them, change the corresponding paths, or type:
+Now you can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find a sample small knowledge-base and a sample query in directory 'example', so if you want to try the following commands on them, change the corresponding paths, or type:
 ```
 cd ../examples
 ```
@@ -94,12 +95,12 @@ inspire -s query/ -kfingerprints/ -qresults
 ```
 Results will be stored in a file called 'results.csv'.
 
-If you want to compile your own knowledge-base from files in directory 'queries' and store it in directory 'knowledge-base', you can do it by
+If you want to compile your own knowledge-base from files in directory 'queries' and store it in a directory 'knowledge-base', you can do it by
 ```
 inspire -s queries/ -kknowledge-base/ -m
 ```
 
-Of course, there are a lot of parameters that you can changed. Documentation can be found by typing
+Of course, there are a lot of parameters that you can change. Documentation can be found by typing
 ```
 man inspire
 ```
