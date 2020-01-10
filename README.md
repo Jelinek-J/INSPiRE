@@ -16,7 +16,7 @@ For this use, you only need to add header files from 'src/backend' and 'src/comm
 ## 1.b: Fragmented INSPiRE tools ##
 This possibility is focused on the situation, when you want to optimize the INSPiRE algorithm's configuration, because some temporary files can be reused, so it is useless to compute them again and again.
 Using the files mentioned in the previous subsection, you need to compile (each separately) following files from 'src/frontend' directory:
-1. For a constraction of knowledge-base and queries:  
+1. For a construction of knowledge-base and queries:  
     1. 'frontend/index.cpp': creates index file of proteins and their residues, chains and models. The file is used by other tools.
     2. 'frontend/aminoacids.cpp': creates transformation file to convert aminoacids' three-letter codes to one-letter codes.
     3. 'frontend/features.cpp': creates files with extracted features. Actually, it is possible to extract coordinates, amino acid type (here can be used the file created in the previous point), temperature, and interfaces.
@@ -26,6 +26,7 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 3. 'frontend/classify.cpp': classifies fingerprints found by the tool from the previous step.
 4. 'frontend/predict.cpp': pronounces a prediction based on the statistics computed using the tool from the previous step.
 5. 'frontend/optimize.cpp': finds the best parameters for predictors in 'frontend/predict.cpp'.
+6. 'frontend/assign.cpp': makes the prediction human readable.
 
 You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
