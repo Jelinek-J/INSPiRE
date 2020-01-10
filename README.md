@@ -18,20 +18,36 @@ This possibility is focused on the situation, when you want to optimize the INSP
 Using the files mentioned in the previous subsection, you need to compile (each separately) following files from 'src/frontend' directory:
 1. For a construction of knowledge-base and queries:  
     1. 'frontend/index.cpp': creates index file of proteins and their residues, chains and models. The file is used by other tools.
-    2. 'frontend/aminoacids.cpp': creates transformation file to convert aminoacids' three-letter codes to one-letter codes.
-    3. 'frontend/features.cpp': creates files with extracted features. Actually, it is possible to extract coordinates, amino acid type (here can be used the file created in the previous point), temperature, and interfaces.
-    4. 'frontend/subgraphs.cpp': extracts chosen types of subgraphs and edges in them.
-    5. 'frontend/fingerprints.cpp': create fingerprints from files generated in previous steps.
-2. 'frontend/mine.cpp': searches in knowledge-base for fingerprints similar to query fingerprints.
-3. 'frontend/classify.cpp': classifies fingerprints found by the tool from the previous step.
-4. 'frontend/predict.cpp': pronounces a prediction based on the statistics computed using the tool from the previous step.
-5. 'frontend/optimize.cpp': finds the best parameters for predictors in 'frontend/predict.cpp'.
-6. 'frontend/assign.cpp': makes the prediction human readable.
+    2. 'frontend/features.cpp': creates files with extracted features. Actually, it is possible to extract coordinates, amino acid type (here can be used the file created in the previous point), temperature, and interfaces.
+    3. 'frontend/subgraphs.cpp': extracts chosen types of subgraphs and edges in them.
+    4. 'frontend/fingerprints.cpp': create fingerprints from files generated in previous steps.
+2. For a prediction:
+    1. 'frontend/mine.cpp': searches in knowledge-base for fingerprints similar to query fingerprints.
+    2. 'frontend/classify.cpp': classifies fingerprints found by the tool from the previous step.
+    3. For a classification task:
+        1. 'frontend/predict.cpp': pronounces a prediction based on the statistics computed using the tool from the previous step.
+        2. 'frontend/assign.cpp': makes the prediction human readable.
+    4. For a prioritization task:
+        1. 'frontend/prioritize.cpp': propose an order of residues based on the statistics computed using the tool from the previous step.
+3. For optimization of prediction parameters:
+    1. 'frontend/optimize.cpp': finds the best parameters for predictors in 'frontend/predict.cpp'.
+    2. 'frontend/combine.cpp': combine multiple optimizations of the same format.
+4. For benchmarking:
+    1. 'frontend/select.cpp': select chains from from index file.
+    2. 'frontend/filter.cpp': filter feature files based on a index file.
+    3. 'frontend/exclude.cpp': pairs residues from knowledge-base and query index files.
+5. Additional auxiliary tools:
+    1. 'frontend/aminoacids.cpp': creates transformation file to convert aminoacids' three-letter codes to one-letter codes; and/or composition file.
+    2. 'frontend/validate.cpp': check quality of a source data.
+    3. 'frontend/random.cpp': select a random subset of mutually dissimilar protein chains.
+    4. 'frontend/merge.cpp': merge two sets of fingerprints with the same structure.
+    5. 'frontend/similarity.cpp': identify the most similar proteins in a knowledge-base.
+    
 
 You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
 ## 1.c: Single INSPiRE tool ##
-You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes.
+You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' (mentioned in chapter 1.b) you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes.
 
 To use this option, you need just to type `make` to compile it and optionally `make install` to install it. To create a new knowledge-base you can type `inspire -m` to create the knowledge-base in the current directory from files in the current directory (not recommended) or `inspire -s <proteins_path> -k<knowledge-base_path> -m` to create the knowledge-base in <knowledge-base_path> directory using files in <proteins_path>. Then you can use the knowledge-base by typing `inspire -s <query_path> -k<knowledge-base_path> -q<output_path>` to make a prediction for files in <query_path> using a knowledge-base stored in <knowledge-base_path> and store results in <output_path> (again if some of arguments is ommited, the current directory is used, so in the extreme and not recommended case, you can just type `inspire` to make a prediction). For additional switchers please see the corresponding man pages.
 
