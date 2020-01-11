@@ -46,7 +46,7 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 
 You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
-An intended connection on tools is shown on a following image where tools are represented by green rectangles, auxiliary files are blue objects and input/output files are red objects.
+An intended connection of tools is shown on a following image where tools are represented by green rectangles, auxiliary files are blue objects and input/output files are red objects.
 ![Schema of INSPiRE tools](./schema.svg)
 
 ## 1.c: Single INSPiRE tool ##
