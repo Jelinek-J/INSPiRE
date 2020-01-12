@@ -65,11 +65,11 @@ To use this option, you need just to type `make` to compile it and optionally `m
 ~~6. All complexes containing something else than aminoacids (modified aminacids are allowed) were filtered out.~~
 ~~7. All complexes containing a chain shorter than 20 aminoacids were filtered out.~~
 ~~8. All complexes containing more than 1% of residues without specified carbon alpha were filtered out.~~
-~~9. Reduction of redundancies:~~
-~~    1. Fingerprints were grouped by aminoacid type, fingerprint and interface.~~
-~~    2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were thrown out and only one was preserved.)~~
-~~    3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid type and fingerprint, but for different interface labels.~~
-~~    4. Renumber fingerprints and interfaces file to make the interfaces file smaller.~~
+~~9. Reduction of redundancies:
+    1. Fingerprints were grouped by aminoacid type, fingerprint and interface.
+    2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were thrown out and only one was preserved.)
+    3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid type and fingerprint, but for different interface labels.
+    4. Renumber fingerprints and interfaces file to make the interfaces file smaller.~~
 
 # 2: Installation of INSPiRE #
 Move to directory `src` and type `make` to install single INSPiRE tool (see chapter 1.c) or `make fragments` to install fragmented INSPiRE tools (see chapter 1.b) and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
