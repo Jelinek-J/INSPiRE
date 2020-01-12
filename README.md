@@ -56,7 +56,7 @@ To use this option, you need just to type `make` to compile it and optionally `m
 
 ~~There is also a premaked knowledge-base in `fingerprints` directory to make the use of INSPiRE easier. Firstly, it is necessary to decompress it before using due to memory restrictions (all '*.7z' files) (and - of course - install INSPiRE tool) and then you can use INSPiRE without building an own knowledge-base.
 
-~~To make the premaked knowledge-base:
+To make the premaked knowledge-base:
 1. All proteins without DNA and RNA were downloaded from Protein Data Bank in pdb format.
 2. Only complexes with 'REMARK 350' were taken.
 3. All complexes with monomer as 'BIOMOLECULE 1' were filtered out.
