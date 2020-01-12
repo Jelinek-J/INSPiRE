@@ -54,30 +54,14 @@ You will probably prefer this approach if you want to use the INSPiRE for its or
 
 To use this option, you need just to type `make` to compile it and optionally `make install` to install it. To create a new knowledge-base you can type `inspire -m` to create the knowledge-base in the current directory from files in the current directory (not recommended) or `inspire -s <proteins_path> -k<knowledge-base_path> -m` to create the knowledge-base in <knowledge-base_path> directory using files in <proteins_path>. Then you can use the knowledge-base by typing `inspire -s <query_path> -k<knowledge-base_path> -q<output_path>` to make a prediction for files in <query_path> using a knowledge-base stored in <knowledge-base_path> and store results in <output_path> (again if some of arguments is ommited, the current directory is used, so in the extreme and not recommended case, you can just type `inspire` to make a prediction). For additional switchers please see the corresponding man pages.
 
-~~There is also a premaked knowledge-base in `fingerprints` directory to make the use of INSPiRE easier. Firstly, it is necessary to decompress it before using due to memory restrictions (all '*.7z' files) (and - of course - install INSPiRE tool) and then you can use INSPiRE without building an own knowledge-base.~~
-
-~~To make the premaked knowledge-base:~~
-~~1. All proteins without DNA and RNA were downloaded from Protein Data Bank in pdb format.~~
-~~2. Only complexes with 'REMARK 350' were taken.~~
-~~3. All complexes with monomer as 'BIOMOLECULE 1' were filtered out.~~
-~~4. All complexes with more than 50 000 residues were filtered out.~~
-~~5. All complexes with 10 or more residues without specified carbon alpha were filtered out.~~
-~~6. All complexes containing something else than aminoacids (modified aminacids are allowed) were filtered out.~~
-~~7. All complexes containing a chain shorter than 20 aminoacids were filtered out.~~
-~~8. All complexes containing more than 1% of residues without specified carbon alpha were filtered out.~~
-~~9. Reduction of redundancies:
-    1. Fingerprints were grouped by aminoacid type, fingerprint and interface.
-    2. For each group, only one fingerprint from each protein was preserved. (So e.g. if it is a symmetric tetramer, three fingerprints were thrown out and only one was preserved.)
-    3. For each group of size k, leave only ⌈log<sub>1000</sub>(k)+1⌉, except the situation where k<sub>I</sub>!=k<sub>N</sub> && ⌈log<sub>1000</sub>(k<sub>I</sub>)+1⌉==⌈log<sub>1000</sub>(k<sub>N</sub>)+1⌉ - in such a case, leave ⌈log<sub>1000</sub>(k)+2⌉ (i.e. one more item) in the bigger group. k<sub>I</sub> and k<sub>N</sub> correspond to groups for the same aminoacid type and fingerprint, but for different interface labels.
-    4. Renumber fingerprints and interfaces file to make the interfaces file smaller.~~
-
 # 2: Installation of INSPiRE #
 Move to directory `src` and type `make` to install single INSPiRE tool (see chapter 1.c) or `make fragments` to install fragmented INSPiRE tools (see chapter 1.b) and `make aminoacids` if you want to use our transformation of aminoacids' three-letters codes to one-letter codes. To remove them just type `make clean`. To install binaries and manpages to corresponding directories type `make install` and to uninstall them type `make uninstall`.
 
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you can add argument `rasa=` when calling `make` to compile a version of INSPiRE that does not use FreeSASA library. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
 
 ## 2.a: How to step by step ##
-This subchapter describe in examples how to install all prerequisities (if you do not have installed them yet), INSPiRE and the simple way how to use it (see chapter 1.c).
+This subchapter describe in examples how to install all prerequisities (if you do not have installed them yet), INSPiRE and the simple way how to use it (see chapter 1.c). The procedure is described for UNIX-like system only. However if you use Windows 10, you can use it too using Windows Subsystem for Linux (WSL). To enable WSL, please follow [instructions how to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (INSPiRE is tested on Debian and Ubuntu 18.04, so I recommend to install one of them) and then [instructions how to initialize WSL](https://docs.microsoft.com/en-us/windows/wsl/initialize-distro). After finishing it, just open the installed bash and you will be able to use following commands there. 
+
 First I recommend to update a list of repositories (it is not necessary, but highly recommended as it installation of older versions can sometimes cause problems). You can do it by typing:
 ```
 sudo apt-get update
@@ -105,11 +89,11 @@ sudo make install
 ```
 At this point, INSPiRE should be installed and ready to use.
 
-Now you can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (you find a sample small knowledge-base and a sample query in directory 'example', so if you want to try the following commands on them, change the corresponding paths, or type:
+Now you can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (if you just want to test the INSPiRE tool and do not want to compile your own knowledge-base, you find a sample small knowledge-base and a sample query in a directory 'example', so by executing
 ```
 cd ../examples
 ```
-) simply by typing:
+you can use them without any modification of following commands) simply by typing:
 ```
 inspire -s query/ -kfingerprints/ -qresults
 ```
