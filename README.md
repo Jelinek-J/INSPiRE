@@ -59,8 +59,8 @@ Move to directory `src` and type `make` to install single INSPiRE tool (see chap
 
 If you do not want to use SASA-based features or you do not have installed the FreeSASA library, you can add argument `rasa=` when calling `make` to compile a version of INSPiRE that does not use FreeSASA library. If you have installed the FreeSASA library in non-standard path, add argument ` lib=-L<freesasa_lib_path> include=-I<freesasa_include_path>` when calling `make`, where `<freesasa_lib_path>` is path to FreeSASA runtime libraries and `<freesasa_include_path>` is path to FreeSASA header files.
 
-## 2.a: How to step by step ##
-This subchapter describe in examples how to install all prerequisities (if you do not have installed them yet), INSPiRE and the simple way how to use it (see chapter 1.c). The procedure is described for UNIX-like system only, however if you use Windows 10, you can use it too using Windows Subsystem for Linux (WSL). To enable WSL, please follow [instructions how to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (INSPiRE is tested on Debian and Ubuntu 18.04, so I recommend to install one of them) and then [instructions how to initialize WSL](https://docs.microsoft.com/en-us/windows/wsl/initialize-distro). After finishing it, just open the installed bash and you will be able to use following commands there. 
+## 2.a: How to... step by step ##
+This subchapter describe in examples how to install all prerequisities (if you do not have installed them yet), INSPiRE and the simple way how to use it (see chapter 1.c). The procedure is described for UNIX-like system only, however if you use Windows 10, you can use it too using Windows Subsystem for Linux (WSL). To enable WSL, please follow [instructions how to install WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) (INSPiRE is tested on Debian, Ubuntu 18.04 and Kali Linux, so I recommend to install one of them; on the contrary, I do not recommend SUSE Linux and OpenSUSE as they use a different package manager, so some of following commands are different) and then [instructions how to initialize WSL](https://docs.microsoft.com/en-us/windows/wsl/initialize-distro). After finishing it, just open the installed bash and you will be able to use following commands there. 
 
 First I recommend to update a list of repositories (it is not necessary, but highly recommended as it installation of older versions can sometimes cause problems). You can do it by typing:
 ```
@@ -68,7 +68,7 @@ sudo apt-get update
 ```
 Then you you should install Boost library (it is used to have OS-independent manipulation with files etc.), git (it is used to download INSPiRE and FreeSASA) and autoconf (it is used to install FreeSASA):
 ```
-sudo apt-get install libboost-all-dev git autoconf
+sudo apt-get install libboost-all-dev git autoconf pkg-config make g++ man
 ```
 Then you can install FreeSASA by:
 ```
@@ -89,11 +89,11 @@ sudo make install
 ```
 At this point, INSPiRE should be installed and ready to use.
 
-Now you can predict proteins in directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (if you just want to test the INSPiRE tool and do not want to compile your own knowledge-base, you find a sample small knowledge-base and a sample query in a directory 'example', so by executing
+Now consider you want to predict proteins in a directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (if you just want to test the INSPiRE tool and do not want to compile your own knowledge-base, you find a sample small knowledge-base and a sample query in a directory 'example', so by executing
 ```
 cd ../examples
 ```
-you can use them without any modification of following commands) simply by typing:
+you can use them without adapting following commands to your situation), you start the prediction simply by typing:
 ```
 inspire -s query/ -kfingerprints/ -qresults
 ```
