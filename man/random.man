@@ -1,0 +1,45 @@
+.\" Manpage for random.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2020" "1.0" "exclude man page" 
+.SH NAME
+random \- select random mutually dissimilar protein chains
+.SH SYNOPSIS
+.B random
+\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
+
+.B random
+\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
+
+.B exclude \-h
+.SH DESCRIPTION
+Randomly selects 100 protein chains (at most one chain from each protein) with mutual similarity less than a given threshold.
+
+Selected chains will be printed in format \fIPROTEIN-ID\fB.\fICHAIN-ID\fR.
+.SH ARGUMENTS
+.TP
+.I OUTPUT\-FILE
+Where to store identifiers of selected chains.
+.TP
+\fB\-c\fICOUNT
+How many of dissimilar chains should be selected. The default value is 100.
+.TP
+\fB\-l\fILIMIT
+Limit to consider chains as similar. The default value is 0.1.
+.TP
+\fB\-\fR \fIHEADER
+Header to use in the output file for a following pair of input files.
+
+The hyphen/minus sign is mandatory only if \fIHEADER\fR starts with a hyphen/minus sign.
+.TP
+.I INDEX\-FILE
+Path to a index file containing chains that can be selected
+.TP
+.I SIMILARITY\-FILE
+Path to a similarity file defining similarity of chains
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SH SEE ALSO
+inspire(1), index(1), similarity(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

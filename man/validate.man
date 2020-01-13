@@ -3,6 +3,72 @@
 .TH man 1 "2018" "1.0" "subgraphs man page" 
 .SH NAME
 validate \- identify valid proteins
-.SH TODO
+.SH SYNOPSIS
+.B validate
+\fIINDEX\-FILE\fR \fIINDEX\-LOG\fR
+\fIRESIDUE\-FEATURE\-FILE\fR \fITRANSFORMATIONS\-FILE\fR
+\fICOMPOSITIONS\-FEATURE\-FILE\fR \fIFULL\-COMPOSITIONS\-FILE\fR
+[\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] (\fIPROTEINS\-PATH\fR)+
+
+.B exclude \-h
+.SH DESCRIPTION
+Check what complexes are valid to be in a knowledge-base. I.e. check whether:
+
+1) File contains REMARKS 350 (or equivalent in mmcif/ xml);
+
+2) Is not a monomer;
+
+3) Does not contain DNA, RNA, unknown amino acid (X, B, J, Z), modified aminoacid nor unknown residue;
+
+4) Contains no HETATM except H2O;
+
+5) No chain contains less than 20 aminoacids;
+
+6) Contains less than 10 incomplete aminoacids;
+
+7) No chain contains more than 1% of incomplete amino acids;
+.SH ARGUMENTS
+.TP
+.I INDEX\-FILE
+Path to a index file;
+.TP
+.I INDEX\-LOG
+Path to a log file created during \fIINDEX\-FILE\fR construction;
+.TP
+.I RESIDUE\-FEATURE\-FILE
+Path to a feature file with residue type three-letters codes;
+.TP
+.I TRANSFORMATIONS\-FILE
+Path to a file with transformation \- it is used to define valid residue codes;
+.TP
+.I COMPOSITIONS\-FEATURE\-FILE
+Path to a feature file with measured composition of residues;
+.TP
+.I FULL\-COMPOSITIONS\-FILE
+Path to a file saying what are valid compositions of residue types;
+.TP
+.I PROTEINS\-PATH
+Path to a protein or a directory with proteins that should be validated;
+.TP
+.BR -h ", " --help
+Show informations about the program.
+.SS Iterators:
+What iterator was used to construction of the index file (if no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation were used):
+.TP
+.B \-b
+All biomolecules and models, but only the first crystallographic transformation were used;
+.TP
+.B \-c
+All crystallographic transformations, but only the first biomolecule and model were used;
+.TP
+.B \-bc
+All biomolecules, models and crystallographic transformations were used;
+.TP
+.B \-w
+Both biomolecules and crystallographic transformation were ignored, all chains were used as they were;
+.SH TO DO
+Parametrize count and threshold.
+.SH SEE ALSO
+inspire(1), index(1), feature(1), aminoacid(1)
 .SH AUTHOR
 Jan Jelínek (jelinek@ksi.mff.cuni.cz)

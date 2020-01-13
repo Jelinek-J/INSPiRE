@@ -73,8 +73,8 @@ i.e. it is tested whether number of hits with label 'I' divided by a number of a
 .TP
 \fB-q\fIOUTPUT\-PATH\fR
 Where to store output file.
-If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 'prediction.pec' is used as a filename.
-If \fIOUTPUT\-PATH\fR does not end with '.pec' extension, the extension is appended.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, 'output' is used as a filename with an extension based on a selected file format.
+If \fIOUTPUT\-PATH\fR does not end with an appropriate extension, the extension is appended.
 
 Without the switcher, prediction is printed to standard output.
 .TP
@@ -141,11 +141,11 @@ How it will be redefined:
 \fILIMIT\fR\-nearest neighbours (if several neighbours are within the same distance as the \fILIMIT\fRth-nearest neighbour, they all are taken).
 .TP
 \fBd\fIDISTANCE\fR
-All residues that are at most \fIDISTANCE\fR ?ngstrÃ¶ms away.
+All residues that are at most \fIDISTANCE\fR ?ngströms away.
 .TP
 \fBe\fIDISTANCE\fR\-\fILIMIT\fR
 All residues that are at most \fILIMIT\fR edges away, and
-two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngstrÃ¶ms distant.
+two residues are considered to be connected by an edge if they are at most \fIDISTANCE\fR ?ngströms distant.
 .SS Output format
 Specify a file format of results:
 .TP
@@ -166,4 +166,4 @@ Allow to predict just selected chains from a protein file?
 .SH SEE ALSO
 inspire(1), features(1)
 .SH AUTHOR
-Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

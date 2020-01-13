@@ -1,0 +1,29 @@
+.\" Manpage for select.
+.\" Contact jelinek@ksi.mff.cuni.cz to correct errors or typos.
+.TH man 1 "2020" "1.0" "exclude man page" 
+.SH NAME
+select \- extract subset of an index file
+.SH SYNOPSIS
+.B select
+\fIINPUT\-INDEX\-FILE\fR \fIOUTPUT\-INDEX\-FILE\fR (\fIPROTEIN\-ID\fR(.\fICHAIN\-ID\fR)*)+
+
+.B exclude \-h
+.SH DESCRIPTION
+Extracts required chains from a given index file. Note that only chains from the first model are preserved.
+.SH ARGUMENTS
+.TP
+.I INPUT\-INDEX\-FILE
+Path to a index file to be filtered.
+.TP
+.I OUTPUT\-INDEX\-FILE
+Path where to store filtered input.
+.TP
+\fIPROTEIN\-ID\fR.\fICHAIN\-ID\fR
+What chains should be preserved. There can be specified multiple chains separated by a dot '.'. If no chain is specified, all chains will be preserved.
+.TP
+.BR -h ", " --help
+Show informations about the program
+.SH SEE ALSO
+inspire(1), index(1)
+.SH AUTHOR
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)
