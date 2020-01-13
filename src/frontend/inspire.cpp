@@ -225,7 +225,7 @@ static void help() {
   std::cout << "        \t                            \tWithout the switcher, prediction is printed to standard output.\n";
   std::cout << "        \t-m                          \tConstruction mode: knowledge-base will be constructed instead of used for prediction.\n";
   std::cout << "        \t-i<RADII-FILE>[<DISTANCE>]  \tRedefines radii of chemical elements using <RADII-FILE> and\n";
-  std::cout << "        \t                            \toptionally <DISTANCE> resets the maximal allowed distance of two radiuses (0.5 Å is a default value) to be classified as an interface.\n";
+  std::cout << "        \t                            \toptionally <DISTANCE> resets the maximal allowed distance of two radiuses (0.5 Ã… is a default value) to be classified as an interface.\n";
   std::cout << "        \t                            \t<DISTANCE> must be separated by a space from <RADII-FILE>.\n";
   std::cout << "        \t-g<FINGERPRINTS-FORMAT>     \tPath to a file defining how should be fingerprints constructed\n";
   std::cout << "        \t-h                          \tShow informations about the program\n";
@@ -252,9 +252,9 @@ static void help() {
   std::cout << "            \t-e                      \tFollows definition saying, what pairs of nodes are connected by an edge\n";
   std::cout << "        How it will be redefined:\n";
   std::cout << "            \tc<LIMIT>                \t<LIMIT>-nearest neighbours (if several neighbours are within the same distance as the <LIMIT>th-nearest neighbour, they all are taken).\n";
-  std::cout << "            \td<DISTANCE>             \tAll residues that are at most <DISTANCE> Ångströms away.\n";
+  std::cout << "            \td<DISTANCE>             \tAll residues that are at most <DISTANCE> Ã…ngstrÃ¶ms away.\n";
   std::cout << "            \te<DISTANCE>-<LIMIT>     \tAll residues that are at most <LIMIT> edges away, and\n";
-  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ångströms distant.\n";
+  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ã…ngstrÃ¶ms distant.\n";
   std::cout << "    Results:\n";
   std::cout << "        Specify a file format of results:\n";
   std::cout << "            \t-rx                     \tResults will be in XML file format.\n";
@@ -874,10 +874,10 @@ int main(int argc, const char** argv) {
       if (save) {
         output_name = std::string(argv[argv_index++]).substr(2);
         if (output_name.empty() || output_name.back() == common::filesystem::directory_separator) {
-          prediction_name += OUTPUT_FILE;
+          output_name += OUTPUT_FILE;
         } else if (common::filesystem::is_directory(statistics_name)) {
-          prediction_name += common::filesystem::directory_separator;
-          prediction_name += OUTPUT_FILE;
+          output_name += common::filesystem::directory_separator;
+          output_name += OUTPUT_FILE;
         }
       }
 
