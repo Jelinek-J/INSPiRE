@@ -86,12 +86,13 @@ git clone https://github.com/Jelinek-J/INSPiRE.git
 cd INSPiRE/src/
 make
 sudo make install
+cd ../..
 ```
 At this point, INSPiRE should be installed and ready to use.
 
 Now consider you want to predict proteins in a directory 'query' using a precompiled knowledge-base in directory 'fingerprints' (if you just want to test the INSPiRE tool and do not want to compile your own knowledge-base, you find a sample small knowledge-base and a sample query in a directory 'example', so by executing
 ```
-cd ../examples
+cd INSPiRE/examples
 ```
 you can use them without adapting following commands to your situation), you start the prediction simply by typing:
 ```
