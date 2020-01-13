@@ -29,7 +29,7 @@ static void help() {
   std::cout << "        \t-b                  \tAll biomolecules and models, but only the first crystallographic transformation are used\n";
   std::cout << "        \t-c                  \tAll crystallographic transformations, but only the first biomolecule and model are used\n";
   std::cout << "        \t-bc                 \tAll biomolecules, models and crystallographic transformations are used\n";
-  std::cout << "        \t-w                  \tIgnore both biomolecules and crystallographic transformation, use all chains as they are\n";
+  std::cout << "        \t-w                  \tIgnore both biomolecules and crystallographic transformation, use all chains as they are\n\n";
 
   std::cout << "Index File Format:\n";
   std::cout << "\tOnly the most probable alternative location is used for each atom. (It can be changed in some future iterators.)\n";

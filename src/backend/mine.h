@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <thread>
+#include <iostream>
 
 namespace inspire {
   namespace backend {
@@ -154,7 +155,6 @@ namespace inspire {
               }
             } 
             if (distances.empty()) {
-              //? What is the map::local_iterator?
               for (std::unordered_map<std::string, std::vector<uint32_t> >::iterator it = group->second.begin(); it != group->second.end(); it++) {
                 int distance = 0;
                 // Consideration that fingerprints have the same size.
@@ -182,6 +182,9 @@ namespace inspire {
               // Format: index of the element (to allow stats)  \t  distance
               stream << t << '\t' << it->first << '\n';
             }
+          }
+          if (count == 0) {
+            std::cerr << "No valid model was found for residue no. " << id << "!" << std::endl;
           }
           stream << std::endl;
         }

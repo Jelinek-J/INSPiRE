@@ -11,8 +11,8 @@ namespace inspire {
     class Validate {
       private:
       static const size_t MIN_LENGTH = 20;
-      static const size_t MAX_INCOMPLETE_ABSOLUTE = 100000;
-      static const size_t MAX_INCOMPLETE_RELATIVE_NUMERATOR = 100;
+      static const size_t MAX_INCOMPLETE_ABSOLUTE = 50;
+      static const size_t MAX_INCOMPLETE_RELATIVE_NUMERATOR = 5;
       static const size_t MAX_INCOMPLETE_RELATIVE_DENOMINATOR = 100;
       static const size_t MIN_CHAINS = 2;
 
@@ -47,7 +47,7 @@ namespace inspire {
         }
       }
 
-      void validate(std::string output, std::string index_file, ProteinIterator* iterator, std::string index_log, std::string aminoacids_file, std::string aminoacids_valid, std::string elements_file, std::string elements_full) {
+      void validate(std::string index_file, ProteinIterator* iterator, std::string index_log, std::string aminoacids_file, std::string aminoacids_valid, std::string elements_file, std::string elements_full) {
         std::set<std::string> proteins;
         std::set<std::string> proteins_remark_350;
         std::set<std::string> proteins_multimer; /*Some biomolecules could be valid*/
@@ -289,7 +289,7 @@ namespace inspire {
         std::cout << "Total      \t" << paths.size() << std::endl;
         std::cout << "Heteroatoms\t" << proteins_heteroatoms.size();
         print_serialized(proteins_heteroatoms);
-        relative_complement(paths, proteins_heteroatoms);
+        //relative_complement(paths, proteins_heteroatoms);
         std::cout << "Total      \t" << paths.size() << std::endl;
         std::cout << "Unknown    \t" << proteins_unknown.size();
         print_serialized(proteins_unknown);
@@ -315,12 +315,6 @@ namespace inspire {
           std::cout << '\t' << paths_it->first;
         }
         std::cout << std::endl;
-
-        common::filesystem::create_directory_recursive(output);
-        output = common::filesystem::enclose_directory_name(output);
-        for (auto paths_it = paths.begin(); paths_it != paths.end(); ++paths_it) {
-          //common::filesystem::move(paths_it->second, common::filesystem::copy_filename(output, paths_it->second, ""));
-        }
       }
     };
   }

@@ -13,14 +13,14 @@
 void help() {
   std::cout << "Help\n\n";
 
-  std::cout << "Extracts required chains from a given index file.\n\n";
+  std::cout << "Extracts required chains from a given index file. Note that only chains from the first model are preserved.\n\n";
 
-  std::cout << "Usage:\t<INPUT-INDEX-FILE> <OUTPUT-INDEX-FILE> (<PROTEIN-ID>.<CHAIN>)+";
+  std::cout << "Usage:\t<INPUT-INDEX-FILE> <OUTPUT-INDEX-FILE> (<PROTEIN-ID>(.<CHAIN>)*)+";
   std::cout << "      \t-h\n\n";
 
-  std::cout << "Options:\t<INPUT-INDEX-FILE>     \tPath to a index file to be filtered;\n";
-  std::cout << "        \t<OUTPUT-INDEX-FILE>    \tPath where to store filtered input;\n";
-  std::cout << "        \t<PROTEINS-ID>.<CHAIN>  \tWhat chains should be preserved;\n";
+  std::cout << "Options:\t<INPUT-INDEX-FILE>     \tPath to a index file to be filtered.\n";
+  std::cout << "        \t<OUTPUT-INDEX-FILE>    \tPath where to store filtered input.\n";
+  std::cout << "        \t<PROTEINS-ID>.<CHAIN>  \tWhat chains should be preserved. There can be specified multiple chains separated by a dot '.'. If no chain is specified, all chains are preserved.\n";
   std::cout << "        \t-h, --help             \tShow informations about the program.\n\n";
 }
 
@@ -48,12 +48,16 @@ int main(int argc, const char** argv) {
   try {
     std::map<std::string, std::set<std::string>> select;
     for (size_t i = 3; i < argc; i++) {
-      std::string chain(argv[i]);
-      size_t separator = chain.find('.');
-      if (separator == chain.npos) {
-        throw common::exception::TitledException("Unexpected format of chain identifier: '" + chain +"'");
+      std::stringstream chains(argv[i]);
+      std::string protein;
+      if (!std::getline(chains, protein, '.')) {
+        throw common::exception::TitledException("Unexpected error during parsing of chain(s) identifier: '" + std::string(argv[i]) +"'");
       }
-      select[chain.substr(0, separator)].emplace(chain.substr(separator+1));
+      std::string chain;
+      auto& subselect = select[protein];
+      while (std::getline(chains, chain, '.')) {
+        subselect.emplace(chain);
+      }
     }
 
     inspire::backend::Index index(argv[1]);
@@ -80,7 +84,7 @@ int main(int argc, const char** argv) {
           if (index.model().empty()) {
             std::string new_chain = index.chain();
             if (prev_chain != new_chain) {
-              if (select_it->second.find(new_chain) == select_it->second.end()) {
+              if (select_it->second.size() > 0 && select_it->second.find(new_chain) == select_it->second.end()) {
                 add_chain = false;
                 prev_chain = "";
               } else {

@@ -8,7 +8,7 @@
 void help() {
   std::cout << "Help\n\n";
 
-  std::cout << "Extracts required features from proteins indexed in a given index file.\n\n";
+  std::cout << "Extract subgraphs for each indexed residue (called as central residue) with defined position.\n\n";
 
   std::cout << "Usage:\t<INDEX-FILE> <POSITIONS-PATH> <OUTPUT-PATH> ( -c <LIMIT>+ | -d <DISTANCE>+ | -e <DISTANCE> <LIMIT>+ )+\n";
   std::cout << "      \t-h\n\n";

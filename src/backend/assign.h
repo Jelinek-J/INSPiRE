@@ -49,15 +49,17 @@ namespace inspire {
         std::string line;
         if (std::getline(INPUT, line)) {
           size_t tab = line.find('\t');
-          if (tab == line.npos || tab == line.size()-1) {
-            throw common::exception::TitledException("Unexpected line format in results file: " + line);
-          }
           auto &labels = RESIDUES[std::stoll(line.substr(0, tab))];
           protein = std::get<0>(labels);
           model = std::get<1>(labels);
           chain = std::get<2>(labels);
           aminoacid = std::get<3>(labels);
-          value = line.substr(tab+1);
+          if (tab == line.npos || tab == line.size()-1) {
+            std::cerr << "No prediction was made for aminoacid " << aminoacid << " from chain " << chain << " in model " << model << " within protein " << protein << "!" << std::endl;
+            value = "";
+          } else {
+            value = line.substr(tab+1);
+          }
           return true;
         }
         return false;
