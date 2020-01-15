@@ -4,22 +4,22 @@
 .SH NAME
 prioritize \- prioritize query residues
 .SH SYNOPSIS
-\fBprioritize\fR ((\fB-r\fR[\fIWEIGHT\fR]|\fB-a\fR[\fIWEIGHT\fR]|\fB-d\fR[\fIWEIGHT\fR])+ ([\fB-\fR] \fIMINED\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
+\fBprioritize\fR ((\fB-r\fR[\fIWEIGHT\fR]|\fB-a\fR[\fIWEIGHT\fR]|\fB-d\fR[\fIWEIGHT\fR])+ ([\fB-\fR] \fISTATISTICS\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
 
 .B prioritize \-h
 .SH DESCRIPTION
 Calculate priority score for each query residue based on mined statistics.
 .SH ARGUMENTS
 .TP
-.I MINED\-FILE
-Path to a file with mined residues.
+.I STATISTICS\-FILE
+Path to a file with statistics of mined residues.
 .TP
 .B \-
-It is required if a \fIMINED\-FILE\fR starts with hyphen\-minus sign.
+It is required if a \fISTATISTICS\-FILE\fR starts with hyphen\-minus sign.
 .TP
 .I OUTPUT\-PATH
 Where to store output file.
-If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fIMINED\-FILE\fR's basename is used as the file name with '.pot' as an extension.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fISTATISTICS\-FILE\fR's basename is used as the file name with '.pot' as an extension.
 If \fIOUTPUT\-PATH\fR does not end with '.pot' extension, the extension is appended.
 .TP
 .B -h
@@ -36,6 +36,6 @@ Absolute number of positive examples is used
 .B \-d
 Distance of examples from the query is used
 .SH SEE ALSO
-inspire(1), mine(1), classify(1)
+inspire(1), classify(1)
 .SH AUTHOR
 Jan Jelínek (jelinek@ksi.mff.cuni.cz)
