@@ -878,10 +878,10 @@ int main(int argc, const char** argv) {
       if (save) {
         output_name = std::string(argv[argv_index++]).substr(2);
         if (output_name.empty() || output_name.back() == common::filesystem::directory_separator) {
-          prediction_name += OUTPUT_FILE;
+          output_name += OUTPUT_FILE;
         } else if (common::filesystem::is_directory(statistics_name)) {
-          prediction_name += common::filesystem::directory_separator;
-          prediction_name += OUTPUT_FILE;
+          output_name += common::filesystem::directory_separator;
+          output_name += OUTPUT_FILE;
         }
       }
 
