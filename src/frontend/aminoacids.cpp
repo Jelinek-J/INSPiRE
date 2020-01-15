@@ -55,9 +55,9 @@ namespace inspire {
           if (output_path.size() > 0 && output_path[output_path.size()-1] != common::filesystem::directory_separator) {
             output_path.push_back(common::filesystem::directory_separator);
           }
-          output_path += "aminoacid.moc";
-        } else if (!common::string::ends_with(output_path, ".moc")) {
-          output_path += ".moc";
+          output_path += "aminoacid.nor";
+        } else if (!common::string::ends_with(output_path, ".nor")) {
+          output_path += ".nor";
         }
         std::ofstream output(output_path);
 
@@ -279,8 +279,8 @@ void help() {
   std::cout << "        \t                   \tIf <OUTPUT-PATH> is a directory or ends with a directory separator, 'composition.cit' is used as the file name;\n";
   std::cout << "        \t                   \tif the path is not a directory but does not but not ends with '.cit', the extension is appended.\n";
   std::cout << "        \t-p<OUTPUT-PATH>    \tExtracts parent aminacid single-letter codes where available.\n";
-  std::cout << "        \t                   \tIf <OUTPUT-PATH> is a directory or ends with a directory separator, 'aminoacid.moc' is used as the file name;\n";
-  std::cout << "        \t                   \tif the path is not a directory but does not but  not ends  with  '.moc', the extension is appended.\n";
+  std::cout << "        \t                   \tIf <OUTPUT-PATH> is a directory or ends with a directory separator, 'aminoacid.nor' is used as the file name;\n";
+  std::cout << "        \t                   \tif the path is not a directory but does not but  not ends  with  '.nor', the extension is appended.\n";
   std::cout << "        \t[-a]<OUTPUT-PATH>  \tShortcut for '-c<OUTPUT-PATH> -p<OUTPUT-PATH>'.  -a is mandatory, if <OUTPUT-PATH> starts with a hyphen-minus sign.\n\n";
 }
 

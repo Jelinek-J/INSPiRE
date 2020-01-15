@@ -37,9 +37,9 @@ namespace inspire {
         }
 
         if (output.empty() || output.back() == common::filesystem::directory_separator) {
-          output += "related.exc";
-        } else if (!common::string::ends_with(output, ".exc")) {
-          output += ".exc";
+          output += "related.pan";
+        } else if (!common::string::ends_with(output, ".pan")) {
+          output += ".pan";
         }
         std::ofstream stream(output);
         for (auto excludes_it = EXCLUDES.begin(); excludes_it != EXCLUDES.end(); ++excludes_it) {

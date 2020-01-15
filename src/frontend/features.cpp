@@ -356,8 +356,8 @@ static void help() {
   std::cout << "        \t    \tLoad a string feature <HEADER> from a file <FEATURE-FILE>\n";
   std::cout << "        \t-N<NEW-TITLE> <FEATURE>\n";
   std::cout << "        \t    \tChange title of the inner feature (does not change values of the feature)\n";
-  std::cout << "        \t-P<PROJECTION-FILE> <FLOAT-FEATURE>\n";
-  std::cout << "        \t    \tTransforms feature <FEATURE> based on a dictionary defined in a <PROJECTION-FILE> (missing keys are skipped).\n";
+  std::cout << "        \t-P<PROJECTION-FILE> <STRING-FEATURE>\n";
+  std::cout << "        \t    \tTransforms feature <STRING-FEATURE> based on a dictionary defined in a <PROJECTION-FILE> (missing keys are skipped).\n";
   std::cout << "        \t    \tE.g. to transform amino acids' three-letter codes to one-letter codes.\n";
   std::cout << "        \t    \tDictionary in the <PROJECTION-FILE> should be in format 'key<TAB>value'.\n";
   std::cout << "        \t-R<REFERENCE-VALUES> <FLOAT-FEATURE> <STRING-FEATURE>\n";
@@ -374,7 +374,7 @@ static void help() {
 int main(int argc, const char** argv) {
 #ifdef TESTING
   argc = 8;
-  const char* arg[] = {argv[0], "-b", "C:\\Inspire\\test\\query\\residues.ind", "C:\\Inspire\\test\\query\\", "-", "-PC:\\Inspire\\test\\query\\aminoacid.moc", "-LC:\\Inspire\\test\\query\\aminoacid.tur;aminoacid", "C:\\Inspire\\pdb\\query\\"};
+  const char* arg[] = {argv[0], "-b", "C:\\Inspire\\test\\query\\residues.ind", "C:\\Inspire\\test\\query\\", "-", "-PC:\\Inspire\\test\\query\\aminoacid.nor", "-LC:\\Inspire\\test\\query\\aminoacid.tur;aminoacid", "C:\\Inspire\\pdb\\query\\"};
   argv = arg;
 #endif // TESTING
 

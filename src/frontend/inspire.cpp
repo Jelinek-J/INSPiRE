@@ -28,7 +28,7 @@ static const std::string COORDINATES_FILE = "coordinates.tur";
 static const std::string INTERFACES_FILE = "interfaces.tur";
 static const std::string FEATURES_FILE = "features.tur";
 static const std::string RADIUSES_FILE = "radiuses.rus";
-static const std::string AMINOACID_FILE = "aminoacid.moc";
+static const std::string AMINOACID_FILE = "aminoacid.nor";
 static const std::string RASA_RADIUSES_FILE = "rasa.rus";
 static const std::string RASA_COMPOSITION_FILE = "composition.cop";
 static const std::string RASA_MAX_FILE = "reference.sas";
@@ -225,7 +225,7 @@ static void help() {
   std::cout << "        \t                            \tWithout the switcher, prediction is printed to standard output.\n";
   std::cout << "        \t-m                          \tConstruction mode: knowledge-base will be constructed instead of used for prediction.\n";
   std::cout << "        \t-i<RADII-FILE>[<DISTANCE>]  \tRedefines radii of chemical elements using <RADII-FILE> and\n";
-  std::cout << "        \t                            \toptionally <DISTANCE> resets the maximal allowed distance of two radiuses (0.5 Ã… is a default value) to be classified as an interface.\n";
+  std::cout << "        \t                            \toptionally <DISTANCE> resets the maximal allowed distance of two radiuses (0.5 Å is a default value) to be classified as an interface.\n";
   std::cout << "        \t                            \t<DISTANCE> must be separated by a space from <RADII-FILE>.\n";
   std::cout << "        \t-g<FINGERPRINTS-FORMAT>     \tPath to a file defining how should be fingerprints constructed\n";
   std::cout << "        \t-h                          \tShow informations about the program\n";
@@ -252,9 +252,9 @@ static void help() {
   std::cout << "            \t-e                      \tFollows definition saying, what pairs of nodes are connected by an edge\n";
   std::cout << "        How it will be redefined:\n";
   std::cout << "            \tc<LIMIT>                \t<LIMIT>-nearest neighbours (if several neighbours are within the same distance as the <LIMIT>th-nearest neighbour, they all are taken).\n";
-  std::cout << "            \td<DISTANCE>             \tAll residues that are at most <DISTANCE> Ã…ngstrÃ¶ms away.\n";
+  std::cout << "            \td<DISTANCE>             \tAll residues that are at most <DISTANCE> Ångströms away.\n";
   std::cout << "            \te<DISTANCE>-<LIMIT>     \tAll residues that are at most <LIMIT> edges away, and\n";
-  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ã…ngstrÃ¶ms distant.\n";
+  std::cout << "            \t                        \ttwo residues are considered to be connected by an edge if they are at most <DISTANCE> Ångströms distant.\n";
   std::cout << "    Results:\n";
   std::cout << "        Specify a file format of results:\n";
   std::cout << "            \t-rx                     \tResults will be in XML file format.\n";
@@ -275,7 +275,7 @@ int main(int argc, const char** argv) {
 #else
   argc = 7;
   const char* arg[] = {argv[0], "-s", "C:\\Inspire\\2000\\valid\\pdb\\", "-xC:\\Inspire\\2000\\valid\\query\\", "-kC:\\Inspire\\2000\\valid\\kb\\",
-                                "-jC:\\Inspire\\2000\\valid\\kb\\related.exc", "-qC:\\Inspire\\2000\\valid\\output"};
+                                "-jC:\\Inspire\\2000\\valid\\kb\\related.pan", "-qC:\\Inspire\\2000\\valid\\output"};
   log.open("C:\\Inspire\\gvin\\error-predict.log", std::ofstream::app);
 #endif
   argv = arg;
@@ -510,6 +510,10 @@ int main(int argc, const char** argv) {
             inspire::backend::Feature<std::string>* subfeature;
             subfeature = new inspire::backend::AminoacidFeature(it);
             inner_features.push_back(subfeature);
+            // TODO: It is just temporary to repair bad extension and will be removed in a few months
+            if (common::filesystem::exists(knowledge_base + "aminoacid.moc")) {
+              common::filesystem::move(knowledge_base + "aminoacid.moc", aminoacid_name);
+            }
             features.push_back(new inspire::backend::StringProjectionFeature(aminoacid_name, subfeature));
           } else if (line == "-e") {
             features.push_back(new inspire::backend::CompositionFeature(it));
@@ -874,10 +878,10 @@ int main(int argc, const char** argv) {
       if (save) {
         output_name = std::string(argv[argv_index++]).substr(2);
         if (output_name.empty() || output_name.back() == common::filesystem::directory_separator) {
-          output_name += OUTPUT_FILE;
+          prediction_name += OUTPUT_FILE;
         } else if (common::filesystem::is_directory(statistics_name)) {
-          output_name += common::filesystem::directory_separator;
-          output_name += OUTPUT_FILE;
+          prediction_name += common::filesystem::directory_separator;
+          prediction_name += OUTPUT_FILE;
         }
       }
 

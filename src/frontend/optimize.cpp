@@ -23,8 +23,8 @@ void help() {
   std::cout << "        \t-l<FEATURES-FILE>  \tReal labels of residues their classification is optimized.\n";
   std::cout << "        \t<STATISTICS-FILE>  \tSet of mined statistics used for optimization.\n";
   std::cout << "        \t<OUTPUT-PATH>      \tWhere to store output file.\n";
-  std::cout << "        \t                   \tIf OUTPUT-PATH is empty or ends with a directory separator, STATISTICS-FILE's basename is used as the file name with '.den' as an extension.\n";
-  std::cout << "        \t                   \tIf OUTPUT-PATH does not end with '.den' extension, the extension is appended.\n";
+  std::cout << "        \t                   \tIf OUTPUT-PATH is empty or ends with a directory separator, STATISTICS-FILE's basename is used as the file name with '.sed' as an extension.\n";
+  std::cout << "        \t                   \tIf OUTPUT-PATH does not end with '.sed' extension, the extension is appended.\n";
   std::cout << "        \t-h                 \tShow informations about the program\n\n";
 }
 

@@ -45,7 +45,7 @@ int main(int argc, const char** argv) {
   argc = 10;
   const char* arg[] = { argv[0],
     "C:\\Inspire\\validate\\residue.ind", "C:\\Inspire\\validate\\index.log",
-    "C:\\Inspire\\validate\\aminoacid.tur", "C:\\Inspire\\validate\\pure.moc",
+    "C:\\Inspire\\validate\\aminoacid.tur", "C:\\Inspire\\validate\\pure.nor",
     "C:\\Inspire\\validate\\composition.tur", "C:\\Inspire\\validate\\composition.cit",
     "-b", "C:\\Inspire\\validate\\2010\\"
   };

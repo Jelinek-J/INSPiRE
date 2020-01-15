@@ -8,7 +8,7 @@ namespace inspire {
       private:
       // [Protein; model; chain; aminoacid]
       std::vector<std::tuple<std::string, std::string, std::string, std::string>> RESIDUES;
-      // *.pec file
+      // *.pec/ *.pot file
       std::ifstream INPUT;
 
       inline static std::string validate_name(std::string output, const std::string extension, const std::string input) {
@@ -21,7 +21,7 @@ namespace inspire {
           }
         }
         if (!common::string::ends_with(output, extension)) {
-          if (common::string::ends_with(output, ".pec")) {
+          if (common::string::ends_with(output, ".pec") || common::string::ends_with(output, ".pot")) {
             output = output.substr(0, output.size()-4);
           }
           output += extension;
@@ -94,7 +94,7 @@ namespace inspire {
 
       // Aligned file format
       static std::string List(const std::string &index, const std::string &results, const std::string &output) {
-        std::string output_path = validate_name(output, ".les", results);
+        std::string output_path = validate_name(output, ".pes", results);
         std::ofstream stream(output_path);
         Assignator assignator(index, results);
         std::string protein;

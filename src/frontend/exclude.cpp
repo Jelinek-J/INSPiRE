@@ -21,8 +21,8 @@ void help() {
   std::cout << "        \t<QUERY-INDEX>           \tPath to a query's index file\n";
   std::cout << "        \t<PROTEIN-ID>            \tIdentifiers of proteins that should be paired\n";
   std::cout << "        \t<OUTPUT-PATH>           \tWhere to store output file.\n";
-  std::cout << "        \t                        \tIf <OUTPUT-PATH> is empty or ends with a directory separator, 'related.exc' is used as the file name;\n";
-  std::cout << "        \t                        \tif the path is not a directory but does not but not ends with '.exc' extension, the extension is appended.\n";
+  std::cout << "        \t                        \tIf <OUTPUT-PATH> is empty or ends with a directory separator, 'related.pan' is used as the file name;\n";
+  std::cout << "        \t                        \tif the path is not a directory but does not but not ends with '.pan' extension, the extension is appended.\n";
   std::cout << "        \t-h                      \tShow informations about the program\n\n";
 }
 

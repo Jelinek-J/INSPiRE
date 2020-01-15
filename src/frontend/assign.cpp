@@ -28,7 +28,7 @@ void help() {
   std::cout << "        \t-c<DELIMITER> \tDelimiter-separated-value file format with <DELIMITER> as the delimiter.\n";
   std::cout << "        \t              \tThis file format has '.csv' as the extension.\n";
   std::cout << "        \t-l            \tSpace efficient variation of tab-separated-value file, where repeated values are ommited.\n";
-  std::cout << "        \t              \tThis file format has '.les' as the extension.\n\n";
+  std::cout << "        \t              \tThis file format has '.pes' as the extension.\n\n";
 }
 
 int main(int argc, const char** argv) {

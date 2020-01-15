@@ -49,7 +49,7 @@ int main(int argc, const char** argv) {
     "-n", "1",
     "-c", "aminoacid",
     "-k", "C:\\Inspire\\precompiled\\fingerprints\\",
-    "-s", "C:\\Inspire\\gvin\\related.exc",
+    "-s", "C:\\Inspire\\gvin\\related.pan",
     "C:\\Inspire\\test\\inspire\\fingerprints.fit", "C:\\Inspire\\test\\mint"
   };
   argv = args;

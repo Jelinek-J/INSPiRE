@@ -34,12 +34,12 @@ int main(int argc, const char** argv) {
   std::ofstream log("C:\\Inspire\\error-optimize.log");
   argc = 7;
   const char* args[] = {argv[0],
-    "C:\\Inspire\\combine\\pure-sasapercentil8.den",
+    "C:\\Inspire\\combine\\pure-sasapercentil8.sed",
     "-t",
     "test",
-    "C:\\Inspire\\combine\\2LTD.B-pure-sasapercentil8.den",
+    "C:\\Inspire\\combine\\2LTD.B-pure-sasapercentil8.sed",
     "pokus",
-    "C:\\Inspire\\combine\\3VNI.D-pure-sasapercentil8.den"
+    "C:\\Inspire\\combine\\3VNI.D-pure-sasapercentil8.sed"
   };
   argv = args;
 #endif // TESTING

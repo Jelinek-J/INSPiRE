@@ -47,8 +47,8 @@ namespace inspire {
       void optimize(std::string input) override {
         if (common::string::ends_with(input, ".sas")) {
           optimize(input, input.substr(0, input.size()-4));
-        } else if (common::string::ends_with(input, ".den")) {
-          optimize(input, input+".den");
+        } else if (common::string::ends_with(input, ".sed")) {
+          optimize(input, input+".sed");
         } else {
           optimize(input, input);
         }
@@ -63,9 +63,9 @@ namespace inspire {
           } else {
             output += tmp;
           }
-          output += ".den";
-        } else if (!common::string::ends_with(output, ".den")) {
-          output += ".den";
+          output += ".sed";
+        } else if (!common::string::ends_with(output, ".sed")) {
+          output += ".sed";
         }
 
         std::ifstream reader(input);

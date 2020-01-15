@@ -50,7 +50,7 @@ int main(int argc, const char** argv) {
 
   try {
     bool first = true;
-    inspire::backend::Random random(argv[1]);
+    inspire::backend::Random random(common::filesystem::complete(argv[1], "selected", ".let"));
     for (size_t argi = 2; argi < argc; ++argi) {
       if (!(first && argi+2 == argc) && strlen(argv[argi]) > 1 && argv[argi][0] == '-') {
         switch (argv[argi][1]) {
