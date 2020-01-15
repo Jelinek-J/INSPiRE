@@ -96,6 +96,7 @@ int main(int argc, const char** argv) {
       } else {
         if (argv[argi] == "-") {
           ++argi;
+          it = new inspire::backend::FirstModelIterator();
         }
         if (it == nullptr) {
           it = new inspire::backend::FirstModelIterator();
