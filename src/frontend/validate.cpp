@@ -12,7 +12,7 @@ void help() {
   std::cout << "Help\n\n";
 
   std::cout << "Check what complexes are valid to be in a knowledge-base.\n\n";
-  std::cout << "<index_file> <index_log> <aminoacid_file> <aminoacid_log> <coordinates_file> <coordinates_log> (<pdb_directory>|<pdb_file>)+\n";
+  std::cout << "<index_file> <index_log> <aminoacid_file> <aminoacid_log> <coordinates_file> <coordinates_log> [-b|-c|-bc|-w] (<pdb_directory>|<pdb_file>)+\n";
   std::cout << "-h\n\n";
   std::cout << "\t<index_file>      \tPath to a index file;\n";
   std::cout << "\t<index_log>       \tPath to a log file created during <index_file> construction;\n";

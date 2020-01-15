@@ -1,6 +1,7 @@
 #pragma once
 
 #include "index.h"
+#include "iterators.h"
 #include "../common/exception.h"
 #include "../common/random.h"
 #include <string>
@@ -15,7 +16,7 @@ namespace inspire {
       private:
       std::ofstream OUTPUT;
 
-      void gselect(size_t count, double limit, std::string header, std::string index_path, std::string similarity_path) {
+      void gselect(size_t count, double limit, std::string header, ProteinIterator* iterator, std::string index_path, std::string similarity_path) {
         std::map<std::string, std::set<std::string>> collisions;
         std::ifstream similarities(similarity_path);
         std::string line;
@@ -37,12 +38,12 @@ namespace inspire {
         }
 
         std::vector<std::string> order;
-        std::map<std::string, char> proteins;
+        std::map<std::string, std::string> proteins;
         inspire::backend::Index index(index_path);
         if (index.reset()) {
           std::string prev_protein;
           std::string prev_chain;
-          std::vector<char> chains;
+          std::vector<std::string> chains;
           bool add = false;
           do {
             std::string new_protein = index.protein();
@@ -58,8 +59,8 @@ namespace inspire {
             }
             if (add && index.model().empty()) {
               std::string new_chain = index.chain();
-              if (new_chain.size() == 1 && prev_chain != new_chain) {
-                chains.push_back(new_chain[0]);
+              if (prev_chain != new_chain && iterator->getBasicChainName(new_chain) == new_chain) {
+                chains.push_back(new_chain);
                 prev_chain = new_chain;
               }
             }
@@ -95,25 +96,25 @@ namespace inspire {
         if (selected.size() < count) {
           std::cerr << "Not enough unrelated structures, only " << selected.size() << " structures taken" << std::endl;
         }
-        std::cout << header;
+        OUTPUT << header;
         for (auto selected_id = selected.begin(); selected_id != selected.end(); ++selected_id) {
           if (selected_id != selected.begin()) {
-            std::cout << ", ";
+            OUTPUT << ", ";
           }
-          std::cout << *selected_id << '.' << proteins[*selected_id];
+          OUTPUT << *selected_id << '.' << proteins[*selected_id];
         }
-        std::cout << std::endl;
+        OUTPUT << std::endl;
       }
 
       public:
       Random(std::string output) : OUTPUT(output) { }
 
-      void select(size_t count, double limit, std::string header, std::string index, std::string similarity) {
-        gselect(count, limit, header + ":\t", index, similarity);
+      void select(size_t count, double limit, std::string header, ProteinIterator* iterator, std::string index, std::string similarity) {
+        gselect(count, limit, header + ":\t", iterator, index, similarity);
       }
 
-      void select(size_t count, double limit, std::string index, std::string similarity){
-        gselect(count, limit, "", index, similarity);
+      void select(size_t count, double limit, ProteinIterator* iterator, std::string index, std::string similarity){
+        gselect(count, limit, "", iterator, index, similarity);
       }
     };
   }
