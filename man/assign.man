@@ -39,7 +39,7 @@ This file format has '.csv' as the extension.
 .TP
 .B -l
 Space efficient variation of tab\-separated\-value file, where repeated values are ommited.
-This file format has '.les' as the extension.
+This file format has '.pes' as the extension.
 .SH SEE ALSO
 inspire(1), prediction(1)
 .SH AUTHOR

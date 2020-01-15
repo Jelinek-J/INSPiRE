@@ -26,8 +26,8 @@ if the path is not a directory but does not but not ends with '.cit', the extens
 .TP
 \fB\-p\fIOUTPUT\-PATH\fR
 Extracts parent aminacid single-letter codes where available.
-If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'aminoacid.moc' is used as the file name;
-if the path is not a directory but does not but not ends with '.moc', the extension is appended.
+If \fIOUTPUT\-PATH\fR is a directory or ends with a directory separator, 'aminoacid.nor' is used as the file name;
+if the path is not a directory but does not but not ends with '.nor', the extension is appended.
 .TP
 [\fB\-a\fR]\fIOUTPUT\-PATH\fR
 Shortcut for '\fB\-c\fIOUTPUT\-PATH\fR \fB\-p\fIOUTPUT\-PATH\fR'.

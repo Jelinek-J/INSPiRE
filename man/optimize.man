@@ -25,8 +25,8 @@ Set of mined statistics used for optimization.
 .TP
 \fIOUTPUT\-PATH\fR
 Where to store output file.
-If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fISTATISTICS\-FILE\fR's basename is used as the file name with '.den' as an extension.
-If \fIOUTPUT\-PATH\fR does not end with '.den' extension, the extension is appended.
+If \fIOUTPUT\-PATH\fR is empty or ends with a directory separator, \fISTATISTICS\-FILE\fR's basename is used as the file name with '.sed' as an extension.
+If \fIOUTPUT\-PATH\fR does not end with '.sed' extension, the extension is appended.
 .SH TO DO
 Propose generalization of binary classifier to n\-ary data and more complex classifiers.
 
