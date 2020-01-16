@@ -5,10 +5,10 @@
 random \- select random mutually dissimilar protein chains
 .SH SYNOPSIS
 .B random
-\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
+\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
 
 .B random
-\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
+\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
 
 .B exclude \-h
 .SH DESCRIPTION
@@ -40,7 +40,7 @@ Path to a similarity file defining similarity of chains
 .BR -h ", " --help
 Show informations about the program
 .SS Iterators:
-What iterator was used to construction of the index file (if no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation were used):
+What iterator was used to construction of the index file:
 .TP
 .B \-b
 All biomolecules and models, but only the first crystallographic transformation were used;
@@ -50,6 +50,9 @@ All crystallographic transformations, but only the first biomolecule and model w
 .TP
 .B \-bc
 All biomolecules, models and crystallographic transformations were used;
+.TP
+.B \-f
+Only the first biomolecule from the first model with the first crystallographic transformation were used (this is the default option);
 .TP
 .B \-w
 Both biomolecules and crystallographic transformation were ignored, all chains were used as they were;
