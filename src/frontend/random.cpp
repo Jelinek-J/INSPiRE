@@ -12,8 +12,8 @@ void help() {
   std::cout << "Randomly selects 100 protein chains (at most one chain from each protein) with mutual similarity less than a given threshold.\n";
   std::cout << "Selected chains will be printed in format <PROTEIN-ID>.<CHAIN-ID>.\n\n";
 
-  std::cout << "Usage:\t<OUTPUT-FILE> [-n<COUNT>] [-l<LIMIT>] [-b|-c|-bc|-w] <INDEX-FILE> <SIMILARITY-FILE>\n";
-  std::cout << "      \t<OUTPUT-FILE> ([-n<COUNT>] [-l<LIMIT>] [-b|-c|-bc|-w] [-] <HEADER> <INDEX-FILE> <SIMILARITY-FILE>)+\n";
+  std::cout << "Usage:\t<OUTPUT-FILE> [-n<COUNT>] [-l<LIMIT>] [-f|-b|-c|-bc|-w] <INDEX-FILE> <SIMILARITY-FILE>\n";
+  std::cout << "      \t<OUTPUT-FILE> ([-n<COUNT>] [-l<LIMIT>] [-f|-b|-c|-bc|-w] [-] <HEADER> <INDEX-FILE> <SIMILARITY-FILE>)+\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t<OUTPUT-FILE>    \tWhere to store identifiers of selected chains.\n";
@@ -23,11 +23,11 @@ void help() {
   std::cout << "        \t<INDEX-FILE>     \tPath to a index file containing chains that can be selected.\n";
   std::cout << "        \t<SIMILARITY-FILE>\tPath to a similarity file defining similarity of chains.\n";
   std::cout << "        \t-h, --help       \tShow informations about the program.\n";
-  std::cout << "\tIterators: What iterator was used to construction of the index file\n";
-  std::cout << "\t           (if no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation was used):\n";
+  std::cout << "\tIterators: What iterator was used to construction of the index file:\n";
   std::cout << "\t\t-b \tAll biomolecules and models, but only the first crystallographic transformation were used;\n";
   std::cout << "\t\t-c \tAll crystallographic transformations, but only the first biomolecule and model were used;\n";
   std::cout << "\t\t-bc\tAll biomolecules, models and crystallographic transformations were used;\n";
+  std::cout << "\t\t-f \tOnly the first biomolecule from the first model with the first crystallographic transformation was used (this is the default option);\n";
   std::cout << "\t\t-w \tBoth biomolecules and crystallographic transformation were ignored, all chains were used as they were.\n\n";
 }
 
@@ -84,6 +84,9 @@ int main(int argc, const char** argv) {
             break;
           case 'c':
             it = new inspire::backend::FirstModelCrystallographicIterator();
+            break;
+          case 'f':
+            it = new inspire::backend::FirstModelIterator();
             break;
           case 'w':
             it = new inspire::backend::ExplicitIterator();
