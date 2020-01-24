@@ -25,7 +25,7 @@ namespace inspire {
       }
 
       size_t get_index(const std::string name) {
-        indices[name];
+        return indices[name];
       }
     };
 
