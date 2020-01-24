@@ -12,13 +12,14 @@ void help() {
   std::cout << "Randomly selects 100 protein chains (at most one chain from each protein) with mutual similarity less than a given threshold.\n";
   std::cout << "Selected chains will be printed in format <PROTEIN-ID>.<CHAIN-ID>.\n\n";
 
-  std::cout << "Usage:\t<OUTPUT-FILE> [-n<COUNT>] [-l<LIMIT>] [-f|-b|-c|-bc|-w] <INDEX-FILE> <SIMILARITY-FILE>\n";
-  std::cout << "      \t<OUTPUT-FILE> ([-n<COUNT>] [-l<LIMIT>] [-f|-b|-c|-bc|-w] [-] <HEADER> <INDEX-FILE> <SIMILARITY-FILE>)+\n";
+  std::cout << "Usage:\t<OUTPUT-FILE> [-n<COUNT>] [-s<SEED>] [-t<THRESHOLD>] [-f|-b|-c|-bc|-w] <INDEX-FILE> <SIMILARITY-FILE>\n";
+  std::cout << "      \t<OUTPUT-FILE> ([-n<COUNT>] [-s<SEED>] [-t<THRESHOLD>] [-f|-b|-c|-bc|-w] [-] <HEADER> <INDEX-FILE> <SIMILARITY-FILE>)+\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t<OUTPUT-FILE>    \tWhere to store identifiers of selected chains.\n";
-  std::cout << "        \t-n<COUNT>        \tHow many of dissimilar chains should be selected. The default value is 100.\n";
-  std::cout << "        \t-l<LIMIT>        \tLimit to consider chains as similar. The default value is 0.1.\n";
+  std::cout << "        \t-n<COUNT>        \tHow many of dissimilar chains should be selected. The default count is 100.\n";
+  std::cout << "        \t-s<SEED>         \tSeed to initialize a random generator. The default seed is 1.\n";
+  std::cout << "        \t-t<THRESHOLD>    \tThreshold to consider chains as similar. The default threshold is 0.1.\n";
   std::cout << "        \t- <HEADER>       \tHeader to use in the output file for a following pair of input files. The hyphen/minus sign is mandatory only if <HEADER> starts with a hyphen/minus sign.\n";
   std::cout << "        \t<INDEX-FILE>     \tPath to a index file containing chains that can be selected.\n";
   std::cout << "        \t<SIMILARITY-FILE>\tPath to a similarity file defining similarity of chains.\n";
@@ -52,7 +53,7 @@ int main(int argc, const char** argv) {
   }
 
   size_t count = 100;
-  double limit = 0.1;
+  double threshold = 0.1;
 
   try {
     bool first = true;
@@ -68,11 +69,18 @@ int main(int argc, const char** argv) {
               count = std::stoi(std::string(argv[argi]).substr(2));
             }
             break;
-          case 'l':
+          case 't':
             if (strlen(argv[argi]) == 2) {
-              limit = std::stod(std::string(argv[++argi]));
+              threshold = std::stod(std::string(argv[++argi]));
             } else {
-              limit = std::stod(std::string(argv[argi]).substr(2));
+              threshold = std::stod(std::string(argv[argi]).substr(2));
+            }
+            break;
+          case 's':
+            if (strlen(argv[argi]) == 2) {
+              common::random::set_seed(std::atoi(argv[++argi]));
+            } else {
+              common::random::set_seed(std::stoi(std::string(argv[argi]).substr(2)));
             }
             break;
           case 'b':
@@ -104,9 +112,9 @@ int main(int argc, const char** argv) {
           it = new inspire::backend::FirstModelIterator();
         }
         if (first && argi+2 == argc) {
-          random.select(count, limit, it, argv[argi], argv[argi+1]);
+          random.select(count, threshold, it, argv[argi], argv[argi+1]);
         } else {
-          random.select(count, limit, argv[argi], it, argv[argi+1], argv[argi+2]);
+          random.select(count, threshold, argv[argi], it, argv[argi+1], argv[argi+2]);
           ++argi;
           first = false;
         }

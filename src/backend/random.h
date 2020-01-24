@@ -16,7 +16,7 @@ namespace inspire {
       private:
       std::ofstream OUTPUT;
 
-      void gselect(size_t count, double limit, std::string header, ProteinIterator* iterator, std::string index_path, std::string similarity_path) {
+      void gselect(size_t count, double threshold, std::string header, ProteinIterator* iterator, std::string index_path, std::string similarity_path) {
         std::map<std::string, std::set<std::string>> collisions;
         std::ifstream similarities(similarity_path);
         std::string line;
@@ -31,7 +31,7 @@ namespace inspire {
             if (first == second) {
               throw common::exception::TitledException("Unexpected format of similarity file: '" + line + "'");
             }
-            if (std::stod(line.substr(0, first)) >= limit) {
+            if (std::stod(line.substr(0, first)) >= threshold) {
               id.emplace(line.substr(first+1, second-first-1));
             }
           }
@@ -109,12 +109,12 @@ namespace inspire {
       public:
       Random(std::string output) : OUTPUT(output) { }
 
-      void select(size_t count, double limit, std::string header, ProteinIterator* iterator, std::string index, std::string similarity) {
-        gselect(count, limit, header + ":\t", iterator, index, similarity);
+      void select(size_t count, double threshold, std::string header, ProteinIterator* iterator, std::string index, std::string similarity) {
+        gselect(count, threshold, header + ":\t", iterator, index, similarity);
       }
 
-      void select(size_t count, double limit, ProteinIterator* iterator, std::string index, std::string similarity){
-        gselect(count, limit, "", iterator, index, similarity);
+      void select(size_t count, double threshold, ProteinIterator* iterator, std::string index, std::string similarity){
+        gselect(count, threshold, "", iterator, index, similarity);
       }
     };
   }
