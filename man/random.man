@@ -21,7 +21,7 @@ Selected chains will be printed in format \fIPROTEIN-ID\fB.\fICHAIN-ID\fR.
 Where to store identifiers of selected chains.
 .TP
 \fB\-c\fICOUNT
-How many of dissimilar chains should be selected. The default value is 100.
+How many of dissimilar chains should be selected. The default count is 100.
 .TP
 \fB\-s\fISEED
 Seed to initialize a random generator. The default seed is 1.
@@ -62,4 +62,4 @@ Both biomolecules and crystallographic transformation were ignored, all chains w
 .SH SEE ALSO
 inspire(1), index(1), similarity(1)
 .SH AUTHOR
-Jan Jelínek (jelinek@ksi.mff.cuni.cz)
+Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
