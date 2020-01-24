@@ -5,10 +5,10 @@
 random \- select random mutually dissimilar protein chains
 .SH SYNOPSIS
 .B random
-\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
+\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
 
 .B random
-\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-l\fILIMIT\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
+\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
 
 .B exclude \-h
 .SH DESCRIPTION
@@ -23,8 +23,11 @@ Where to store identifiers of selected chains.
 \fB\-c\fICOUNT
 How many of dissimilar chains should be selected. The default value is 100.
 .TP
-\fB\-l\fILIMIT
-Limit to consider chains as similar. The default value is 0.1.
+\fB\-s\fISEED
+Seed to initialize a random generator. The default seed is 1.
+.TP
+\fB\-t\fITHRESHOLD
+Limit to consider chains as similar. The default threshold is 0.1.
 .TP
 \fB\-\fR \fIHEADER
 Header to use in the output file for a following pair of input files.
