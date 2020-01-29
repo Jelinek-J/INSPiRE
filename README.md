@@ -113,3 +113,79 @@ and by
 ```
 inspire -h
 ```
+
+## 2.b: Advanced usage - basic example ##
+This subchapter shows you in examples how to reach the same results as in the previous subchapter, but using fragmented INSPiRE tools (see chapter 1.b). In this subchapter it is supposed you have installed all prerequisities from the previous subchapter and downloaded INSPiRE in the directory `INSPiRE` (e.g. you followed the procedure described in the previous subchapter at least to the command `git clone https://github.com/Jelinek-J/INSPiRE.git` inclusive).
+
+Initially, it is needed to compile and install fragmented INSPiRE tools (I also recommend you to update the repository to the latest version):
+```
+cd INSPiRE/
+git pull
+cd src/
+make fragments
+sudo make install
+cd ../..
+```
+
+Using fragmented tools there are created many more intermediate files that you do not need if you only want the prediction, but that can be reused or can be used in different pipelines too.
+As in the previous subchapter, if you just want to test the INSPiRE tools using the sample knowledge-base and/or queries, you should move to the directory 'examples', create some directories for intermediate files and create a configuration file:
+```
+cd INSPiRE/examples
+mkdir intermediate_query
+mkdir intermediate_kb
+echo '{"fingerprint":{"size":1023,"edge":[{"type":"distance","size":4}],"vertex": [{"type": "mapping","property": "taminoacid","map": {"A": 1,"B": 2,"C": 3,"D": 4,"E": 5,"F": 6,"G": 7,"H": 8,"I": 9,"J": 10,"K": 11,"L": 12,"M": 13,"N":14,"O": 15,"P": 16,"Q": 17,"R": 18,"S": 19,"T": 20,"U": 21,"V": 22,"W": 23,"X": 0,"Y": 24,"Z": 25,"": 26},"size": 5}]}}' > settings.json
+```
+
+The prediction itself starts with creation of an index file ('index.ind') for all proteins in directory 'query':
+```
+index intermediate_query/index.ind query/
+```
+Then coordinates ('coordinates.tur') of residues and aminoacid types ('taminoacid.tur') should be extracted:
+```
+features intermediate_query/index.ind intermediate_query/ - -c -Pfingerprints/aminoacid.nor -a query/
+```
+Third, coordinates ('coordinates.tur') and index file ('index.ind') are used to identify neighbourhoods of residues ('c6.sup') and edges between residues ('d6.000000.sup'):
+```
+subgraphs intermediate_query/index.ind intermediate_query/coordinate.tur intermediate_query/ -c 6 -d 6
+```
+Fourth, fingerprints ('fingerprints.fit') are constructed based on the index file ('index.ind'), aminoacid type feature ('taminoacid.tur'), subgraph files ('c6.sup' and 'd6.000000.sup') and a configuration file ('settings.json'):
+```
+fingerprints q intermediate_query/fingerprints.fit fingerprints/settings.json intermediate_query/index.ind intermediate_query/c6.sup intermediate_query/d6.000000.sup intermediate_query/taminoacid.tur
+```
+Fifth, for each query fingerprint in 'fingerprints.fit', similar fingerprints in knoledge-base (directory 'fingerprints') are mined and stored in 'mined.med':
+```
+mine -c taminoacid -k fingerprints/ intermediate_query/fingerprints.fit intermediate_query/mined.med
+```
+Sixth, summary statistics ('classified.sas') are generated based on similar fingerprints ('mined.med') and interface feature ('interface.tur')
+```
+classify fingerprints/interfaces.tur -f interface intermediate_query/mined.med intermediate_query/classified.sas
+```
+Seventh, a forecast ('prediction.pec') is made based on summary statistics ('classified.sas')
+```
+predict -f0.5175 intermediate_query/classified.sas intermediate_query/prediction.pec
+```
+Finally, the forecast ('prediction.pec') is transformed from an inner compact format to a human-readable format ('results.csv') using the index file ('index.ind'):
+```
+assign -c'\t' intermediate_query/index.ind intermediate_query/prediction.pec results.csv
+```
+
+If you want to compile your own knowledge-base from files in directory 'queries' and store it in a directory 'knowledge-base', again start with creation of an index file ('index.ind'), extraction of coordinates ('coordinates.tur') and aminoacid types ('taminoacid.tur'), and  identification of neighbourhoods of residues ('c6.sup') and edges between residues ('d6.000000.sup'):
+```
+index intermediate_kb/index.ind queries/
+features intermediate_kb/index.ind intermediate_kb/ - -c -Pfingerprints/aminoacid.nor -a queries/
+subgraphs intermediate_kb/index.ind intermediate_kb/coordinate.tur intermediate_kb/ -c 12 -d 6
+```
+Then create fingerprints of knowledge-base based on previously created files:
+```
+fingerprints k knowledge-base/ settings.json intermediate_kb/index.ind intermediate_kb/c12.sup intermediate_kb/d6.000000.sup intermediate_kb/taminoacid.tur
+```
+And finally identify interface residues based on protein files, index file ('index.ind') and definition of radii for each valid atom type ('radiuses.rus'):
+```
+features intermediate_kb/index.ind knowledge-base/interfaces.tur -ifingerprints/radiuses.rus queries/
+```
+If you want to use the knowledge-base for predction with single INSPiRE tool (see chapter 1.c), you should also copy and create some configuration files to make things easier:
+```
+cp fingerprints/aminoacid.nor fingerprints/radiuses.rus settings.json knowledge-base/
+echo -e "\n0.5\n-a\n--\nc12\nd6" > knowledge-base/config
+```
+At this point, 'knowledge-base' directory should be exactly the same as in the case of the chapter 2.a.
