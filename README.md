@@ -1,3 +1,4 @@
+![INSPiRE qr-code](./qr-code.svg?s=200)
 # INSPiRE
 knowledge-based protein-protein INteraction Sites PREdictor. For details about how the algorithm works please read https://doi.org/10.1186/s12859-017-1921-4. 
 
@@ -46,8 +47,11 @@ Using the files mentioned in the previous subsection, you need to compile (each 
 
 You can do it by typing `make all` in bash to compile everything except 'frontend/aminoacids.cpp' (for the case that you want to use custom transformation of aminoacids' three-letter codes) and by typing `make aminoacids` to compile 'frontend/aminoacids.cpp'.  Optionally you can then type `make install` to install compiled binaries to the corresponding system directory.
 
-An intended connection of tools is shown on a following image where tools are represented by green rectangles, auxiliary files are blue objects and input/output files are red objects.
+An intended connection of tools is shown on a following image where tools are represented by green rectangles with solid lines, auxiliary files are blue objects with dashed lines and input/output files are red objects with dotted lines.
 ![Schema of INSPiRE tools](./schema.svg)
+The schema may seem too complicated, but it just shows full strength and complexity of the INSPiRE framework and the original INSPiRE pipeline is much easier:
+![Schema of INSPiRE tools](./schema2.svg)
+
 
 ## 1.c: Single INSPiRE tool ##
 You will probably prefer this approach if you want to use the INSPiRE for its original purpose, i.e. prediction of new protein-protein interaction interfaces. Instead of all the '\*.cpp' (mentioned in chapter 1.b) you need only a single file 'frontend/inspire.cpp' that is roughly equivalent to pipeline of tools from the previous subsection that corresponds to the INSPiRE algorithm. At most, you can optionally use 'frontend/aminoacids.cpp' to change the original mapping of three-letters codes to one-letter codes.
