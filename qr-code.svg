@@ -12,9 +12,9 @@
    version="1.1"
    id="svg4518"
    xml:space="preserve"
-   width="3cm"
-   height="3cm"
-   viewBox="0 0 113.38583 113.38583"
+   width="8cm"
+   height="8cm"
+   viewBox="0 0 302.36221 302.36221"
    sodipodi:docname="qr-code.svg"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"><metadata
      id="metadata4524"><rdf:RDF><cc:Work
@@ -40,7 +40,7 @@
      id="namedview4520"
      showgrid="false"
      inkscape:zoom="0.78467153"
-     inkscape:cx="314.78139"
+     inkscape:cx="81.562785"
      inkscape:cy="548"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
@@ -50,9 +50,9 @@
      id="g4526"
      inkscape:groupmode="layer"
      inkscape:label="qr-code"
-     transform="matrix(1.3333333,0,0,-1.3333333,0,113.38585)"><g
+     transform="matrix(1.3333333,0,0,-1.3333333,0,302.36223)"><g
        id="g4528"
-       transform="scale(0.10345422)"><g
+       transform="matrix(0.27587793,0,0,0.27587793,0,1.0512946e-5)"><g
          id="g4530"
          clip-path="url(#clipPath4534)"><path
            d="M 0,822 H 822 V 0 H 0 Z"
@@ -67,6 +67,7 @@
      y="0"
      id="tspan4540">I</tspan></text>
 
+
 </g><g
            id="g4544"><text
    transform="matrix(1,0,0,-1,381.1,412.6)"
@@ -75,6 +76,7 @@
      x="0"
      y="0"
      id="tspan4546">N</tspan></text>
+
 
 </g><g
            id="g4550"><text
@@ -86,6 +88,7 @@
      sodipodi:role="line"
      id="tspan4552">SP</tspan></text>
 
+
 </g><g
            id="g4556"><text
    transform="matrix(1,0,0,-1,358.6,315.8)"
@@ -95,6 +98,7 @@
      y="0"
      sodipodi:role="line"
      id="tspan4558">iRE</tspan></text>
+
 
 </g><path
            d="m 14.2,795.1 c -2.4,0 -4.4,0.5 -6.4,1.7 -2,1.2 -3.5,2.6 -4.7,4.6 -1.1,2.1 -1.7,4.1 -1.7,6.4 0,2.4 0.6,4.4 1.7,6.4 1.2,2 2.7,3.5 4.7,4.7 2,1.1 4,1.7 6.4,1.7 2.3,0 4.3,-0.6 6.4,-1.7 2,-1.2 3.4,-2.7 4.6,-4.7 1.2,-2 1.7,-4 1.7,-6.4 0,-2.3 -0.5,-4.3 -1.7,-6.4 -1.2,-2 -2.6,-3.4 -4.6,-4.6 -2.1,-1.2 -4.1,-1.7 -6.4,-1.7 z"
