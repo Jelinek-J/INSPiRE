@@ -1,4 +1,4 @@
-![INSPiRE qr-code](./qr-code.svg?s=200)
+![INSPiRE qr-code](./qr-code.svg)
 # INSPiRE
 knowledge-based protein-protein INteraction Sites PREdictor. For details about how the algorithm works please read https://doi.org/10.1186/s12859-017-1921-4. 
 
