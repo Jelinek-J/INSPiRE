@@ -103,7 +103,7 @@ For each residue relativizes a value of \fIFLOAT\-FEATURE\fR based on reference 
 E.g. to transform solvent accessible surface area to relative solvent accessible surface area.
 .TP
 \fB\-X\fR(\fBf\fR|\fBs\fR)\fIFEATURE\-FILE\fR
-Load an external feature from \fIFEATURE\-FILE\fR file in format \fIresidue_id\fB\t\fIvalue\fR.
+Load an external feature from \fIFEATURE\-FILE\fR file in format \fIresidue_id\fB\\t\fIvalue\fR.
 The feature gets \fBxenofeature\fR as a title (it can be changed by \fB-N\fR feature).
 \fBs\fR/ \fBf\fR defines a format of the \fIresidue_id\fR \- \fBs\fR means a simple format, while \fBf\fR means a full format.
 The simple format has \fIresidue_id\fR in a form '\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR' and

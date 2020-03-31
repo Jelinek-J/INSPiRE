@@ -17,7 +17,7 @@ inspire \- protein\-protein INteraction Sites PREdictor
 [\fB\-s\fR \fIPROTEINS\-PATH\fR+] (\fB\-S\fR \fIPROTEIN\-FILE\fR)* [\fB\-x\fR\fITEMP\-DIR\fR] [\fB\-k\fR\fIKNOWLEDGE\-BASE\fR] \fB\-m\fR
 [\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR]
 [\fB\-i\fR\fIRADII\-FILE\fR[\fIDISTANCE\fR]
-[\fB\-F\fR ( \fB\-a\fR\fITRANSFORMATION\-FILE\fR | \fB\-e\fR | \fB\-r\fR[[\fIRADII\-FILE\fR;[\fICOMPOSITION\-FILE\fR;]]\fIMAX\-SASA\-FILE\fR] | \fB\-t\fR )* \fB\-f\fR]
+[\fB\-F\fR ( \fB\-a\fR\fITRANSFORMATION\-FILE\fR | \fB\-e\fR | \fB\-r\fR[[\fIRADII\-FILE\fR;[\fICOMPOSITION\-FILE\fR;]]\fIMAX\-SASA\-FILE\fR] | \fB\-t\fR | \fB\-x\fR(\fBf\fR|\fBs\fR)\fIFEATURE\-FILE\fR )* \fB\-f\fR]
 [\fB\-v\fR[\fBc\fR[\fILIMIT\fR]|\fBd\fR[\fIDISTANCE\fR]|\fBe\fR[\fIDISTANCE\fR[\fB\-\fR\fILIMIT\fR]]]]
 [\fB\-e\fR[\fBc\fR[\fILIMIT\fR]|\fBd\fR[\fIDISTANCE\fR]|\fBe\fR[\fIDISTANCE\fR[\fB\-\fR\fILIMIT\fR]]]]
 [\fB\-g\fR\fIFINGERPRINTS\-FORMAT\fR]
@@ -126,6 +126,40 @@ atomic radiuses defined in \fIRADII\-FILE\fR and reference solvent accessible su
 .TP
 .B \-t
 Temperature factor will be extracted for each residue.
+.TP
+\fB\-x\fR(\fBf\fR|\fBs\fR)\fIFEATURE\-FILE\fR
+Load an external feature from \fIFEATURE\-FILE\fR file in format \fIresidue_id\fB\\t\fIvalue\fR.
+\fBs\fR/ \fBf\fR defines a format of the \fIresidue_id\fR \- \fBs\fR means a simple format, while \fBf\fR means a full format.
+The simple format has \fIresidue_id\fR in a form '\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR' and
+values will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.
+The full format depends on the used iterator and its identifiers used in the index file:
+
+\- for the default iterator:
+.RS
+.RS
+\fIprotein_id\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-w\fR:
+.RS
+\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-b\fR:
+.RS
+\fIprotein_id\fB;\fIbiomoleculeID\fB,\fImodelID\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-c\fR:
+.RS
+\fIprotein_id\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB*\fIcrystallographicTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-bc\fR:
+.RS
+\fIprotein_id\fB;\fIbiomoleculeID\fB,\fImodelID\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB*\fIcrystallographicTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+.RE
 .SS Subgraphs
 What component of graphs will be redefined:
 .TP
