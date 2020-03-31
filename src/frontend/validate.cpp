@@ -17,7 +17,7 @@ void help() {
   std::cout << "Help\n\n";
 
   std::cout << "Check what complexes are valid to be in a knowledge-base.\n\n";
-  std::cout << "[-a[<incomplete_abs>]] [-b] [-c[<min_chains>]] [-d] [-l[<min_length>]] [-n] [-r[<incomplete_rel>]] [-u] <index_file> <index_log> <residues_file> <residues_valid> <compositions_file> <compositions_valid> [-ib|-ic|-ibc|-iw] <pdb_path>+\n";
+  std::cout << "[-a[<incomplete_abs>]] [-b] [-c[<min_chains>]] [-d] [-l[<min_length>]] [-n] [-r[<incomplete_rel>]] [-u] ([-x] | [-xi[<min_count>]] [-xn[<min_count>]]) <index_file> <index_log> <residues_file> <residues_valid> <compositions_file> <compositions_valid> <interfaces_file> [-ib|-ic|-ibc|-iw] <pdb_path>+\n";
   std::cout << "-h\n\n";
   std::cout << "\t\t<index_file>        \tPath to a index file;\n";
   std::cout << "\t\t<index_log>         \tPath to a log file created during <index_file> construction;\n";
@@ -50,6 +50,13 @@ void help() {
   std::cout << "\t\t                  \tMandatory are <index_file>, <index_log>, <residues_file>, <compositions_file>, <compositions_valid> and an used iterator.\n";
   std::cout << "\t\t-u                \tThere cannot be any unknown residue.\n";
   std::cout << "\t\t                  \tMandatory are <index_file>, <residues_file> and <residues_valid>.\n";
+  std::cout << "\t\t-x                \tShortcut for '-ii1 -in1'.\n";
+  std::cout << "\t\t-xi<min_count>    \tEach chain must contain at least <min_count> interacting residue.\n";
+  std::cout << "\t\t                  \tThe default value of <min_count> (if missing or empty) is 1.\n";
+  std::cout << "\t\t                  \tMandatory are <index_file> and <interfaces_file>.\n";
+  std::cout << "\t\t-xn<min_count>    \tEach chain must contain at least <min_count> non-interacting residue.\n";
+  std::cout << "\t\t                  \tThe default value of <min_count> (if missing or empty) is 1.\n";
+  std::cout << "\t\t                  \tMandatory are <index_file> and <interfaces_file>.\n";
   std::cout << "\tIterators: What iterator was used to construction of the index file\n";
   std::cout << "\t           (if no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation was used):\n";
   std::cout << "\t\t-ib \tAll biomolecules and models, but only the first crystallographic transformation were used;\n";
@@ -67,7 +74,7 @@ int main(int argc, const char** argv) {
     "C:\\Inspire\\validate\\residue.ind", "C:\\Inspire\\validate\\index.log",
     "C:\\Inspire\\validate\\aminoacid.tur", "C:\\Inspire\\validate\\pure.nor",
     "C:\\Inspire\\validate\\composition.tur", "C:\\Inspire\\validate\\composition.cit",
-    "-b", "C:\\Inspire\\validate\\2010\\"
+    "C:\\Inspire\\validate\\interfaces.tur", "-b", "C:\\Inspire\\validate\\2010\\"
   };
   argv = arg;
 #endif // TESTING
@@ -93,9 +100,11 @@ int main(int argc, const char** argv) {
     bool ambiguity = false;
     size_t min_chains = 0;
     bool remark_350 = false;
+    size_t interacting = 0;
+    size_t noninteracting = 0;
 
     size_t argi = 0;
-    while ((++argi)+6 < argc && strlen(argv[argi]) > 1 && argv[argi][0] == '-') {
+    while ((++argi)+7 < argc && strlen(argv[argi]) > 1 && argv[argi][0] == '-') {
       switch (argv[argi][1]) {
         case 'a':
           if (strlen(argv[argi]) > 2) {
@@ -165,6 +174,31 @@ int main(int argc, const char** argv) {
         case 'u':
           unknown_residues = true;
           break;
+        case 'x':
+          if (strlen(argv[argi]) == 2) {
+            interacting = 1;
+            noninteracting = 1;
+          } else {
+            switch (argv[argi][2]) {
+              case 'i':
+                if (strlen(argv[argi]) == 3) {
+                  interacting = 1;
+                } else {
+                  interacting == std::stoull(std::string(argv[argi]).substr(3));
+                }
+                break;
+              case 'n':
+                if (strlen(argv[argi]) == 3) {
+                  noninteracting = 1;
+                } else {
+                  noninteracting == std::stoull(std::string(argv[argi]).substr(3));
+                }
+                break;
+              default:
+                break;
+            }
+          }
+          break;
         default:
           break;
       }
@@ -173,7 +207,7 @@ int main(int argc, const char** argv) {
     inspire::backend::Validate validator(argv[argi]);
     inspire::backend::ProteinIterator* it;
     std::set<std::string> paths;
-    size_t argj = argi+6;
+    size_t argj = argi+7;
     if (std::strlen(argv[argj]) > 2 && argv[argj][0] == '-') {
       if (argv[argj] == std::string("-ic")) {
         it = new inspire::backend::FirstModelCrystallographicIterator();
@@ -219,6 +253,9 @@ int main(int argc, const char** argv) {
     }
     if (remark_350) {
       validator.validate_remark_350(argv[argi+1]);
+    }
+    if (interacting > 0 || noninteracting > 0) {
+      validator.validate_interfaces(argv[argi], argv[argi+6], interacting, noninteracting);
     }
     validator.print_proteins();
 

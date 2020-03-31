@@ -442,6 +442,66 @@ namespace inspire {
       }
     };
 
+    // Load external feature
+    class ExternalLoaderFeature : public ProteinFeature<std::string> {
+      private:
+      std::string TITLE;
+      std::map<std::string, std::string> DICTIONARY;
+      virtual std::string getModelName(std::string model) = 0;
+      virtual std::string getChainName(std::string chain) = 0;
+
+      public:
+      ExternalLoaderFeature(ProteinIterator* iterator, std::string file, std::string title) : ProteinFeature(iterator), TITLE(title) {
+        std::ifstream input(file);
+        std::string line;
+        while (std::getline(input, line)) {
+          size_t separator = line.find('\t');
+          if (separator == line.npos) {
+            std::cerr << "Missing separator, line will be skipped: '" << line << "'" << std::endl;
+          } else {
+            std::string key = line.substr(0, separator);
+            if (DICTIONARY.find(key) == DICTIONARY.end()) {
+              DICTIONARY[key] = line.substr(separator+1);
+            } else {
+              std::cerr << "Duplicit occurance of a key: '" << key << "'" << std::endl;
+            }
+          }
+        }
+      }
+
+      std::string title() override { return TITLE; }
+
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        auto it = DICTIONARY.find(ITERATOR->getProteinName() + getModelName(model) + "." + getChainName(chain) + "." + aminoacid);
+        return it == DICTIONARY.end() ? UNDEFINED : it->second;
+      }
+    };
+    class BasicExternalLoaderFeature : public ExternalLoaderFeature {
+      private:
+      std::string getModelName(std::string model) override {
+        return "";
+      }
+
+      std::string getChainName(std::string chain) override {
+        return ITERATOR->getBasicChainName(chain);
+      }
+
+      public:
+      BasicExternalLoaderFeature(ProteinIterator* iterator, std::string file, std::string title) : ExternalLoaderFeature(iterator, file, title) { }
+    };
+    class FullExternalLoaderFeature : public ExternalLoaderFeature {
+      private:
+      std::string getModelName(std::string model) override {
+        return ITERATOR->getFullModelName(model);
+      }
+
+      std::string getChainName(std::string chain) override {
+        return ITERATOR->getFullChainName(chain);
+      }
+
+      public:
+      FullExternalLoaderFeature(ProteinIterator* iterator, std::string file, std::string title) : ExternalLoaderFeature(iterator, file, title) { }
+    };
 
     // String feature that extracts residue name
     class AminoacidFeature : public ProteinFeature<std::string> {

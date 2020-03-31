@@ -595,6 +595,73 @@ namespace inspire {
         relative_complement(PROTEINS_VALID, proteins_rel_carbon_alpha);
       }
 
+      void validate_interfaces(std::string index_file, std::string interfaces_file, size_t interacting, size_t noninteracting) {
+        std::set<std::string> proteins_monotonous;
+
+        std::string protein_name;
+        std::string model_name;
+        std::string chain_name;
+        Index index(index_file);
+        FeatureReader interfaces(interfaces_file, "interface");
+
+        if (index.reset()) {
+          protein_name = index.protein();
+          model_name = index.model();
+          chain_name = index.chain();
+          size_t length = 0;
+          size_t count = 0;
+          do {
+            if (protein_name != index.protein()) {
+              if (count < interacting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              if (length-count < noninteracting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              protein_name = index.protein();
+              model_name = index.model();
+              chain_name = index.chain();
+              length = 0;
+              count = 0;
+            }
+            if (model_name != index.model()) {
+              if (count < interacting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              if (length-count < noninteracting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              model_name = index.model();
+              chain_name = index.chain();
+              length = 0;
+              count = 0;
+            }
+            if (chain_name != index.chain()) {
+              if (count < interacting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              if (length-count < noninteracting) {
+                proteins_monotonous.emplace(protein_name);
+              }
+              chain_name = index.chain();
+              length = 0;
+              count = 0;
+            }
+            ++length;
+            if (interfaces.next(index.index()) && interfaces.value() == "I") {
+              ++count;
+            }
+          } while (index.next());
+        }
+
+        std::cout << "Total      \t" << PROTEINS_VALID.size() << std::endl;
+        std::cout << "Interfaces \t" << proteins_monotonous.size();
+        print_serialized(proteins_monotonous);
+        relative_complement(PROTEINS_VALID, proteins_monotonous);
+      }
+
+
+
       void print_proteins() {
         std::cout << "Total      \t" << PROTEINS_VALID.size();
         for (auto proteins_it = PROTEINS_VALID.begin(); proteins_it != PROTEINS_VALID.end(); ++proteins_it) {

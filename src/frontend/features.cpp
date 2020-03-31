@@ -189,6 +189,23 @@ namespace inspire {
             return new inspire::backend::StringProjectionFeature(mapping, subfeature);
           }
           break;
+        case 'X':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Xenofeature switch miss a definition of file format");
+          }
+          switch (argv[argi][2]) {
+            case 's':
+              return new inspire::backend::BasicExternalLoaderFeature(it, std::string(argv[argi]).substr(3), "xenofeature");
+              break;
+            case 'f':
+              return new inspire::backend::FullExternalLoaderFeature(it, std::string(argv[argi]).substr(3), "xenofeature");
+              break;
+            default:
+              throw common::exception::TitledException("Unknown file format speciffier specifier: '" + std::string(1, argv[argi][2]) + "'");
+              break;
+          }
+          break;
+          break;
         default:
           throw common::exception::TitledException("Unknown feature specifier: '" + std::string(argv[argi]) + "'");
       }
@@ -362,7 +379,19 @@ static void help() {
   std::cout << "        \t    \tDictionary in the <PROJECTION-FILE> should be in format 'key<TAB>value'.\n";
   std::cout << "        \t-R<REFERENCE-VALUES> <FLOAT-FEATURE> <STRING-FEATURE>\n";
   std::cout << "        \t    \tFor each residue relativizes a value of <FLOAT-FEATURE> based on reference value in file <REFERENCE-VALUES> for corresponding value of <STRING-FEATURE>.\n";
-  std::cout << "        \t    \tE.g. to transform solvent accessible surface area to relative solvent accessible surface area.\n\n";
+  std::cout << "        \t    \tE.g. to transform solvent accessible surface area to relative solvent accessible surface area.\n";
+  std::cout << "        \t-X(s|f)<FEATURE-FILE>\n";
+  std::cout << "        \t    \tLoad an external feature from <FEATURE-FILE> file in format <residue_id>\t<value>.\n";
+  std::cout << "        \t    \tThe feature gets 'xenofeature' as a title (it can be changed by '-N' feature).\n";
+  std::cout << "        \t    \t's'/ 'f' defines a format of the <residue_id> - 's' means a simple format, while 'f' means a full format.\n";
+  std::cout << "        \t    \tThe simple format has <residue_id> in a form '<protein_id>.<chain_id>.<residue_number><insertion_code>' and\n";
+  std::cout << "        \t    \tvalues will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.\n";
+  std::cout << "        \t    \tThe full format depends on the used iterator and its identifiers used in the index file:\n";
+  std::cout << "        \t    \t    for the default iterator: '<protein_id>.<chain_id>+<assemblyTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t    \t    for the iterator '-w':    '<protein_id>.<chain_id>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t    \t    for the iterator '-b':    '<protein_id>;<biomoleculeID>,<modelID>.<chain_id>+<assemblyTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t    \t    for the iterator '-c':    '<protein_id>.<chain_id>+<assemblyTransformationID>*<crystallographicTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t    \t    for the iterator '-bc':   '<protein_id>;<biomoleculeID>,<modelID>.<chain_id>+<assemblyTransformationID>*<crystallographicTransformationID>.<residue_number><insertion_code>'.\n\n";
 
   std::cout << "Feature Files Format:\n";
   std::cout << "\tHeader line:\tThe first line of each feature file; names of columns (features) are separated by a tabulator.\n";

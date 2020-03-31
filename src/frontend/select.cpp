@@ -3,8 +3,8 @@
 
 #include "../common/exception.h"
 #include "../common/string.h"
-#include "../common/random.h"
 #include "../backend/index.h"
+#include "../backend/select.h"
 #include <iostream>
 #include <fstream>
 
@@ -15,13 +15,13 @@ void help() {
 
   std::cout << "Extracts required chains from a given index file. Note that only chains from the first model are preserved.\n\n";
 
-  std::cout << "Usage:\t<INPUT-INDEX-FILE> <OUTPUT-INDEX-FILE> (<PROTEIN-ID>(.<CHAIN>)*)+";
+  std::cout << "Usage:\t<INPUT-INDEX-FILE> <OUTPUT-INDEX-FILE> (<PROTEIN-ID>(.<CHAIN>)*)+\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t<INPUT-INDEX-FILE>     \tPath to a index file to be filtered.\n";
   std::cout << "        \t<OUTPUT-INDEX-FILE>    \tPath where to store filtered input.\n";
   std::cout << "        \t<PROTEINS-ID>.<CHAIN>  \tWhat chains should be preserved. There can be specified multiple chains separated by a dot '.'. If no chain is specified, all chains are preserved.\n";
-  std::cout << "        \t-h, --help             \tShow informations about the program.\n\n";
+  std::cout << "        \t-h                     \tShow informations about the program.\n\n";
 }
 
 int main(int argc, const char** argv) {
@@ -34,7 +34,7 @@ int main(int argc, const char** argv) {
   argv = arg;
 #endif // TESTING
   if (argc < 4) {
-    if (argc != 0) {
+    if (argc > 1 && (argc > 2 || strcmp(argv[1], "-h") != 0)) {
       std::cerr << "Unexpected number of arguments:";
       for (size_t i = 1; i < argc; i++) {
         std::cerr << "\n[" << i << "]:\t" << argv[i];

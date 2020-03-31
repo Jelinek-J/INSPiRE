@@ -36,15 +36,20 @@ namespace inspire {
           auto it = dictionary.find(parent);
           if (it == dictionary.end()) {
             std::cerr << "Component '" << code << "' has ";
-            if (parent.find(',') == parent.npos) {
+            size_t separator = parent.find(',');
+            if (separator == parent.npos) {
               std::cerr << "unknown parent aminoacid code";
             } else {
-              std::cerr << "ambiguous parent aminoacid";
+              std::cerr << "ambiguous parent aminoacid, the first one is used";
+              std::string first = parent.substr(0, separator);
+              insert(dictionary, code, name, synonyms, first, one);
             }
             std::cerr << ": '" << parent << "'" << std::endl;
           } else {
             dictionary[code] = it->second;
           }
+        } else {
+          std::cerr << "Component '" << code << "' has not known parent " << ": '" << name << "'" << std::endl;
         }
       }
 
@@ -129,11 +134,12 @@ namespace inspire {
             synonyms = validate(line.substr(24));
           } else if (common::string::starts_with(line, "_chem_comp.one_letter_code")) {
             std::string tmp = common::string::trim(line.substr(26));
-            if (tmp.size() != 1) {
-              std::cerr << "Ambiguous one letter code: '" << tmp << "'" << std::endl;
-            } else if (tmp == "?") {
+            if (tmp == "?") {
               one = ' ';
             } else {
+              if (tmp.size() != 1) {
+                std::cerr << "Ambiguous one letter code, the first one will be used only: '" << tmp << "'" << std::endl;
+              }
               one = tmp[0];
             }
           }
@@ -287,7 +293,7 @@ void help() {
 int main(int argc, const char** argv) {
 #ifdef TESTING
   argc = 3;
-  const char* arg[] = {argv[0], "C:\\Users\\jan.jelinek\\Desktop\\components_iupac.cif", "-cC:\\Inspire\\"};
+  const char* arg[] = {argv[0], "C:\\Users\\jan.jelinek\\Desktop\\components_iupac.cif", "-pC:\\Inspire\\"};
   argv = arg;
 #endif // TESTING
 

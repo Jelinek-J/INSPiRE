@@ -14,12 +14,12 @@ include=
 
 default: inspire
 
-fragments: $(build)$(prefix)assign $(build)$(prefix)classify $(build)$(prefix)combine $(build)$(prefix)exclude $(build)$(prefix)features $(build)$(prefix)filter $(build)$(prefix)fingerprints $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)mine $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)similarity $(build)$(prefix)subgraphs
+fragments: $(build)$(prefix)assign $(build)$(prefix)classify $(build)$(prefix)combine $(build)$(prefix)exclude $(build)$(prefix)features $(build)$(prefix)filter $(build)$(prefix)fingerprints $(build)$(prefix)index $(build)$(prefix)merge $(build)$(prefix)mine $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)select $(build)$(prefix)similarity $(build)$(prefix)subgraphs
 
 all: fragments $(build)$(prefix)aminoacids $(build)$(prefix)random $(build)$(prefix)validate $(build)inspire
 
 $(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)subgraphs: $(build)$(prefix)%: backend/octree.h backend/features.h
-$(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)subgraphs $(build)$(prefix)assign $(build)$(prefix)similarity: $(build)$(prefix)%: frontend/%.cpp backend/%.h common/filesystem.h common/string.h common/exception.h backend/index.h backend/iterators.h backend/protein.h backend/parser.h backend/pdb.h backend/filters.h backend/mmcif.h backend/xml.h common/xml.h
+$(build)$(prefix)classify $(build)$(prefix)exclude $(build)$(prefix)optimize $(build)$(prefix)predict $(build)$(prefix)prioritize $(build)$(prefix)select $(build)$(prefix)subgraphs $(build)$(prefix)assign $(build)$(prefix)similarity: $(build)$(prefix)%: frontend/%.cpp backend/%.h common/filesystem.h common/string.h common/exception.h backend/index.h backend/iterators.h backend/protein.h backend/parser.h backend/pdb.h backend/filters.h backend/mmcif.h backend/xml.h common/xml.h
 	$(CXX) $(CXXFLAGS) $(lib) $(include) -o $@ $< -lboost_system
 	cp ../man/$(patsubst frontend/%.cpp,%,$<).man $(build)$@.1
 
