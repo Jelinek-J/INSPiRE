@@ -21,7 +21,7 @@ Path where to store filtered input.
 \fIPROTEIN\-ID\fR.\fICHAIN\-ID\fR
 What chains should be preserved. There can be specified multiple chains separated by a dot '.'. If no chain is specified, all chains will be preserved.
 .TP
-.BR -h ", " --help
+.B -h
 Show informations about the program
 .SH SEE ALSO
 inspire(1), index(1)

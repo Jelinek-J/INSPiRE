@@ -5,10 +5,11 @@
 validate \- identify valid proteins
 .SH SYNOPSIS
 .B validate
-[\fB\-a\fR[\fIINCOMPLETE\-ABS\fR]] [\fB\-b\fR] [\fB\-c\fR[\fIMIN\-CHAINS\fR]] [\fB\-d\fR] [\fB\-l\fR[\fIMIN\-LENGTH\fR]] [\fB\-n\fR] [\fB\-r\fR[\fIINCOMPLETE\-REL\fR]] [\fB\-u\fR]
+[\fB\-a\fR[\fIINCOMPLETE\-ABS\fR]] [\fB\-b\fR] [\fB\-c\fR[\fIMIN\-CHAINS\fR]] [\fB\-d\fR] [\fB\-l\fR[\fIMIN\-LENGTH\fR]] [\fB\-n\fR] [\fB\-r\fR[\fIINCOMPLETE\-REL\fR]] [\fB\-u\fR] ([\fB\-x\fR] | [\fB\-xi\fIMIN\-COUNT\fR] [\fB\-xn\fIMIN\-COUNT\fR])
 \fIINDEX\-FILE\fR \fIINDEX\-LOG\fR
 \fIRESIDUES\-FEATURE\fR \fIRESIDUES\-VALID\fR
 \fICOMPOSITIONS\-FEATURE\fR \fICOMPOSITIONS\-VALID\fR
+\fIINTERFACES\-FEATURE\fR
 [\fB\-ib\fR|\fB\-ic\fR|\fB\-ibc\fR|\fB\-iw\fR] (\fIPROTEINS\-PATH\fR)+
 
 .B exclude \-h
@@ -79,6 +80,19 @@ Mandatory are \fIINDEX\-FILE\fR, \fIINDEX\-LOG\fR, \fIRESIDUES\-FEATURE\fR, \fIC
 .B \-u
 There cannot be any unknown residue.
 Mandatory are \fIINDEX\-FILE\fR, \fIRESIDUES\-FEATURE\fR and \fIRESIDUES\-VALID\fR.
+.TP
+.B \-x
+Shortcut for \fB-ii1 -in1\fR.
+.TP
+.BI \-xi MIN\-COUNT
+Each chain must contain at least \fIMIN\-COUNT\fR interacting residue.
+The default value of \fIMIN\-COUNT\fR(if missing or empty) is 1.
+Mandatory are \fIINDEX\-FILE\fR and \fIINTERFACES\-FEATURE\fR.
+.TP
+.BI \-xn MIN\-COUNT
+Each chain must contain at least \fIMIN\-COUNT\fR non-interacting residue.
+The default value of \fIMIN\-COUNT\fR(if missing or empty) is 1.
+Mandatory are \fIINDEX\-FILE\fR and \fIINTERFACES\-FEATURE\fR.
 .SS Iterators:
 What iterator was used to construction of the index file (if no iterator is specified, only the first biomolecule from the first model with the first crystallographic transformation were used):
 .TP

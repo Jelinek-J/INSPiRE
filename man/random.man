@@ -62,4 +62,4 @@ Both biomolecules and crystallographic transformation were ignored, all chains w
 .SH SEE ALSO
 inspire(1), index(1), similarity(1)
 .SH AUTHOR
-Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

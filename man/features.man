@@ -79,28 +79,63 @@ Protein's identifier (usefull e.g. to make temperature factor comparable between
 \fB\-t\fR
 Temperature factor of a residue
 .TP
-\fB-B\fIBOUDARIES\-FILE\fR \fIFLOAT\-FEATURE\fR
+\fB\-B\fIBOUDARIES\-FILE\fR \fIFLOAT\-FEATURE\fR
 Binned values of \fIFLOAT\-FEATURE\fR based on splitting points in \fIBOUDARIES\-FILE\fR.
 I.e. in the case of sorted \fIBOUDARIES\-FILE\fR it returns \fIi\fR if the value is greater than \fIi\fRth splitting point but lower than or equal to (\fIi\fR+1)th splitting point.
 (And \fB0\fR if it is lower than to equal to the first splitting point and \fB(count of splitting points)+1\fR if it is greater than the last splitting point.)
 .TP
-\fB-F\fIFEATURE\-FILE\fR;\fIHEADER\fR
+\fB\-F\fIFEATURE\-FILE\fR;\fIHEADER\fR
 Load a float feature \fIHEADER\fR from a file \fIFEATURE\-FILE\fR
 .TP
-\fB-L\fIFEATURE\-FILE\fR;\fIHEADER\fR
+\fB\-L\fIFEATURE\-FILE\fR;\fIHEADER\fR
 Load a string feature \fIHEADER\fR from a file \fIFEATURE\-FILE\fR
 .TP
-\fB-N\fINEW\-TITLE\fR \fIFEATURE\fR
+\fB\-N\fINEW\-TITLE\fR \fIFEATURE\fR
 Change title of the inner feature (does not change values of the feature)
 .TP
-\fB-P\fIPROJECTION\-FILE\fR \fIFEATURE\fR
+\fB\-P\fIPROJECTION\-FILE\fR \fIFEATURE\fR
 Transforms feature \fIFEATURE\fR based on a dictionary defined in a \fIPROJECTION\-FILE\fR (missing keys are skipped).
 E.g. to transform amino acids' three-letter codes to one\-letter codes.
 Dictionary in the \fIPROJECTION\-FILE\fR should be in format 'key<TAB>value'
 .TP
-\fB-R\fIREFERENCE\-VALUES\fR \fIFLOAT\-FEATURE\fR \fISTRING\-FEATURE\fR
+\fB\-R\fIREFERENCE\-VALUES\fR \fIFLOAT\-FEATURE\fR \fISTRING\-FEATURE\fR
 For each residue relativizes a value of \fIFLOAT\-FEATURE\fR based on reference value in file \fIREFERENCE\-VALUES\fR for corresponding value of \fISTRING\-FEATURE\fR.
 E.g. to transform solvent accessible surface area to relative solvent accessible surface area.
+.TP
+\fB\-X\fR(\fBf\fR|\fBs\fR)\fIFEATURE\-FILE\fR
+Load an external feature from \fIFEATURE\-FILE\fR file in format \fIresidue_id\fB\t\fIvalue\fR.
+The feature gets \fBxenofeature\fR as a title (it can be changed by \fB-N\fR feature).
+\fBs\fR/ \fBf\fR defines a format of the \fIresidue_id\fR \- \fBs\fR means a simple format, while \fBf\fR means a full format.
+The simple format has \fIresidue_id\fR in a form '\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR' and
+values will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.
+The full format depends on the used iterator and its identifiers used in the index file:
+
+\- for the default iterator:
+.RS
+.RS
+\fIprotein_id\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-w\fR:
+.RS
+\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-b\fR:
+.RS
+\fIprotein_id\fB;\fIbiomoleculeID\fB,\fImodelID\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-c\fR:
+.RS
+\fIprotein_id\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB*\fIcrystallographicTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+
+\- for the iterator \fB-bc\fR:
+.RS
+\fIprotein_id\fB;\fIbiomoleculeID\fB,\fImodelID\fB.\fIchain_id\fB+\fIassemblyTransformationID\fB*\fIcrystallographicTransformationID\fB.\fIresidue_number\fB\fIinsertion_code\fR
+.RE
+.RE
 .SH FORMAT OF FEATURE FILES
 .SS Header line
 The first line of each feature file;
