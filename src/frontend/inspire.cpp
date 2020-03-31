@@ -1,5 +1,5 @@
 // inspire.cpp : Defines the entry point for the console application.
-// Last error id: 18
+// Last error id: 23
 
 //#define TESTING
 #ifdef TESTING
@@ -191,7 +191,7 @@ static void help() {
 #ifdef FREESASA
   std::cout << " | -r[[<RADII-FILE>;[<COMPOSITION-FILE>;]]<MAX-SASA-FILE>]";
 #endif // FREESASA
-  std::cout << " | -t )* -f] [-v[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-e[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-g<FINGERPRINTS-FORMAT>]\n";
+  std::cout << " | -t | -x(s|f)<FEATURE-FILE> )* -f] [-v[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-e[c[<LIMIT>]|d[<DISTANCE>]|e[<DISTANCE>[-<LIMIT>]]]] [-g<FINGERPRINTS-FORMAT>]\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t-s <PROTEINS-PATH>          \tPath to a protein or a directory with proteins that should be used\n";
@@ -238,7 +238,7 @@ static void help() {
   std::cout << "        \t-F                          \tFeatures section follows until '-f' switcher.\n";
   std::cout << "        \t-f                          \tTerminates features section.\n";
   std::cout << "        \t-a<TRANSFORMATION-FILE>     \tAminoacid type three-letter code is transformed with transformation defined in <TRANSFORMATION-FILE>, that should be in format 'key\\tvalue'\n";
-  std::cout << "        \t-e                         \tAtomic composition of a residue (helium and deuterium are skipped) will be extracted for each residue.\n";
+  std::cout << "        \t-e                          \tAtomic composition of a residue (helium and deuterium are skipped) will be extracted for each residue.\n";
 #ifdef FREESASA
   std::cout << "        \t-r<RADII-FILE>;<COMPOSITION-FILE>;<MAX-SASA-FILE>\n";
   std::cout << "        \t                            \tRelative solvent accessible surface area is calculated with residues' composition defined in <COMPOSITION-FILE>,\n";
@@ -246,6 +246,17 @@ static void help() {
   std::cout << "        \t                            \treference solvent accessible surface areas defined in <MAX-SASA-FILE>.\n";
 #endif // FREESASA
   std::cout << "        \t-t                          \tTemperature factor will be extracted for each residue.\n";
+  std::cout << "        \t-x(s|f)<FEATURE-FILE>\n";
+  std::cout << "        \t                            \tLoad an external feature from <FEATURE-FILE> file in format <residue_id>\t<value>.\n";
+  std::cout << "        \t                            \t's'/ 'f' defines a format of the <residue_id> - 's' means a simple format, while 'f' means a full format.\n";
+  std::cout << "        \t                            \tThe simple format has <residue_id> in a form '<protein_id>.<chain_id>.<residue_number><insertion_code>' and\n";
+  std::cout << "        \t                            \tvalues will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.\n";
+  std::cout << "        \t                            \tThe full format depends on the used iterator and its identifiers used in the index file:\n";
+  std::cout << "        \t                            \t    for the default iterator: '<protein_id>.<chain_id>+<assemblyTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t                            \t    for the iterator '-w':    '<protein_id>.<chain_id>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t                            \t    for the iterator '-b':    '<protein_id>;<biomoleculeID>,<modelID>.<chain_id>+<assemblyTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t                            \t    for the iterator '-c':    '<protein_id>.<chain_id>+<assemblyTransformationID>*<crystallographicTransformationID>.<residue_number><insertion_code>';\n";
+  std::cout << "        \t                            \t    for the iterator '-bc':   '<protein_id>;<biomoleculeID>,<modelID>.<chain_id>+<assemblyTransformationID>*<crystallographicTransformationID>.<residue_number><insertion_code>'.\n";
   std::cout << "    Subgraphs:\n";
   std::cout << "        What component of graphs will be redefined:\n";
   std::cout << "            \t-v                      \tFollows definition saying, what nodes belong to a particular neighbourhood\n";
@@ -534,6 +545,30 @@ int main(int argc, const char** argv) {
             subfeature = new inspire::backend::TemperatureFeature(it);
             inner_features.push_back(subfeature);
             features.push_back(new inspire::backend::ToStringFeature<float>(subfeature));
+          } else if (common::string::starts_with(line, "-x")) {
+            if (line.length() == 2) {
+              std::cerr << "Unexpected parameter '" << line << "' within the features section.\n";
+              return 21;
+            }
+            std::cout << "Please specify a path for an external feature file:" << std::endl;
+            std::string path;
+            if (std::getline(std::cin, path)) {
+              switch (line[2]) {
+                case 's':
+                  features.push_back(new inspire::backend::BasicExternalLoaderFeature(it, path));
+                  break;
+                case 'f':
+                  features.push_back(new inspire::backend::FullExternalLoaderFeature(it, path));
+                  break;
+                default:
+                  std::cerr << "Unexpected parameter '" << line << "' within the features section.\n";
+                  return 23;
+                  break;
+              }
+            } else {
+              std::cerr << "It was not possible to read the file name from standard input.n";
+              return 22;
+            }
           } else {
             std::cerr << "Unexpected line '" << line << "' in the configuration file '" << config_name << "'.\n";
             return 11;
@@ -604,6 +639,25 @@ int main(int argc, const char** argv) {
               inner_features.push_back(subfeature);
               features.push_back(new inspire::backend::ToStringFeature<float>(subfeature));
               config_file <<  "-t" << std::endl;
+            } else if (common::string::starts_with(argv[argv_index], "-x")) {
+              if (strlen(argv[argv_index]) == 2) {
+                std::cerr << "Unexpected parameter '" << argv[argv_index] << "' within the features section.\n";
+                return 19;
+              }
+              switch (argv[argv_index][2]) {
+                case 's':
+                  features.push_back(new inspire::backend::BasicExternalLoaderFeature(it, std::string(argv[argv_index]).substr(3)));
+                  config_file <<  "-xs" << std::endl;
+                  break;
+                case 'f':
+                  features.push_back(new inspire::backend::FullExternalLoaderFeature(it, std::string(argv[argv_index]).substr(3)));
+                  config_file <<  "-xf" << std::endl;
+                  break;
+                default:
+                  std::cerr << "Unexpected parameter '" << argv[argv_index] << "' within the features section.\n";
+                  return 20;
+                  break;
+              }
             } else {
               std::cerr << "Unexpected parameter '" << argv[argv_index] << "' within the features section.\n";
               return 12;

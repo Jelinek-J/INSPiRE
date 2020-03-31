@@ -195,10 +195,10 @@ namespace inspire {
           }
           switch (argv[argi][2]) {
             case 's':
-              return new inspire::backend::BasicExternalLoaderFeature(it, std::string(argv[argi]).substr(3), "xenofeature");
+              return new inspire::backend::BasicExternalLoaderFeature(it, std::string(argv[argi]).substr(3));
               break;
             case 'f':
-              return new inspire::backend::FullExternalLoaderFeature(it, std::string(argv[argi]).substr(3), "xenofeature");
+              return new inspire::backend::FullExternalLoaderFeature(it, std::string(argv[argi]).substr(3));
               break;
             default:
               throw common::exception::TitledException("Unknown file format speciffier specifier: '" + std::string(1, argv[argi][2]) + "'");
