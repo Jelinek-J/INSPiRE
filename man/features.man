@@ -107,7 +107,7 @@ Load an external feature from \fIFEATURE\-FILE\fR file in format \fIresidue_id\f
 The feature gets \fBxenofeature\fR as a title (it can be changed by \fB-N\fR feature).
 \fBs\fR/ \fBf\fR defines a format of the \fIresidue_id\fR \- \fBs\fR means a simple format, while \fBf\fR means a full format.
 The simple format has \fIresidue_id\fR in a form '\fIprotein_id\fB.\fIchain_id\fB.\fIresidue_number\fB\fIinsertion_code\fR' and
-values will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.
+values will be copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.
 The full format depends on the used iterator and its identifiers used in the index file:
 
 \- for the default iterator:
@@ -151,4 +151,4 @@ Actually, the specification of iterator is redundant and should be specified in 
 .SH SEE ALSO
 inspire(1), index(1), aminoacids(1)
 .SH AUTHOR
-Jan Jelínek (jelinek@ksi.mff.cuni.cz)
+Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
