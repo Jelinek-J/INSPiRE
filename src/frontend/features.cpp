@@ -385,7 +385,7 @@ static void help() {
   std::cout << "        \t    \tThe feature gets 'xenofeature' as a title (it can be changed by '-N' feature).\n";
   std::cout << "        \t    \t's'/ 'f' defines a format of the <residue_id> - 's' means a simple format, while 'f' means a full format.\n";
   std::cout << "        \t    \tThe simple format has <residue_id> in a form '<protein_id>.<chain_id>.<residue_number><insertion_code>' and\n";
-  std::cout << "        \t    \tvalues will by copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.\n";
+  std::cout << "        \t    \tvalues will be copied to all models, biomolecules, chains transformed by biomolecule/ crystallographic transformations, etc.\n";
   std::cout << "        \t    \tThe full format depends on the used iterator and its identifiers used in the index file:\n";
   std::cout << "        \t    \t    for the default iterator: '<protein_id>.<chain_id>+<assemblyTransformationID>.<residue_number><insertion_code>';\n";
   std::cout << "        \t    \t    for the iterator '-w':    '<protein_id>.<chain_id>.<residue_number><insertion_code>';\n";
