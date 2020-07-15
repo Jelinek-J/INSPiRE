@@ -169,7 +169,7 @@ namespace inspire {
           break;
         case 'N':
           if (strlen(argv[argi]) == 2) {
-            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+            throw common::exception::TitledException("Rename feature switch miss a new name");
           }
           {
             std::string name = std::string(argv[argi]).substr(2);
@@ -252,7 +252,7 @@ namespace inspire {
           break;
         case 'N':
           if (strlen(argv[argi]) == 2) {
-            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+            throw common::exception::TitledException("Rename feature switch miss a new name");
           }
           {
             std::string name = std::string(argv[argi]).substr(2);
@@ -308,7 +308,7 @@ namespace inspire {
           break;
         case 'N':
           if (strlen(argv[argi]) == 2) {
-            throw common::exception::TitledException("Rename feature switch miss a definition of translation table");
+            throw common::exception::TitledException("Rename feature switch miss a new name");
           }
           {
             std::string name = std::string(argv[argi]).substr(2);
