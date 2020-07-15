@@ -76,20 +76,20 @@ sudo apt-get install libboost-all-dev git autoconf pkg-config make g++ man
 Then you can install FreeSASA by:
 ```
 git clone https://github.com/mittinatten/freesasa.git
-cd freesasa
+pushd freesasa
 autoreconf -i
 ./configure --disable-xml --disable-json
 make
 sudo make install
-cd ..
+popd
 ```
 Now you have all prerequisities to install INPiRE by typing:
 ```
 git clone https://github.com/Jelinek-J/INSPiRE.git
-cd INSPiRE/src/
+pushd INSPiRE/src/
 make
 sudo make install
-cd ../..
+popd
 ```
 At this point, INSPiRE should be installed and ready to use.
 
@@ -122,12 +122,12 @@ This subchapter shows you in examples how to reach the same results as in the pr
 
 Initially, it is needed to compile and install fragmented INSPiRE tools (I also recommend you to update the repository to the latest version):
 ```
-cd INSPiRE/
+pushd INSPiRE/
 git pull
 cd src/
 make fragments
 sudo make install
-cd ../..
+popd
 ```
 
 Using fragmented tools there are created many more intermediate files that you do not need if you only want the prediction, but that can be reused or can be used in different pipelines too.
