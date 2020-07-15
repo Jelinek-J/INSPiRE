@@ -231,7 +231,8 @@ On the other side, you also do not want to run `feature` several times, as
 some steps (e.g. loading index) would be redundant.
 In such a situation you can use `-` switch saying that 
 each feature should be stored in a separated file.
-Each file is named by a feature's name, so now it is important to each feature has an unique name.
+With this option the first argument is not a filename, but a directory name, where 
+each file will be stored named by its feature's name, so now it is important to each feature has an unique name.
 ```
 features intermediate_kb/index.ind intermediate_kb/ - -Nrandom -Xsintermediate_kb/random.csv queries/
 ```
