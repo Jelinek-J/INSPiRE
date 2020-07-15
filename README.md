@@ -192,3 +192,46 @@ cp fingerprints/aminoacid.nor fingerprints/radiuses.rus settings.json knowledge-
 echo -e "\n0.5\n-a\n--\nc12\nd6" > knowledge-base/config
 ```
 At this point, 'knowledge-base' directory should be exactly the same as in the case of the chapter 2.a.
+
+## 2.c: Advanced usage - tips ##
+In this subchapter you find some tips that could be usefull for advanced usage of INSPiRE.
+Note that this is not full list of options - 
+tools' complete documentation with all available options can be shown by typing `man <tool_name>` or `<tool_name> -h` -
+both commands should show you the same information,
+however I recommend you to use man pages (the first option)
+as they allow richer formatting.
+The most of following examples expect that you have completed commands from chapter 2.b 
+(i.e. that exists directory `intermediate_kb` and that index file is generated).
+
+### Own feature ###
+Consider that you want to use some feature that is not available in INSPiRE and 
+you do not want to extend INSPiRE by implementing it,
+but that you have it from an external resource.
+You can import it into INSPiRE if it is in a suitable format.
+One of the formats is so called simple format.
+Such file consists of lines in a form: `<protein_id>.<chain_id>.<residue_id><insertion_code>TAB<value>`.
+Such feature will be imported with name `xenofeature` by command:
+```
+features intermediate_kb/index.ind intermediate_kb/random.tur -Xsrandom.csv queries/
+```
+
+### Rename feature ###
+You probable will want to rename the feature from `xenofeature` to something more suitable.
+It can be done by `-N` switcher, so a better command would be:
+```
+features intermediate_kb/index.ind intermediate_kb/random.tur -Nrandom -Xsintermediate_kb/random.csv queries/
+```
+
+### Separate features ###
+Sometimes you also do not want to have all features in a single file.
+Each feature in a separated file can be usefull e.g. 
+to reuse features whose computing is time-consuming usefull; or
+to do not load all features if you do not need all of them.
+On the other side, you also do not want to run `feature` several times, as
+some steps (e.g. loading index) would be redundant.
+In such a situation you can use `-` switch saying that 
+each feature should be stored in a separated file.
+Each file is named by a feature's name, so now it is important to each feature has an unique name.
+```
+features intermediate_kb/index.ind intermediate_kb/ - -Nrandom -Xsintermediate_kb/random.csv queries/
+```
