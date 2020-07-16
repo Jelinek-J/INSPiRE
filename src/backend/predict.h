@@ -10,6 +10,96 @@ namespace inspire {
       virtual void predict(std::string input, std::string output) = 0;
     };
 
+    class WeightedPredictor : public Predictor {
+      private:
+      std::vector<double> WEIGHTS;
+
+      public:
+      WeightedPredictor(std::string weights) {
+        double rest = 1;
+        std::stringstream parts(weights);
+        std::string part;
+        while (std::getline(parts, part, ' ')) {
+          double threshold = std::stof(part);
+          rest -= threshold;
+          if (threshold < 0 || rest < 1) {
+            throw common::exception::TitledException("Threshold '" + part + "' is out of boundaries; all threshold must be within interval [0; 1].");
+          }
+          WEIGHTS.push_back(threshold);
+        }
+        WEIGHTS.push_back(rest);
+      }
+
+      void predict(std::string input, std::string output) override {
+        if (output.empty() || output.back() == common::filesystem::directory_separator) {
+          size_t i = input.rfind(common::filesystem::directory_separator);
+          std::string tmp = (i == input.npos ? input : input.substr(i+1));
+          if (common::string::ends_with(tmp, ".sas")) {
+            output += tmp.substr(0, tmp.size()-4);
+          } else {
+            output += tmp;
+          }
+          output += ".pec";
+        } else if (!common::string::ends_with(output, ".pec")) {
+          output += ".pec";
+        }
+
+        std::ifstream reader(input);
+        std::ofstream writer(output);
+        std::string line;
+        if (!std::getline(reader, line)) {
+          throw common::exception::TitledException("Input file '" + input + "' is empty.");
+        }
+
+        std::vector<std::string> headers;
+        {
+          std::stringstream parts(line);
+          while (std::getline(parts,line,':')) {
+            headers.push_back(line);
+          }
+        }
+        if (headers.size() != WEIGHTS.size()) {
+          throw common::exception::TitledException("Input file '" + input + "' is not compatible with the selector: invalid number of classes.");
+        }
+
+        std::string id;
+        while (std::getline(reader, id)) {
+          std::vector<size_t> counts(WEIGHTS.size(), 0);
+          while (std::getline(reader, line) && line.size() > 0) {
+            std::stringstream parts(line);
+            std::string count;
+            if (!std::getline(parts, count, '\t')) {
+              throw common::exception::TitledException("Unexpected exception during parsing line '" + line + "' for residue #" + id + ".");
+            }
+            for (size_t i = 0; i < counts.size(); i++) {
+              if (!std::getline(parts, count, ':')) {
+                throw common::exception::TitledException("Incomplete line '" + line + "' for residue #" + id + ": missing numbers.");
+              }
+              counts[i] += std::stol(count);
+            }
+            // Consider unclassified as optional
+            if (std::getline(parts, count, ':') && std::getline(parts, count, ':')) {
+              throw common::exception::TitledException("Invalid line '" + line + "' for residue #" + id + ": too many numbers.");
+            }
+          }
+          size_t best_index = 0;
+          size_t best_value = WEIGHTS[best_index]*counts[best_index];
+          for (size_t i = 1; i < WEIGHTS.size(); i++) {
+            size_t tmp = WEIGHTS[i]*counts[i];
+            if (tmp > best_value) {
+              best_index = i;
+              best_value = tmp;
+            }
+          }
+          writer << id << '\t' << (best_value == 0 ? "" : headers[best_index]) << '\n';
+        }
+        reader.close();
+        writer.flush();
+        writer.close();
+      }
+
+    };
+
     class FractionalPredictor : public Predictor {
       private:
       std::vector<std::vector<double>> THRESHOLDS;
@@ -66,7 +156,7 @@ namespace inspire {
         std::vector<std::string> headers;
         {
           std::stringstream parts(line);
-          while (std::getline(parts,line,':')) {
+          while (std::getline(parts, line, ':')) {
             headers.push_back(line);
           }
         }

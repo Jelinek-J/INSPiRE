@@ -1016,6 +1016,144 @@ found:;
       }
     };
 
+    // Neighbour chains feature suitable even for very large proteins
+    class NeighboursFeature : public ProteinFeature<std::string> {
+      private:
+      double DISTANCE;
+      std::map<std::string, double> ELEMENTS;
+      // NOTE: The opposite approach with suming element distances during testing allows default distance for unknown elements,
+      // however the current approach should be quicker and in the case of unknown elements, user can rerun extraction with modified radiuses table
+      std::map<std::string, std::map<std::string, double>> DISTANCES;
+      // Model_name => [Chain_name => [Aminoacid_name => interface]]
+      std::map<std::string, std::map<std::string, std::map<std::string, std::string>>> NEIGHBOURS;
+
+      public:
+      NeighboursFeature(ProteinIterator* iterator, std::string distances, double distance) : DISTANCE(distance), ProteinFeature(iterator) {
+        std::ifstream input(distances);
+        std::string line;
+        while (!input.eof() && std::getline(input, line)) {
+          size_t tab = line.find('\t');
+          if (tab == line.npos) {
+            std::cerr << "File with van der Waals radiuses '" << distances << "' contains invalid line '" << line << "'" << std::endl;
+          } else {
+            auto ins = ELEMENTS.insert({line.substr(0, tab), std::stod(line.substr(tab+1))});
+            if (!ins.second) {
+              std::cerr << "File with van der Waals radiuses '" << distances << "' contains multiple definitions of element '" << line.substr(0, tab) << "'" << std::endl;
+            }
+          }
+        }
+        input.close();
+        for (auto it_1 = ELEMENTS.begin(); it_1 != ELEMENTS.end(); ++it_1) {
+          auto &dist = DISTANCES[it_1->first];
+          for (auto it_2 = ELEMENTS.begin(); it_2 != ELEMENTS.end(); ++it_2) {
+            dist[it_2->first] = (it_1->second < 0 || it_2->second < 0) ? -1 : std::pow(it_1->second + distance + it_2->second, 2);
+          }
+        }
+      }
+
+      std::string title() override { return "neighbours"; }
+
+      void init(Protein* protein) override {
+        NEIGHBOURS.clear();
+
+        std::set<std::string> warned;
+        ITERATOR->init(protein);
+        if (ITERATOR->resetModel()) {
+          do {
+            std::map<std::string, std::map<std::string, std::list<std::pair<std::string, Coordinate>>>> coordinates;
+            if (ITERATOR->resetChain()) {
+              do {
+                auto &chain = coordinates[ITERATOR->getChainName()];
+                if (ITERATOR->resetAminoacid()) {
+                  do {
+                    auto &aminoacid = chain[ITERATOR->getAminoacidName()];
+                    if (ITERATOR->resetAtom()) {
+                      do {
+                        if (ELEMENTS.find(ITERATOR->element()) == ELEMENTS.end()) {
+                          if (warned.insert(ITERATOR->element()).second) {
+                            std::cerr << ITERATOR->getProteinName() << ": chemical element '" << ITERATOR->element() << "' does not have specified van der Waals radius" << std::endl;
+                          }
+                        } else if (ITERATOR->computeCharacteristics()) {
+                          aminoacid.push_back({ITERATOR->element(), ITERATOR->coordinates()});
+                        } else {
+                          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not contains a valid characteristic for an atom '" << ITERATOR->getAtomName() << "' in aminoacid '"
+                            << ITERATOR->getAminoacidName() << "' in chain '" << ITERATOR->getChainName() << "' in model '" << ITERATOR->getModelName() << "'" << std::endl;
+                        }
+                      } while (ITERATOR->nextAtom());
+                    }
+                  } while (ITERATOR->nextAminoacid());
+                }
+              } while (ITERATOR->nextChain());
+            }
+
+            std::map<std::string, Octree*> octrees;
+            for (auto chain_it = coordinates.begin(); chain_it != coordinates.end(); ++chain_it) {
+              std::vector<std::pair<Coordinate, double>> chain;
+              for (auto residue_it = chain_it->second.begin(); residue_it != chain_it->second.end(); ++residue_it) {
+                for (auto atom_it = residue_it->second.begin(); atom_it != residue_it->second.end(); ++atom_it) {
+                  double distance = ELEMENTS[atom_it->first];
+                  if (distance >= 0) {
+                    chain.push_back(std::make_pair(atom_it->second, distance + DISTANCE));
+                  }
+                }
+              }
+              octrees.insert({{chain_it->first, new Octree(chain)}});
+            }
+
+            // TODO: Consider diagonal calculation, it could save up to 1/2 time, however it requires squared memory
+            auto &model = NEIGHBOURS[ITERATOR->getModelName()];
+            for (auto chain_1_it = coordinates.begin(); chain_1_it != coordinates.end(); ++chain_1_it) {
+              auto &chain = model[chain_1_it->first];
+              for (auto aminoacid_it = chain_1_it->second.begin(); aminoacid_it != chain_1_it->second.end(); ++aminoacid_it) {
+                auto &aminoacid = chain[aminoacid_it->first];
+                aminoacid = "";
+                // TODO: Test different level of nesting atom_1_it in *_2_it
+                for (auto atom_it = aminoacid_it->second.begin(); atom_it != aminoacid_it->second.end(); ++atom_it) {
+                  // NOTE: This should exist happen thanks check during coordinates filling
+                  auto distance = ELEMENTS[atom_it->first];
+                  if (distance >= 0) {
+                    for (auto chain_2_it = octrees.begin(); chain_2_it != octrees.end(); ++chain_2_it) {
+                      if (chain_1_it->first != chain_2_it->first && chain_2_it->second->contact(atom_it->second, distance)) {
+                        if (!aminoacid.empty()) {
+                          aminoacid += " ";
+                        }
+                        aminoacid += chain_2_it->first;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            for (auto octrees_it = octrees.begin(); octrees_it != octrees.end(); ++octrees_it) {
+              delete octrees_it->second;
+            }
+          } while (ITERATOR->nextModel());
+        }
+        ITERATOR->resetModel();
+        ITERATOR->resetChain();
+        ITERATOR->resetAminoacid();
+      }
+
+      std::string feature(const std::string &model, const std::string &chain, const std::string &aminoacid, const size_t id) override {
+        auto model_it = NEIGHBOURS.find(model);
+        if (model_it == NEIGHBOURS.end()) {
+          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a model '" << model << "'" << std::endl;
+          return UNDEFINED;
+        }
+        auto chain_it = model_it->second.find(chain);
+        if (chain_it == model_it->second.end()) {
+          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a chain '" << chain << "' in model '" << model << "'" << std::endl;
+          return UNDEFINED;
+        }
+        auto aminoacid_it = chain_it->second.find(aminoacid);
+        if (aminoacid_it == chain_it->second.end()) {
+          std::cerr << "Protein '" << ITERATOR->getProteinName() << "' does not have a aminoacid '" + aminoacid << "' in chain '" << chain << "' in model '" << model << "'" << std::endl;
+          return UNDEFINED;
+        }
+        return aminoacid_it->second;
+      }
+    };
+
     // Protein identifier (e.g. to allow normalization of temperature factor based on the situation in the current protein)
     // TODO: Consider whether it should not be based on individual models instead of whole proteins
     class ProteinIdFeature : public Feature<std::string> {

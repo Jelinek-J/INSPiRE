@@ -154,6 +154,20 @@ namespace inspire {
             }
           }
           break;
+        case 'n':
+          if (strlen(argv[argi]) == 2) {
+            throw common::exception::TitledException("Neighbours type switch miss a definition of translation table");
+          }
+          {
+            std::string arg(argv[argi]);
+            size_t space = arg.find_last_of(';');
+            if (space != arg.npos && space != arg.size()-1 && arg[arg.size()-1] != '"' && arg[arg.size()-1] != '\'') {
+              return new inspire::backend::NeighboursFeature(it, arg.substr(2, space-2), std::stod(arg.substr(space+1)));
+            } else {
+              return new inspire::backend::NeighboursFeature(it, arg.substr(2), 0.5);
+            }
+          }
+          break;
         case 'p':
           return new inspire::backend::ProteinIdFeature();
           break;
@@ -218,6 +232,7 @@ namespace inspire {
         case 'c':
         case 'e':
         case 'i':
+        case 'n':
         case 'p':
         case 'B':
         case 'L':
@@ -252,7 +267,7 @@ namespace inspire {
           break;
         case 'N':
           if (strlen(argv[argi]) == 2) {
-            throw common::exception::TitledException("Rename feature switch miss a new name");
+            throw common::exception::TitledException("Rename feature switch miss a ne name");
           }
           {
             std::string name = std::string(argv[argi]).substr(2);
@@ -286,6 +301,7 @@ namespace inspire {
         case 'c':
         case 'e':
         case 'i':
+        case 'n':
         case 'p':
         case 's':
         case 't':
@@ -357,6 +373,8 @@ static void help() {
   std::cout << "        \t-i<RADII-FILE>[;<DISTANCE>]\n";
   std::cout << "        \t    \tWhether a residue is an interfacial residue with <RADII-FILE> defining radiuses of chemical elements and\n";
   std::cout << "        \t    \t<DISTANCE> sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value).\n";
+  std::cout << "        \t-n<RADII-FILE>[;<DISTANCE>]\n";
+  std::cout << "        \t    \tIdentifiers of chains connected with a residue (i.e. chains causing the residue is an interfacial residue)\n";
 #ifdef FREESASA
   std::cout << "        \t-s<RADII-FILE>;<COMPOSITION-FILE>\n";
   std::cout << "        \t    \tRelative solvent accessible surface area with residues' composition defined in <COMPOSITION-FILE>, atomic radiuses defined in <RADII-FILE>.\n";
