@@ -5,10 +5,10 @@
 random \- select random mutually dissimilar protein chains
 .SH SYNOPSIS
 .B random
-\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR
+\fIOUTPUT\-FILE\fR [\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] \fIINDEX\-FILE\fR \fINEIGHBOURS\-FILE\fR \fISIMILARITY\-FILE\fR
 
 .B random
-\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fISIMILARITY\-FILE\fR)+
+\fIOUTPUT\-FILE\fR ([\fB\-c\fICOUNT\fR] [\fB\-s\fISEED\fR] [\fB\-t\fITHRESHOLD\fR] [\fB\-f\fR|\fB\-b\fR|\fB\-c\fR|\fB\-bc\fR|\fB\-w\fR] [\fB\-\fR] \fIHEADER\fR \fIINDEX\-FILE\fR \fINEIGHBOURS\-FILE\fR \fISIMILARITY\-FILE\fR)+
 
 .B exclude \-h
 .SH DESCRIPTION
@@ -39,6 +39,9 @@ Path to a index file containing chains that can be selected
 .TP
 .I SIMILARITY\-FILE
 Path to a similarity file defining similarity of chains
+.TP
+.I NEIGHBOURS\-FILE
+Path to a feature file defining neighbouring chains of residues
 .TP
 .BR -h ", " --help
 Show informations about the program

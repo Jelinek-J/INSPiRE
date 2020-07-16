@@ -69,6 +69,9 @@ Sorted atom names of all atoms in a residue except helium and deuterium separate
 Whether a residue is an interfacial residue with \fR\fIRADII\-FILE\fR defining radiuses of chemical elements and
 \fIDISTANCE\fR sets the maximal allowed distance of two van der Waals radiuses (0.5A is a default value)
 .TP
+\fB\-n\fR\fIRADII\-FILE\fR[;\fIDISTANCE\fR]
+Identifiers of chains connected with a residue (i.e. chains causing the residue is an interfacial residue)
+.TP
 \fB\-s\fR\fIRADII\-FILE\fR;\fICOMPOSITION\-FILE\fR
 Solvent accessible surface area with residues' composition defined in \fICOMPOSITION\-FILE\fR and 
 atomic radiuses defined in \fIRADII\-FILE\fR.
@@ -151,4 +154,4 @@ Actually, the specification of iterator is redundant and should be specified in 
 .SH SEE ALSO
 inspire(1), index(1), aminoacids(1)
 .SH AUTHOR
-Jan JelÃ­nek (jelinek@ksi.mff.cuni.cz)
+Jan Jelínek (jelinek@ksi.mff.cuni.cz)

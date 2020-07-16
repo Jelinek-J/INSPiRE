@@ -4,7 +4,7 @@
 .SH NAME
 predict \- make prediction
 .SH SYNOPSIS
-\fBpredict\fR (\fB-f\fR\fITHRESHOLDS\fR ([\fB-\fR] \fISTATISTICS\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
+\fBpredict\fR ((\fB-f\fR\fITHRESHOLDS\fR | \fB-w\fR\fIWEIGHTS\fR) ([\fB-\fR] \fISTATISTICS\-FILE\fR \fIOUTPUT\-PATH\fR)+)+
 
 .B predict \-h
 .SH DESCRIPTION
@@ -17,6 +17,14 @@ i.e. it is tested whether number of hits with label \fB0\fR divided by a number 
 
 \fITHRESHOLDS\fR must contains number of 2\-combination of \fIx\fR space\-separated decimal numbers greater than or equal to 0 and less than or equal to 1,
 where \fIx\fR is number of labels in \fISTATISTICS\-FILE\fR and order of labels in \fISTATISTICS\-FILE\fR's header must be preserved.
+.TP
+\fB-w\fIWEIGHTS\fR
+Weighted classificator with the given weights will be used for the prediction.
+I.e. it is selected a label whose number of hits times weight of the label is the highest.
+\fIWEIGHTS\fR must contains \fIx\fR-1 space-separated decimal numbers greater than or equal to 0,
+where \fIx\fR is a number of labels in \fISTATISTICS\-FILE\fR.
+Order weights must be the same as the order of labels in \fISTATISTICS\-FILE\fR's;
+A weight  of the last label is calculated as 1-SUM(\fIWEIGHTS\fR), thus SUM(\fIWEIGHTS\fR) must be less than or equal to one.
 .TP
 \fISTATISTICS\-FILE\fR
 Set of mined statistics used for prediction.
