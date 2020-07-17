@@ -22,7 +22,7 @@ namespace inspire {
         while (std::getline(parts, part, ' ')) {
           double threshold = std::stof(part);
           rest -= threshold;
-          if (threshold < 0 || rest < 1) {
+          if (threshold < 0 || rest < 0) {
             throw common::exception::TitledException("Threshold '" + part + "' is out of boundaries; all threshold must be within interval [0; 1].");
           }
           WEIGHTS.push_back(threshold);
