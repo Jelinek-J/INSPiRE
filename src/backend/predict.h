@@ -83,9 +83,9 @@ namespace inspire {
             }
           }
           size_t best_index = 0;
-          size_t best_value = WEIGHTS[best_index]*counts[best_index];
+          double best_value = WEIGHTS[best_index]*counts[best_index];
           for (size_t i = 1; i < WEIGHTS.size(); i++) {
-            size_t tmp = WEIGHTS[i]*counts[i];
+            double tmp = WEIGHTS[i]*counts[i];
             if (tmp > best_value) {
               best_index = i;
               best_value = tmp;
