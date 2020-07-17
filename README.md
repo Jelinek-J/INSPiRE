@@ -194,7 +194,7 @@ echo -e "\n0.5\n-a\n--\nc12\nd6" > knowledge-base/config
 At this point, 'knowledge-base' directory should be exactly the same as in the case of the chapter 2.a.
 
 ## 2.c: Advanced usage - tips ##
-In this subchapter I demonstrate how could be INSPiRE addopted for a related task to
+In this subchapter I demonstrate how could be INSPiRE adapted for a related task to
 show you some tips that could be usefull for advanced usage of INSPiRE.
 Note that this is not full list of options - 
 tools' complete documentation with all available options can be shown by typing `man <tool_name>` or `<tool_name> -h` -
