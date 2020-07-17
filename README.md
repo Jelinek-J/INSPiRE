@@ -292,5 +292,34 @@ mv intermediate_kb2/interface.tur knowledge-base2/
 The first part of a prediction is principially the same as the construction of knowledge-base,
 so without unnecessary talks:
 ```
+index intermediate_query2/index.ind -w query/
+features -w intermediate_query2/index.ind intermediate_query2/ - -c -Pknowledge-base2/aminoacid.nor -a query/
+subgraphs intermediate_query2/index.ind intermediate_query2/coordinate.tur intermediate_query2/ -c 12 -d 6
+fingerprints q intermediate_query2/fingerprints.fit knowledge-base2/settings.json intermediate_query2/index.ind intermediate_query2/c12.sup intermediate_query2/d6.000000.sup intermediate_query2/taminoacid.tur
+```
+During mining similar residues, 
+we can use a feature to prefilter a knowledge-base for subgraphs with the same value of their 'central residue' as the query subgraph has.
+It can be even a feature not used for generation of fingerprints, it just must be indexed by `fingerprints` tool.
+```
+mine -c taminoacid -k knowledge-base2/ intermediate_query2/fingerprints.fit intermediate_query2/mined.med
+```
 
+If a features file contains only one feature, you do not need to specify, what feature to use for classification.
+```
+classify knowledge-base2/interface.tur intermediate_query2/mined.med intermediate_query2/classified.sas
+```
+
+For binary prediction we used a fractional predictor, i.e. 
+if ratio of interfacial and all hits is greater than threshold,
+the query was also labeled as a threshold.
+However generalization of such predictor into higher dimension is not so straighforward.
+So for the current task it is more suitable to use weighted classificator, i.e. 
+counts are multiplied by weights and a label of the highest weighted counts is used as the prediction.
+```
+predict -w"0.6 0.3" intermediate_query2/classified.sas intermediate_query2/prediction.pec
+```
+
+Finally we just export prediction into some common format, e.g. xml:
+```
+assign -x intermediate_query2/index.ind intermediate_query2/prediction.pec results2.xml
 ```
