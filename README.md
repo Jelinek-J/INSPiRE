@@ -216,7 +216,9 @@ mkdir intermediate_query2
 mkdir intermediate_kb2
 ```
 
-First we need to create an index file, however as we need to distinguish biological and crystallographic contacts,
+First we need to construct a knowledge-base.
+Consider we have a set of proteins that we can use,
+so we start with creation of an index file, however as we need to distinguish biological and crystallographic contacts,
 we do not need the default biomolecular iterator.
 For the simplicity of this demonstration, we use explicitly written molecules only (ignoring transformations)
 ```
@@ -289,8 +291,10 @@ mv intermediate_kb2/interface.tur knowledge-base2/
 ```
 
 ### Prediction ###
+Now consider we a protein and we want to identify, what contacts are biological and what contacts are crystallograpic.
 The first part of a prediction is principially the same as the construction of knowledge-base,
-so without unnecessary talks:
+as we probably have just measured protein without crystallographic/ biological annotation, 
+so we use the same iterator and other commands are similar too:
 ```
 index intermediate_query2/index.ind -w query/
 features -w intermediate_query2/index.ind intermediate_query2/ - -c -Pknowledge-base2/aminoacid.nor -a query/
