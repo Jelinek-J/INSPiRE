@@ -202,7 +202,7 @@ both commands should show you the same information,
 however I recommend you to use man pages (the first option)
 as they allow richer formatting.
 
-Consider that we want to classify crystallographic and biological interaction interfaces.
+And now about the task. Consider that we want to classify crystallographic and biological interaction interfaces.
 Similar to the subchapter 2.b, you should start with update of INSPiRE and create working directories.
 ```
 pushd INSPiRE/
