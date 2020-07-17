@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-//#define TESTING
+#define TESTING
 
 void help() {
   std::cout << "Help\n\n";
@@ -32,10 +32,10 @@ int main(int argc, const char** argv) {
   std::ofstream log("C:\\Inspire\\error-subgraphs.log");
   argc = 6;
   const char* args[] = {argv[0],
-    "C:\\Inspire\\basic2\\fingerprints\\interfaces.tur",
+    "C:\\Inspire\\repair\\interface.tur",
     "-f", "interface",
-    "C:\\Inspire\\basic2\\gvin3\\prediction\\mined.med",
-    "C:\\Inspire\\basic2\\gvin3\\prediction\\stats"
+    "C:\\Inspire\\repair\\mined.med",
+    "C:\\Inspire\\repair\\stats"
   };
   argv = args;
 #endif // TESTING

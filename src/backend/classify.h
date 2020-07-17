@@ -109,7 +109,7 @@ namespace inspire {
             if (none_it == counts_it->second.end()) {
               output_file << 0;
             } else {
-              output_file << none;
+              output_file << none_it->second;
             }
             output_file << '\n';
           }
