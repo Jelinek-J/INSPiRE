@@ -299,11 +299,38 @@ so we use the same iterator and other commands are similar too:
 index intermediate_query2/index.ind -w query/
 features -w intermediate_query2/index.ind intermediate_query2/ - -c -Pknowledge-base2/aminoacid.nor -a query/
 subgraphs intermediate_query2/index.ind intermediate_query2/coordinate.tur intermediate_query2/ -c 12 -d 6
-fingerprints q intermediate_query2/fingerprints.fit knowledge-base2/settings.json intermediate_query2/index.ind intermediate_query2/c12.sup intermediate_query2/d6.000000.sup intermediate_query2/taminoacid.tur
+```
+As we want to distinguish biological and crystallographic contacts only and
+not to predict, what could be a part of an interaction interface,
+we want to analyze only residues that actually are a part of an interface.
+There is not a specialized tool for it, 
+however we can do it using existing INSPiRE tools and basic bash command `grep`.
+We use the query index and compute an interface feature.
+```
+features -w intermediate_query2/index.ind intermediate_query2/interfaces.tur -iknowledge-base2/radiuses.rus query/
+```
+Then we use `nl` to add line numbers (index) to the feature file, 
+filter out non-interfacial residues using `grep`,
+remove label column using `cut`, and 
+trim end spaces and add a 'begin of a line' anchor using `sed`.
+```
+nl -nln -v0 intermediate_query2/interfaces.tur | grep -w 'I$' | cut -f 1 | sed -e 's/ \+$//g' -e 's/^/^/g' > intermediate_query2/interfacial.regexp
+```
+With this file we can filter subgraphs file for interfacial central residues only using `grep`:
+```
+grep -w -f intermediate_query2/interfacial.regexp intermediate_query2/c12.sup > intermediate_query2/c12-interfacial.sup
+```
+
+This filterig was the biggest difference from the basic pipeline.
+Now we can continue in the prediction pipeline by generating fingerprints.
+```
+fingerprints q intermediate_query2/fingerprints.fit knowledge-base2/settings.json intermediate_query2/index.ind intermediate_query2/c12-interfacial.sup intermediate_query2/d6.000000.sup intermediate_query2/taminoacid.tur
 ```
 During mining similar residues, 
 we can use a feature to prefilter a knowledge-base for subgraphs with the same value of their 'central residue' as the query subgraph has.
 It can be even a feature not used for generation of fingerprints, it just must be indexed by `fingerprints` tool.
+Apart from a better similarity of hits, 
+it also results in a quicker prediction as queries will be compared with less amount of fingerprints.
 ```
 mine -c taminoacid -k knowledge-base2/ intermediate_query2/fingerprints.fit intermediate_query2/mined.med
 ```
