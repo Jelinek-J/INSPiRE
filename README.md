@@ -194,32 +194,55 @@ echo -e "\n0.5\n-a\n--\nc12\nd6" > knowledge-base/config
 At this point, 'knowledge-base' directory should be exactly the same as in the case of the chapter 2.a.
 
 ## 2.c: Advanced usage - tips ##
-In this subchapter you find some tips that could be usefull for advanced usage of INSPiRE.
+In this subchapter I demonstrate how could be INSPiRE addopted for a related task to
+show you some tips that could be usefull for advanced usage of INSPiRE.
 Note that this is not full list of options - 
 tools' complete documentation with all available options can be shown by typing `man <tool_name>` or `<tool_name> -h` -
 both commands should show you the same information,
 however I recommend you to use man pages (the first option)
 as they allow richer formatting.
-The most of following examples expect that you have completed commands from chapter 2.b 
-(i.e. that exists directory `intermediate_kb` and that index file is generated).
+
+Consider that we want to classify crystallographic and biological interaction interfaces.
+Similar to the subchapter 2.b, you should start with update of INSPiRE and create working directories.
+```
+pushd INSPiRE/
+git pull
+cd src/
+make fragments
+sudo make install
+popd
+cd INSPiRE/examples
+mkdir intermediate_query2
+mkdir intermediate_kb2
+```
+
+First we need to create an index file, however as we need to distinguish biological and crystallographic contacts,
+we do not need the default biomolecular iterator.
+For the simplicity of this demonstration, we use explicitly written molecules only (ignoring transformations)
+```
+index intermediate_kb2/index.ind -w queries/
+```
 
 ### Own feature ###
-Consider that you want to use some feature that is not available in INSPiRE and 
-you do not want to extend INSPiRE by implementing it,
-but that you have it from an external resource.
-You can import it into INSPiRE if it is in a suitable format.
+As INSPiRE does not contains a feature indicating whether a residue is a part of biomolecular or crystallographic interface,
+either we can extend INSPiRE by implementing the feature, or
+we can import the feature from an external resource if it is in a suitable format.
 One of the formats is so called simple format.
 Such file consists of lines in a form: `<protein_id>.<chain_id>.<residue_id><insertion_code>TAB<value>`.
 Such feature will be imported with name `xenofeature` by command:
 ```
-features intermediate_kb/index.ind intermediate_kb/random.tur -Xsrandom.csv queries/
+features intermediate_kb2/index.ind intermediate_kb2/random.tur -Xsrandom.csv queries/
 ```
 
 ### Rename feature ###
-You probable will want to rename the feature from `xenofeature` to something more suitable.
-It can be done by `-N` switcher, so a better command would be:
+If we try to use a wide range of features, 
+their default names probably will not be unique.
+However INSPiRE require to each feature has an unique name.
+Thus we probably will need to rename (some) features.
+Or we could want to rename the feature from `xenofeature` to something more suitable.
+It can be done by `-N` switcher, so a command could looks like:
 ```
-features intermediate_kb/index.ind intermediate_kb/random.tur -Nrandom -Xsintermediate_kb/random.csv queries/
+features -w intermediate_kb2/index.ind intermediate_kb2/random.tur -Nrandom -Xsrandom.csv queries/
 ```
 
 ### Separate features ###
@@ -233,6 +256,41 @@ In such a situation you can use `-` switch saying that
 each feature should be stored in a separated file.
 With this option the first argument is not a filename, but a directory name, where 
 each file will be stored named by its feature's name, so now it is important to each feature has an unique name.
+So all features needed for our example can be computed in a single run of `features` tool by:
 ```
-features intermediate_kb/index.ind intermediate_kb/ - -Nrandom -Xsintermediate_kb/random.csv queries/
+features -w intermediate_kb2/index.ind intermediate_kb2/ - -Ninterface -Xsrandom.csv -c -Pfingerprints/aminoacid.nor -a queries/
+```
+
+### Subgraphs nodes/ edges replacebility ###
+Subgraphs are defined using two files:
+- In the first one, each line defines what nodes are in a graph with the first node being a 'central node'; and
+- in the second one, each line defines what nodes are connected with the first node on that line
+(so you can consider it as an oriented edges).
+
+Such approach has one advantage - it is space-saving as 
+you can simply change size of subgraphs with be keeping definition of edges
+or you can even use the same file for both subgraphs and edges definition.
+The approach has also one disadvantage - you cannot have two nodes connected with some subgraphs and disconnected in another subgraphs.
+However we have not yet encountered such a request and
+such requirment could be tweaked by duplication of residues.
+
+```
+subgraphs intermediate_kb2/index.ind intermediate_kb2/coordinate.tur intermediate_kb2/ -c 12 -d 6
+```
+
+### Fingerprints ###
+For the last step in building the knowledge-base we have no tip.
+We just do not recommend to use a float features (or actually no feature with a large dimension), 
+you should bin them as their values are used to create a directory structure.
+```
+fingerprints k knowledge-base2/ settings.json intermediate_kb2/index.ind intermediate_kb2/c12.sup intermediate_kb2/d6.000000.sup intermediate_kb2/taminoacid.tur
+cp fingerprints/aminoacid.nor fingerprints/radiuses.rus settings.json knowledge-base2/
+mv intermediate_kb2/interface.tur knowledge-base2/
+```
+
+### Prediction ###
+The first part of a prediction is principially the same as the construction of knowledge-base,
+so without unnecessary talks:
+```
+
 ```
