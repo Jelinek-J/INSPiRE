@@ -306,7 +306,7 @@ not to predict, what could be a part of an interaction interface,
 we want to analyze only residues that actually are a part of an interface.
 There is not a specialized tool for it, 
 however we can do it using existing INSPiRE tools and basic bash command `grep`.
-We use the query index and compute an interface feature.
+First, we use the query index and compute an interface feature.
 ```
 features -w intermediate_query2/index.ind intermediate_query2/interfaces.tur -iknowledge-base2/radiuses.rus query/
 ```
@@ -322,7 +322,7 @@ With this file we can filter subgraphs file for interfacial central residues onl
 grep -w -f intermediate_query2/interfacial.regexp intermediate_query2/c12.sup > intermediate_query2/c12-interfacial.sup
 ```
 
-This filterig was the biggest difference from the basic pipeline.
+This filtering was the biggest difference from the basic pipeline.
 Now we can continue in the prediction pipeline by generating fingerprints.
 ```
 fingerprints q intermediate_query2/fingerprints.fit knowledge-base2/settings.json intermediate_query2/index.ind intermediate_query2/c12-interfacial.sup intermediate_query2/d6.000000.sup intermediate_query2/taminoacid.tur
