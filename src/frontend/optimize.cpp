@@ -14,12 +14,15 @@ void help() {
 
   std::cout << "Optimize parameters of a classifier based on the selected feature and mined statistics.\n\n";
 
-  std::cout << "Usage:\t(-f<PRECISION> (-l<FEATURES-FILE> ([-] <STATISTICS-FILE> -o<OUTPUT-PATH>)+)+)+\n";
+  std::cout << "Usage:\t(-(f|w)<PRECISION> (-l<FEATURES-FILE> ([-] <STATISTICS-FILE> -o<OUTPUT-PATH>)+)+)+\n";
   std::cout << "      \t-h\n\n";
 
   std::cout << "Options:\t-f<PRECISION>      \tFractional binary classificator's threshold will be optimised with the given precission,\n";
-  std::cout << "        \t                   \ti.e. (i+0.5)/<PRECISION> for i from 0 to (<PRECISION>-1) is tested as threshold for ratio of positive and negative cases.\n";
+  std::cout << "        \t                   \ti.e. (i+0.5)/<PRECISION> for i from 0 to (<PRECISION>-1) are tested as threshold for ratio of positive and negative cases.\n";
   std::cout << "        \t                   \tThreshold is optimized using Matthews correlation coefficient as a prediction quality metric.\n";
+  std::cout << "        \t-w<PRECISION>      \tWeighted classificator's weights will be optimised with the given precission,\n";
+  std::cout << "        \t                   \ti.e. all combination of weights from 1/<PRECISSION> to 1 such that sum of weights is equal to 1 are tested.\n";
+  std::cout << "        \t                   \tThreshold is optimized using generalized Matthews correlation coefficient as a prediction quality metric.\n";
   std::cout << "        \t-l<FEATURES-FILE>  \tReal labels of residues their classification is optimized.\n";
   std::cout << "        \t<STATISTICS-FILE>  \tSet of mined statistics used for optimization.\n";
   std::cout << "        \t<OUTPUT-PATH>      \tWhere to store output file.\n";
@@ -32,11 +35,12 @@ int main(int argc, const char** argv) {
 #ifdef TESTING
   // Errors log for testing reasons
   std::ofstream log("C:\\Inspire\\error-optimize.log");
-  argc = 4;
+  argc = 5;
   const char* args[] = {argv[0],
-    "-lC:\\Inspire\\basic2\\gvin\\interfaces.tur",
-    "C:\\Inspire\\basic2\\gvin2\\ratios.sas",
-    "-oC:\\Inspire\\basic2\\gvin2\\dependence"
+    "-w1000",
+    "-lC:\\Inspire\\repair\\interfaces.tur",
+    "C:\\Inspire\\repair\\classified.sas",
+    "-oC:\\Inspire\\repair\\dependence2"
   };
   argv = args;
 #endif // TESTING
@@ -56,6 +60,7 @@ int main(int argc, const char** argv) {
     while (argv_index < argc && strlen(argv[argv_index]) >= 2 && argv[argv_index][0] == '-') {
       switch (argv[argv_index][1]) {
         case 'f':
+        case 'w':
           if (optimizer != nullptr) {
             delete optimizer;
           }
@@ -67,6 +72,8 @@ int main(int argc, const char** argv) {
           }
           if (common::string::starts_with(function, "f")) {
             optimizer = new inspire::backend::FractionalOptimizer(std::string(argv[argv_index]).substr(2), std::stoi(function.substr(1)));
+          } else if (common::string::starts_with(function, "w")) {
+            optimizer = new inspire::backend::WeightedOptimizer(std::string(argv[argv_index]).substr(2), std::stoi(function.substr(1)));
           } else {
             std::cerr << "Unknown optimize '" << function << "'." << std::endl;
             help();
