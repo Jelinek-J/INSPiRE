@@ -4,7 +4,7 @@
 .SH NAME
 optimize \- optimize parameters of a classifier
 .SH SYNOPSIS
-\fBoptimize\fR (\fB-f\fIPRECISION\fR (\fB-l\fIFEATURES\-FILE\fR ([\fB-\fR] \fISTATISTICS\-FILE\fR \fB-o\fIOUTPUT\-PATH\fR)+)+)+
+\fBoptimize\fR (\fB-(f|w)\fIPRECISION\fR (\fB-l\fIFEATURES\-FILE\fR ([\fB-\fR] \fISTATISTICS\-FILE\fR \fB-o\fIOUTPUT\-PATH\fR)+)+)+
 
 .B optimize \-h
 .SH DESCRIPTION
@@ -16,6 +16,12 @@ Fractional binary classificator's threshold will be optimised with the given pre
 i.e. (\fIi\fR+0.5)/\fIPRECISION\fR for \fIi\fR from 0 to (\fIPRECISION\fR\-1) is tested as threshold for ratio of positive and negative cases.
 
 Threshold is optimized using Matthews correlation coefficient as a prediction quality metric.
+.TP
+\fB-w\fIPRECISION\fR
+Weighted classificator's weights will be optimised with the given precission,
+i.e. all combination of weights from 1/\fIPRECISION\fR to 1 such that sum of weights is equal to 1 are tested.
+
+Threshold is optimized using generalized Matthews correlation coefficient as a prediction quality metric.
 .TP
 \fB-l\fIFEATURES\-FILE\fR
 Real labels of residues their classification is optimized.
