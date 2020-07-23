@@ -203,7 +203,7 @@ however I recommend you to use man pages (the first option)
 as they allow richer formatting.
 
 And now about the task. Consider that we want to classify crystallographic and biological interaction interfaces.
-Similar to the subchapter 2.b, you should start with update of INSPiRE and create working directories.
+Similar to the subchapter 2.b, you should start with update of INSPiRE, and create working directories and setting file.
 ```
 pushd INSPiRE/
 git pull
@@ -214,6 +214,7 @@ popd
 cd INSPiRE/examples
 mkdir intermediate_query2
 mkdir intermediate_kb2
+echo '{"fingerprint":{"size":1023,"edge":[{"type":"distance","size":4}],"vertex": [{"type": "mapping","property": "taminoacid","map": {"A": 1,"B": 2,"C": 3,"D": 4,"E": 5,"F": 6,"G": 7,"H": 8,"I": 9,"J": 10,"K": 11,"L": 12,"M": 13,"N":14,"O": 15,"P": 16,"Q": 17,"R": 18,"S": 19,"T": 20,"U": 21,"V": 22,"W": 23,"X": 0,"Y": 24,"Z": 25,"": 26},"size": 5}]}}' > settings.json
 ```
 
 First we need to construct a knowledge-base.
