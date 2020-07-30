@@ -106,8 +106,8 @@
    </g>
   </g>
   <g>
-   <path fill="none" stroke="rgb(0,0,0)" id="Drawing_9_0" stroke-linejoin="round" d="M 2501,5000 L 2501,8050"/>
-   <path fill="rgb(0,0,0)" stroke="none" id="Drawing_9_1" d="M 2501,8500 L 2651,8050 2351,8050 2501,8500 Z"/>
+   <path fill="none" stroke="rgb(0,0,0)" id="Drawing_9_0" stroke-linejoin="round" d="M 2501,5000 L 2501,5550"/>
+   <path fill="rgb(0,0,0)" stroke="none" id="Drawing_9_1" d="M 2501,6000 L 2651,5550 2351,5550 2501,6000 Z"/>
   </g>
   <g>
    <path fill="none" stroke="rgb(0,0,0)" id="Drawing_10_0" stroke-linejoin="round" d="M 6001,4000 L 4451,4000"/>
