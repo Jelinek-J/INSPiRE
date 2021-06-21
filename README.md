@@ -78,6 +78,7 @@ Then you can install FreeSASA by:
 git clone https://github.com/mittinatten/freesasa.git
 pushd freesasa
 autoreconf -i
+git submodule update --init --recursive
 ./configure --disable-xml --disable-json
 make
 sudo make install
