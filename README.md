@@ -71,14 +71,14 @@ sudo apt-get update
 ```
 Then you you should install Boost library (it is used to have OS-independent manipulation with files etc.), git (it is used to download INSPiRE and FreeSASA) and autoconf (it is used to install FreeSASA):
 ```
-sudo apt-get install libboost-all-dev git autoconf pkg-config make g++ man
+sudo apt-get install libboost-all-dev git autoconf pkg-config make g++ man libc++-11-dev libc++abi-11-dev
 ```
 Then you can install FreeSASA by:
 ```
 git clone https://github.com/mittinatten/freesasa.git
 pushd freesasa
-autoreconf -i
 git submodule update --init --recursive
+autoreconf -i
 ./configure --disable-xml --disable-json
 make
 sudo make install
